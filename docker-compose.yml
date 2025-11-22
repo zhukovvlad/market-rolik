@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # --- База данных (PostgreSQL) ---
+  postgres:
+    image: postgres:16-alpine
+    container_name: market_rolik_db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: market_rolik
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - market_rolik_net
+
+  # --- Очереди задач (Redis) ---
+  redis:
+    image: redis:7-alpine
+    container_name: market_rolik_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - market_rolik_net
+
+volumes:
+  pg_data:
+  redis_data:
+
+networks:
+  market_rolik_net:
+    driver: bridge
