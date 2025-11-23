@@ -1,14 +1,18 @@
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
+import { CreateProjectDto } from './dto/create-project.dto';
 
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  async create(@Body('userId') userId: string, @Body('title') title: string) {
+  async create(@Body() createProjectDto: CreateProjectDto) {
     // В будущем userId будем брать из JWT токена (req.user.id)
-    return this.projectsService.createProject(userId, title);
+    return this.projectsService.createProject(
+      createProjectDto.userId,
+      createProjectDto.title,
+    );
   }
 
   @Get(':id')

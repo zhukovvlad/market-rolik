@@ -4,7 +4,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { ProxyService } from './common/proxy.service';
 import { StorageService } from './storage/storage.service';
-import { IsOptional, IsUrl, IsString } from 'class-validator';
+import { IsOptional, IsUrl, IsString, IsUUID } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './users/user.entity';
@@ -19,7 +19,7 @@ class TestPhotoroomDto {
   imageUrl?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   projectId?: string;
 }
 
