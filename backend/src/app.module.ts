@@ -14,6 +14,8 @@ import { CommonModule } from './common/common.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
+import { StorageModule } from './storage/storage.module';
+
 @Module({
   imports: [
     // 1. Чтение .env файла
@@ -48,6 +50,7 @@ import { AppService } from './app.service';
     }),
     QueuesModule,
     CommonModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],
