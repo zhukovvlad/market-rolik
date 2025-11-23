@@ -10,6 +10,7 @@ import { Asset } from './projects/asset.entity';
 import { Transaction } from './transactions/transaction.entity';
 import { QueuesModule } from './queues/queues.module';
 import { CommonModule } from './common/common.module';
+import { ProjectsModule } from './projects/projects.module';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -51,6 +52,8 @@ import { StorageModule } from './storage/storage.module';
     QueuesModule,
     CommonModule,
     StorageModule,
+    ProjectsModule,
+    TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,5 +1,8 @@
 # 🚀 Маркет-Ролик (MVP)
 
+**Статус:** 🚧 Phase 2.3 Completed (Photoroom Integration & S3 Storage)
+**Прогресс:** [Посмотреть Roadmap](roadmap.html)
+
 **Маркет-Ролик** — это SaaS-платформа для автоматической генерации **видео-обложек** для маркетплейсов (**Wildberries**, **Ozon**) с помощью:
 
 * AI (Kling, Photoroom, YandexGPT)
@@ -7,6 +10,18 @@
 * микросервисной архитектуры (NestJS + Next.js)
 
 Проект построен как двухсервисная система с общей локальной инфраструктурой.
+
+---
+
+## ✅ Реализованный функционал
+
+*   **Инфраструктура**: Docker Compose (PostgreSQL + Redis).
+*   **База данных**: TypeORM сущности (User, Project, Asset, Transaction).
+*   **Очереди задач**: BullMQ (Redis) для асинхронной обработки.
+*   **Proxy Service**: Проксирование запросов через зарубежные серверы (для обхода блокировок AI-сервисов).
+*   **Storage Service**: Интеграция с S3 (Timeweb) для хранения медиа-файлов.
+*   **Image Processor**: Воркер для удаления фона с изображений (Photoroom API + Mock режим).
+*   **Projects Module**: API для создания проектов и сохранения результатов генерации.
 
 ---
 
@@ -79,17 +94,35 @@ npm install @nestjs/typeorm typeorm pg \
 
 Создайте `backend/.env`:
 
-```
+```env
 PORT=4000
 
+# Database
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
 DATABASE_USER=admin
 DATABASE_PASSWORD=root
 DATABASE_NAME=market_rolik
 
+# Redis
 REDIS_HOST=localhost
 REDIS_PORT=6379
+
+# S3 Storage (Timeweb / Minio / AWS)
+S3_REGION=ru-1
+S3_ENDPOINT=https://s3.timeweb.com
+S3_ACCESS_KEY=your_access_key
+S3_SECRET_KEY=your_secret_key
+S3_BUCKET=market-rolik-media
+
+# Proxy (Optional - for AI services)
+PROXY_HOST=
+PROXY_PORT=
+PROXY_USER=
+PROXY_PASSWORD=
+
+# AI Keys
+PHOTOROOM_API_KEY=mock  # Используйте 'mock' для тестирования без затрат
 ```
 
 ### Запуск dev-сервера
