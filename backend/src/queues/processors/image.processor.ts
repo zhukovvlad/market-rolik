@@ -33,6 +33,8 @@ export class ImageProcessor {
     this.logger.log(`🎨 Начало обработки фона для: ${job.data.imageUrl}`);
 
     const apiKey = this.configService.get<string>('PHOTOROOM_API_KEY');
+    const isMock =
+      !apiKey || apiKey === 'your_photoroom_key_here' || apiKey === 'mock';
 
     // 1. Скачиваем исходник (безопасно)
     let inputBuffer: Buffer;
@@ -96,7 +98,7 @@ export class ImageProcessor {
 
     // === MOCK РЕЖИМ (ЕСЛИ КЛЮЧА НЕТ ИЛИ ОН НЕВЕРНЫЙ) ===
     // Если ключа нет или он "mock", мы просто вернем ту же картинку
-    if (!apiKey || apiKey === 'your_photoroom_key_here' || apiKey === 'mock') {
+    if (isMock) {
       this.logger.warn(
         '⚠️ Используется MOCK-режим (без реального AI). Возвращаем оригинал.',
       );
@@ -155,7 +157,7 @@ export class ImageProcessor {
         job.data.projectId,
         s3Url,
         AssetType.IMAGE_CLEAN, // Указываем тип ассета
-        apiKey === 'mock' ? 'mock-ai' : 'photoroom', // Провайдер
+        isMock ? 'mock-ai' : 'photoroom', // Провайдер
       );
       this.logger.log(`💾 Ассет сохранен в БД для проекта ${job.data.projectId}`);
     }

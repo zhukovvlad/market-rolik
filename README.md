@@ -92,7 +92,7 @@ npm install @nestjs/typeorm typeorm pg \
 
 ### .env
 
-Создайте `backend/.env`:
+Создайте `backend/.env` (не добавляйте этот файл в git, если он содержит реальные ключи):
 
 ```env
 PORT=4000
@@ -109,6 +109,7 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 
 # S3 Storage (Timeweb / Minio / AWS)
+# Внимание: Никогда не коммитьте реальные ключи доступа!
 S3_REGION=ru-1
 S3_ENDPOINT=https://s3.timeweb.com
 S3_ACCESS_KEY=your_access_key
