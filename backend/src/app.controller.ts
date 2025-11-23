@@ -1,12 +1,25 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger } from '@nestjs/common';
 import { AppService } from './app.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { ProxyService } from './common/proxy.service';
 import { StorageService } from './storage/storage.service';
+import { IsOptional, IsUrl } from 'class-validator';
+
+interface IpifyResponse {
+  ip: string;
+}
+
+class TestPhotoroomDto {
+  @IsOptional()
+  @IsUrl()
+  imageUrl?: string;
+}
 
 @Controller()
 export class AppController {
+  private readonly logger = new Logger(AppController.name);
+
   constructor(
     private readonly appService: AppService,
     // 👇 Старая очередь (видео)
@@ -33,7 +46,7 @@ export class AppController {
 
   @Get('check-ip')
   async checkIp() {
-    const data = await this.proxyService.get(
+    const data = await this.proxyService.get<IpifyResponse>(
       'https://api.ipify.org?format=json',
     );
     return {
@@ -44,7 +57,7 @@ export class AppController {
 
   @Get('test-upload')
   async testUpload() {
-    console.log('🚀 Начинаю тест загрузки в S3 (Timeweb)...');
+    this.logger.log('🚀 Начинаю тест загрузки в S3 (Timeweb)...');
 
     const fakeFile = Buffer.from(
       'Привет! Это проверка связи с Timeweb S3 для Market-Rolik.',
@@ -52,7 +65,7 @@ export class AppController {
 
     const url = await this.storageService.uploadFile(fakeFile, 'text/plain');
 
-    console.log('✅ Файл загружен:', url);
+    this.logger.log(`✅ Файл загружен: ${url}`);
 
     return {
       status: 'success',
@@ -63,21 +76,26 @@ export class AppController {
 
   // Теперь ошибок не будет, так как imageQueue объявлен в конструкторе
   @Post('test-photoroom')
-  async testPhotoroom(@Body('imageUrl') imageUrl: string) {
+  async testPhotoroom(@Body() body: TestPhotoroomDto) {
     // Если URL не передали, берем тестовый (кроссовки Nike)
     const url =
-      imageUrl ||
+      body.imageUrl ||
       'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop';
 
-    const job = await this.imageQueue.add('remove-background', {
-      imageUrl: url,
-    });
+    try {
+      const job = await this.imageQueue.add('remove-background', {
+        imageUrl: url,
+      });
 
-    return {
-      status: 'started',
-      jobId: job.id,
-      message: 'Задача отправлена воркеру. Смотри логи терминала!',
-      input_image: url,
-    };
+      return {
+        status: 'started',
+        jobId: job.id,
+        message: 'Задача отправлена воркеру. Смотри логи терминала!',
+        input_image: url,
+      };
+    } catch (error) {
+      this.logger.error('Failed to enqueue image processing job', error);
+      throw error;
+    }
   }
 }

@@ -34,8 +34,16 @@ export class StorageService {
     folder: string = 'uploads',
   ): Promise<string> {
     try {
+      // Validate inputs
+      if (!fileBuffer || fileBuffer.length === 0) {
+        throw new Error('File buffer is empty');
+      }
+      if (!mimeType || !mimeType.includes('/')) {
+        throw new Error('Invalid MIME type format');
+      }
+
       // Генерируем уникальное имя файла
-      const extension = mimeType.split('/')[1] || 'bin';
+      const extension = this.getExtension(mimeType);
       const fileName = `${folder}/${uuidv4()}.${extension}`;
 
       const command = new PutObjectCommand({
@@ -50,19 +58,47 @@ export class StorageService {
 
       // Формируем публичную ссылку (для Timeweb формат: https://s3.timeweb.com/bucket-name/file)
       // Или если привязан домен: https://bucket.s3.timeweb.com/file
-      const endpoint = this.configService.get<string>('S3_ENDPOINT');
-      // Убираем https:// чтобы чисто склеить
-      const cleanEndpoint = endpoint
-        ?.replace('https://', '')
-        .replace('http://', '');
+      const endpoint = this.configService.getOrThrow<string>('S3_ENDPOINT');
+      const endpointUrl = new URL(endpoint);
+      const publicUrl = `${endpointUrl.protocol}//${this.bucket}.${endpointUrl.host}/${fileName}`;
 
-      const publicUrl = `https://${this.bucket}.${cleanEndpoint}/${fileName}`;
-
-      this.logger.log(`File uploaded successfully: ${publicUrl}`);
+      this.logger.log(`✅ File uploaded to S3: ${publicUrl}`);
       return publicUrl;
     } catch (error) {
-      this.logger.error(`S3 Upload Error: ${error.message}`, error.stack);
+      this.logger.error(`❌ S3 Upload Error: ${error.message}`, error.stack);
       throw error;
     }
+  }
+
+  private getExtension(mimeType: string): string {
+    // 1. Убираем параметры (например, "image/svg+xml; charset=utf-8" -> "image/svg+xml")
+    const cleanMime = mimeType.split(';')[0].trim().toLowerCase();
+
+    // 2. Карта популярных типов
+    const mimeMap: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/gif': 'gif',
+      'image/webp': 'webp',
+      'image/svg+xml': 'svg',
+      'application/pdf': 'pdf',
+      'text/plain': 'txt',
+      'application/json': 'json',
+      'audio/mpeg': 'mp3',
+      'video/mp4': 'mp4',
+    };
+
+    if (mimeMap[cleanMime]) {
+      return mimeMap[cleanMime];
+    }
+
+    // 3. Если нет в карте, пытаемся вытащить из подтипа
+    // Пример: "application/vnd.ms-excel" -> "vnd.ms-excel"
+    // Пример: "image/svg+xml" (если бы не было в карте) -> "svg"
+    const subtype = cleanMime.split('/')[1];
+    if (!subtype) return 'bin';
+
+    // Берем левую часть до плюса (для +xml, +json и т.д.)
+    return subtype.split('+')[0] || 'bin';
   }
 }
