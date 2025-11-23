@@ -25,7 +25,11 @@ export class AiVideoService {
   ) {}
 
   // 1. Запуск генерации (Image to Video)
-  async generateKlingVideo(imageUrl: string, prompt: string): Promise<string> {
+  async generateKlingVideo(
+    imageUrl: string,
+    prompt: string,
+    options?: { negative_prompt?: string; cfg_scale?: number },
+  ): Promise<string> {
     const apiKey = this.configService.get<string>('PIAPI_API_KEY');
 
     // === MOCK MODE ===
@@ -41,8 +45,9 @@ export class AiVideoService {
       input: {
         image_url: imageUrl,
         prompt: prompt || 'Product cinematic shot, high quality, 4k',
-        negative_prompt: 'blur, distortion, low quality',
-        cfg_scale: 0.5,
+        negative_prompt:
+          options?.negative_prompt || 'blur, distortion, low quality',
+        cfg_scale: options?.cfg_scale ?? 0.5,
       },
       config: {
         service_mode: 'public', // или 'private'

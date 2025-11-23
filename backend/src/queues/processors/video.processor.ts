@@ -2,11 +2,12 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AiVideoService } from '../../common/ai-video.service';
 import { StorageService } from '../../storage/storage.service';
 import { ProjectsService } from '../../projects/projects.service';
 import { AssetType } from '../../projects/asset.entity';
-import axios from 'axios';
+import { ProxyService } from '../../common/proxy.service';
 
 // Функция паузы (sleep)
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -14,12 +15,21 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 @Processor('video-generation')
 export class VideoProcessor {
   private readonly logger = new Logger(VideoProcessor.name);
+  private readonly pollDelayMs: number;
+  private readonly maxPollAttempts: number;
 
   constructor(
     private readonly aiVideoService: AiVideoService,
     private readonly storageService: StorageService,
     private readonly projectsService: ProjectsService,
-  ) {}
+    private readonly proxyService: ProxyService,
+    private readonly configService: ConfigService,
+  ) {
+    this.pollDelayMs =
+      this.configService.get<number>('VIDEO_POLL_DELAY_MS') || 10000;
+    this.maxPollAttempts =
+      this.configService.get<number>('VIDEO_MAX_POLL_ATTEMPTS') || 30;
+  }
 
   @Process('generate-kling')
   async handleGenerateKling(
@@ -40,8 +50,8 @@ export class VideoProcessor {
       // Максимум 30 проверок по 10 секунд = 5 минут ожидания
       let videoUrl: string | undefined;
 
-      for (let i = 0; i < 30; i++) {
-        await delay(10000); // Ждем 10 секунд перед проверкой
+      for (let i = 0; i < this.maxPollAttempts; i++) {
+        await delay(this.pollDelayMs); // Ждем перед проверкой
 
         const result = await this.aiVideoService.checkTaskStatus(taskId);
         this.logger.log(
@@ -63,10 +73,10 @@ export class VideoProcessor {
 
       // 3. Скачиваем видео к себе (чтобы не зависеть от ссылок API)
       this.logger.log('📥 Downloading video result...');
-      const videoResponse = await axios.get(videoUrl, {
+      const videoData = await this.proxyService.get<Buffer>(videoUrl, {
         responseType: 'arraybuffer',
       });
-      const videoBuffer = Buffer.from(videoResponse.data);
+      const videoBuffer = Buffer.from(videoData);
 
       // 4. Загружаем в наш S3
       const s3Url = await this.storageService.uploadFile(

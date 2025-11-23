@@ -126,6 +126,10 @@ PROXY_PASSWORD=
 # AI Keys
 PHOTOROOM_API_KEY=mock  # Используйте 'mock' для тестирования без затрат
 PIAPI_API_KEY=mock      # API ключ для Kling (через PiAPI)
+
+# Video Generation Settings
+VIDEO_POLL_DELAY_MS=10000
+VIDEO_MAX_POLL_ATTEMPTS=30
 ```
 
 ### Запуск dev-сервера

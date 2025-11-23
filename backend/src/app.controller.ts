@@ -23,6 +23,16 @@ class TestPhotoroomDto {
   projectId?: string;
 }
 
+class TestVideoDto {
+  @IsOptional()
+  @IsUUID()
+  projectId?: string;
+
+  @IsOptional()
+  @IsUrl()
+  imageUrl?: string;
+}
+
 @Controller()
 export class AppController {
   private readonly logger = new Logger(AppController.name);
@@ -133,19 +143,16 @@ export class AppController {
     }
   }
 
-  // Тест генерации Видео (Kling)
+    // Тест генерации Видео (Kling)
   @Post('test-video')
-  async testVideo(
-    @Body('projectId') projectId: string,
-    @Body('imageUrl') imageUrl: string,
-  ) {
+  async testVideo(@Body() body: TestVideoDto) {
     // Если картинки нет, берем дефолтную (но лучше передавать реальную из S3)
     const url =
-      imageUrl ||
+      body.imageUrl ||
       'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop';
 
     const job = await this.videoQueue.add('generate-kling', {
-      projectId,
+      projectId: body.projectId,
       imageUrl: url,
       prompt: 'Cinematic slow motion, floating in the air, 4k advertising shot',
     });
