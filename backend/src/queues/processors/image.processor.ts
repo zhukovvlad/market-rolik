@@ -5,9 +5,16 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ProxyService } from '../../common/proxy.service';
 import { StorageService } from '../../storage/storage.service';
+import { ProjectsService } from '../../projects/projects.service';
+import { AssetType } from '../../projects/asset.entity';
 import FormData from 'form-data';
 import axios from 'axios';
 import { Readable } from 'stream';
+
+interface ImageJobData {
+  imageUrl: string;
+  projectId?: string;
+}
 
 @Processor('image-processing')
 export class ImageProcessor {
@@ -18,10 +25,11 @@ export class ImageProcessor {
     private readonly configService: ConfigService,
     private readonly proxyService: ProxyService,
     private readonly storageService: StorageService,
+    private readonly projectsService: ProjectsService,
   ) {}
 
   @Process('remove-background')
-  async handleRemoveBackground(job: Job<{ imageUrl: string }>) {
+  async handleRemoveBackground(job: Job<ImageJobData>) {
     this.logger.log(`🎨 Начало обработки фона для: ${job.data.imageUrl}`);
 
     const apiKey = this.configService.get<string>('PHOTOROOM_API_KEY');
@@ -140,6 +148,17 @@ export class ImageProcessor {
       'processed',
     );
     this.logger.log(`🚀 Готово! Результат в облаке: ${s3Url}`);
+
+    // 4. 🔥 СОХРАНЕНИЕ В БАЗУ ДАННЫХ 🔥
+    if (job.data.projectId) {
+      await this.projectsService.addAsset(
+        job.data.projectId,
+        s3Url,
+        AssetType.IMAGE_CLEAN, // Указываем тип ассета
+        apiKey === 'mock' ? 'mock-ai' : 'photoroom', // Провайдер
+      );
+      this.logger.log(`💾 Ассет сохранен в БД для проекта ${job.data.projectId}`);
+    }
 
     return {
       original: job.data.imageUrl,

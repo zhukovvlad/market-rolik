@@ -4,11 +4,13 @@ import { VideoProcessor } from './test.processor'; // Твой старый те
 import { ImageProcessor } from './processors/image.processor'; // <--- Наш новый воркер
 import { CommonModule } from '../common/common.module'; // <--- Нужно для ProxyService
 import { StorageModule } from '../storage/storage.module'; // <--- Нужно для StorageService
+import { ProjectsModule } from '../projects/projects.module'; // <--- Нужно для ProjectsService
 
 @Module({
   imports: [
     CommonModule, // Импортируем, чтобы ImageProcessor видел ProxyService
     StorageModule, // Импортируем, чтобы ImageProcessor видел StorageService
+    ProjectsModule, // Импортируем, чтобы ImageProcessor видел ProjectsService
 
     // Очередь для генерации видео (старая)
     BullModule.registerQueue({

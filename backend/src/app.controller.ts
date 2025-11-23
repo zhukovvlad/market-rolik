@@ -4,7 +4,10 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { ProxyService } from './common/proxy.service';
 import { StorageService } from './storage/storage.service';
-import { IsOptional, IsUrl } from 'class-validator';
+import { IsOptional, IsUrl, IsString } from 'class-validator';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './users/user.entity';
 
 interface IpifyResponse {
   ip: string;
@@ -14,6 +17,10 @@ class TestPhotoroomDto {
   @IsOptional()
   @IsUrl()
   imageUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  projectId?: string;
 }
 
 @Controller()
@@ -28,6 +35,8 @@ export class AppController {
     @InjectQueue('image-processing') private readonly imageQueue: Queue,
     private readonly proxyService: ProxyService,
     private readonly storageService: StorageService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   @Get()
@@ -42,6 +51,30 @@ export class AppController {
       date: new Date(),
     });
     return { status: 'Job added to queue' };
+  }
+
+  @Post('create-test-user')
+  async createTestUser() {
+    const email = 'test@example.com';
+    let user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      user = this.userRepository.create({
+        email,
+        passwordHash: 'hashed_password_stub', // В реальном приложении тут должен быть хеш
+        creditsBalance: 100,
+      });
+      await this.userRepository.save(user);
+      this.logger.log(`Created test user: ${user.id}`);
+    } else {
+      this.logger.log(`Test user already exists: ${user.id}`);
+    }
+
+    return {
+      message: 'Test user ready',
+      userId: user.id,
+      email: user.email,
+    };
   }
 
   @Get('check-ip')
@@ -85,6 +118,7 @@ export class AppController {
     try {
       const job = await this.imageQueue.add('remove-background', {
         imageUrl: url,
+        projectId: body.projectId,
       });
 
       return {

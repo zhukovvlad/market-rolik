@@ -41,7 +41,7 @@
                     <div class="w-3 h-8 bg-indigo-600 rounded-sm"></div>
                     <div>
                         <h1 class="text-xl font-bold text-slate-900 tracking-tight">Market-Rolik <span class="text-indigo-600">MVP</span></h1>
-                        <p class="text-xs text-slate-500 font-mono">STATUS: PHASE 2.2 IN PROGRESS (Proxy & Queues Ready)</p>
+                        <p class="text-xs text-slate-500 font-mono">STATUS: PHASE 2.3 COMPLETED (Photoroom & S3 Integrated)</p>
                     </div>
                 </div>
                 <div class="text-right hidden md:block">
@@ -85,21 +85,21 @@
                             <div class="mt-6 pt-6 border-t border-slate-100">
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="text-sm font-medium text-slate-600">Overall Progress</span>
-                                    <span class="text-sm font-bold text-indigo-600">35%</span>
+                                    <span class="text-sm font-bold text-indigo-600">50%</span>
                                 </div>
                                 <div class="w-full bg-slate-100 rounded-full h-2.5">
-                                    <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 35%"></div>
+                                    <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 50%"></div>
                                 </div>
-                                <p class="text-xs text-slate-400 mt-2 text-center">Current: Phase 2.2 (AI Integration)</p>
+                                <p class="text-xs text-slate-400 mt-2 text-center">Current: Phase 2.3 (Kling AI Integration)</p>
                             </div>
                         </div>
 
                         <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
                             <h4 class="font-semibold text-blue-800 mb-2">Current Focus 🎯</h4>
                             <p class="text-sm text-blue-700">
-                                <strong>Success!</strong> Backend Core, Database, Redis Queues, and Proxy Service are fully operational. 
+                                <strong>Success!</strong> Photoroom Worker, S3 Storage, Projects Module, and Database saving are fully operational.
                                 <br><br>
-                                <strong>Next Step:</strong> Implementing the actual <strong>Kling AI</strong> and <strong>Photoroom</strong> workers using our new ProxyService.
+                                <strong>Next Step:</strong> Implementing the <strong>Kling AI</strong> worker and <strong>Video Rendering</strong> pipeline.
                             </p>
                         </div>
                     </div>
@@ -143,8 +143,10 @@
                                     <div class="text-slate-600 p-5 pt-0 pl-16 text-sm space-y-2">
                                         <div class="flex items-center gap-2"><span class="text-green-500">✓</span> BullMQ (Redis) setup & Test Job</div>
                                         <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Proxy Client (Axios via EU Server)</div>
+                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Worker: Photoroom Integration</div>
+                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> S3 Storage Integration</div>
+                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Projects Module & DB Saving</div>
                                         <div class="flex items-center gap-2"><span class="text-indigo-600">⚡</span> Worker: Kling AI Integration</div>
-                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Worker: Photoroom Integration</div>
                                     </div>
                                 </details>
 
@@ -215,7 +217,7 @@
                                 <li>NestJS API</li>
                                 <li>PostgreSQL (Data)</li>
                                 <li>Redis (Queues)</li>
-                                <li>Yandex S3 (Storage)</li>
+                                <li>Timeweb S3 (Storage)</li>
                             </ul>
                         </div>
 
