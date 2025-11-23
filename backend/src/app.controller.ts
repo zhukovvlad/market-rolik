@@ -132,4 +132,29 @@ export class AppController {
       throw error;
     }
   }
+
+  // Тест генерации Видео (Kling)
+  @Post('test-video')
+  async testVideo(
+    @Body('projectId') projectId: string,
+    @Body('imageUrl') imageUrl: string,
+  ) {
+    // Если картинки нет, берем дефолтную (но лучше передавать реальную из S3)
+    const url =
+      imageUrl ||
+      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop';
+
+    const job = await this.videoQueue.add('generate-kling', {
+      projectId,
+      imageUrl: url,
+      prompt: 'Cinematic slow motion, floating in the air, 4k advertising shot',
+    });
+
+    return {
+      status: 'queued',
+      jobId: job.id,
+      message:
+        'Видео генерируется. Это займет время (в Mock-режиме 10 сек). Проверяй консоль.',
+    };
+  }
 }

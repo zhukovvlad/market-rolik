@@ -1,30 +1,23 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
-import { VideoProcessor } from './test.processor'; // Твой старый тест
-import { ImageProcessor } from './processors/image.processor'; // <--- Наш новый воркер
-import { CommonModule } from '../common/common.module'; // <--- Нужно для ProxyService
-import { StorageModule } from '../storage/storage.module'; // <--- Нужно для StorageService
-import { ProjectsModule } from '../projects/projects.module'; // <--- Нужно для ProjectsService
+import { CommonModule } from '../common/common.module';
+import { StorageModule } from '../storage/storage.module';
+import { ProjectsModule } from '../projects/projects.module';
+import { ImageProcessor } from './processors/image.processor';
+import { VideoProcessor } from './processors/video.processor';
 
 @Module({
   imports: [
-    CommonModule, // Импортируем, чтобы ImageProcessor видел ProxyService
-    StorageModule, // Импортируем, чтобы ImageProcessor видел StorageService
-    ProjectsModule, // Импортируем, чтобы ImageProcessor видел ProjectsService
-
-    // Очередь для генерации видео (старая)
-    BullModule.registerQueue({
-      name: 'video-generation',
-    }),
-
-    // 👇 НОВАЯ ОЧЕРЕДЬ для обработки картинок
-    BullModule.registerQueue({
-      name: 'image-processing',
-    }),
+    CommonModule,
+    StorageModule,
+    ProjectsModule,
+    
+    BullModule.registerQueue({ name: 'image-processing' }),
+    BullModule.registerQueue({ name: 'video-generation' }),
   ],
   providers: [
-    VideoProcessor, // Оставляем старый, чтобы не ломать тесты
-    ImageProcessor, // 👇 Регистрируем новый
+    ImageProcessor,
+    VideoProcessor,
   ],
   exports: [BullModule],
 })
