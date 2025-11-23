@@ -18,13 +18,6 @@ export class ProjectsService {
 
   // Create a project
   async createProject(userId: string, title: string) {
-    if (!userId?.trim()) {
-      throw new BadRequestException('userId cannot be empty');
-    }
-    if (!title?.trim()) {
-      throw new BadRequestException('title cannot be empty');
-    }
-
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
