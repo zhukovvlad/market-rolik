@@ -1,8 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+} from 'typeorm';
 import { Project } from './project.entity';
 
 export enum AssetType {
-  IMAGE_CLEAN = 'IMAGE_CLEAN',       // Фото без фона
+  IMAGE_CLEAN = 'IMAGE_CLEAN', // Фото без фона
   VIDEO_FRAGMENT = 'VIDEO_FRAGMENT', // Генерация Kling/SVD
   AUDIO_VOICEOVER = 'AUDIO_VOICEOVER',
   AUDIO_MUSIC = 'AUDIO_MUSIC',

@@ -25,7 +25,7 @@ export class ProxyService {
     if (proxyHost && proxyPort) {
       const auth = proxyUser && proxyPass ? `${proxyUser}:${proxyPass}@` : '';
       const proxyUrl = `http://${auth}${proxyHost}:${proxyPort}`;
-      
+
       this.logger.log(`🔌 Initializing Proxy Agent: ${proxyHost}:${proxyPort}`);
       httpsAgent = new HttpsProxyAgent(proxyUrl);
     } else {
@@ -40,7 +40,11 @@ export class ProxyService {
   }
 
   // Метод-обертка для POST запросов (например, в Kling)
-  async post<T>(url: string, data: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T>(
+    url: string,
+    data: any,
+    config?: AxiosRequestConfig,
+  ): Promise<T> {
     try {
       const response = await this.axiosInstance.post<T>(url, data, config);
       return response.data;
