@@ -8,9 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <!-- Chosen Palette: Technical Blueprint (Slate-50 to Slate-900 with Indigo-600 accents) -->
-    <!-- Application Structure Plan: Dashboard updated to reflect Phase 2.2 progress. -->
-    
     <style>
         body { font-family: 'Inter', sans-serif; }
         
@@ -31,17 +28,15 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-    <!-- Main Layout -->
     <div class="min-h-screen flex flex-col">
         
-        <!-- Header -->
         <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
             <div class="container mx-auto px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <div class="w-3 h-8 bg-indigo-600 rounded-sm"></div>
                     <div>
                         <h1 class="text-xl font-bold text-slate-900 tracking-tight">Market-Rolik <span class="text-indigo-600">MVP</span></h1>
-                        <p class="text-xs text-slate-500 font-mono">STATUS: PHASE 2.3 COMPLETED (Photoroom & S3 Integrated)</p>
+                        <p class="text-xs text-slate-500 font-mono">STATUS: PHASE 3 START (Frontend & Video)</p>
                     </div>
                 </div>
                 <div class="text-right hidden md:block">
@@ -51,10 +46,8 @@
             </div>
         </header>
 
-        <!-- Content Container -->
         <main class="container mx-auto px-4 py-8 flex-grow">
             
-            <!-- Navigation Tabs -->
             <div class="flex flex-wrap gap-2 mb-8 border-b border-slate-200 pb-1">
                 <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn px-6 py-2 text-sm font-medium rounded-t-lg bg-white border border-b-0 border-slate-200 text-indigo-600 border-t-2 border-t-indigo-600">
                     🗺️ Roadmap & Tasks
@@ -70,41 +63,38 @@
                 </button>
             </div>
 
-            <!-- TAB 1: OVERVIEW & ROADMAP -->
             <div id="overview" class="tab-content active">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
-                    <!-- Left Column: Status Chart -->
                     <div class="lg:col-span-1 space-y-6">
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                            <h3 class="text-lg font-semibold text-slate-800 mb-2">Effort Distribution</h3>
-                            <p class="text-sm text-slate-500 mb-6">Estimated complexity weight per phase.</p>
+                            <h3 class="text-lg font-semibold text-slate-800 mb-2">Progress Overview</h3>
+                            <p class="text-sm text-slate-500 mb-6">Distribution of remaining work.</p>
                             <div class="chart-wrapper">
                                 <canvas id="phaseChart"></canvas>
                             </div>
                             <div class="mt-6 pt-6 border-t border-slate-100">
                                 <div class="flex justify-between items-center mb-2">
-                                    <span class="text-sm font-medium text-slate-600">Overall Progress</span>
-                                    <span class="text-sm font-bold text-indigo-600">50%</span>
+                                    <span class="text-sm font-medium text-slate-600">Total Completion</span>
+                                    <span class="text-sm font-bold text-indigo-600">45%</span>
                                 </div>
                                 <div class="w-full bg-slate-100 rounded-full h-2.5">
-                                    <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 50%"></div>
+                                    <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 45%"></div>
                                 </div>
-                                <p class="text-xs text-slate-400 mt-2 text-center">Current: Phase 2.4 (Kling AI Integration)</p>
+                                <p class="text-xs text-slate-400 mt-2 text-center">Current: Phase 3 (Frontend Init)</p>
                             </div>
                         </div>
 
                         <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
-                            <h4 class="font-semibold text-blue-800 mb-2">Current Focus 🎯</h4>
+                            <h4 class="font-semibold text-blue-800 mb-2">Next Milestone 🚩</h4>
                             <p class="text-sm text-blue-700">
-                                <strong>Success!</strong> Photoroom Worker, S3 Storage, Projects Module, and Database saving are fully operational.
+                                <strong>Goal:</strong> Create a visual Interface (Frontend) to interact with the backend.
                                 <br><br>
-                                <strong>Next Step:</strong> Implementing the <strong>Kling AI</strong> worker and <strong>Video Rendering</strong> pipeline.
+                                <strong>Action:</strong> Initialize Next.js, Shadcn/UI, and build the "New Project" Wizard.
                             </p>
                         </div>
                     </div>
 
-                    <!-- Right Column: Detailed Roadmap Accordion -->
                     <div class="lg:col-span-2">
                         <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                             <div class="p-6 border-b border-slate-100 bg-slate-50">
@@ -113,7 +103,6 @@
                             </div>
                             
                             <div class="divide-y divide-slate-100">
-                                <!-- Phase 1 -->
                                 <details class="group">
                                     <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-5 hover:bg-slate-50 transition-colors">
                                         <div class="flex items-center gap-3">
@@ -123,71 +112,97 @@
                                         <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Completed</span>
                                     </summary>
                                     <div class="text-slate-600 p-5 pt-0 pl-16 text-sm space-y-2">
-                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Repo Init (Monorepo structure)</div>
+                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Repo Init & Monorepo</div>
                                         <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Docker Compose (PG + Redis)</div>
-                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Backend Init (NestJS + TypeORM)</div>
-                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Database Entities Created</div>
-                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Connection Verified (TablePlus)</div>
+                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> NestJS + TypeORM Setup</div>
                                     </div>
                                 </details>
 
-                                <!-- Phase 2 -->
+                                <details class="group">
+                                    <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-5 hover:bg-slate-50 transition-colors">
+                                        <div class="flex items-center gap-3">
+                                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 text-sm font-bold">2</span>
+                                            <span class="text-slate-800">Backend Core & AI Pipeline</span>
+                                        </div>
+                                        <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Completed</span>
+                                    </summary>
+                                    <div class="text-slate-600 p-5 pt-0 pl-16 text-sm space-y-2">
+                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> BullMQ Queues Setup</div>
+                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Proxy Service (EU Tunnel)</div>
+                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Worker: Photoroom (BG Removal)</div>
+                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Worker: Kling AI (Video Gen)</div>
+                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> S3 Storage & DB Saving</div>
+                                    </div>
+                                </details>
+
                                 <details class="group" open>
                                     <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-5 hover:bg-slate-50 transition-colors">
                                         <div class="flex items-center gap-3">
-                                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 text-sm font-bold">2</span>
-                                            <span class="text-slate-800">Backend Core & AI Pipeline</span>
+                                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-600 text-sm font-bold">2.5</span>
+                                            <span class="text-slate-800">Audio & Text Engines</span>
                                         </div>
-                                        <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">In Progress</span>
+                                        <span class="text-xs bg-amber-100 text-amber-600 px-2 py-1 rounded-full">Next Up (Backend)</span>
                                     </summary>
                                     <div class="text-slate-600 p-5 pt-0 pl-16 text-sm space-y-2">
-                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> BullMQ (Redis) setup & Test Job</div>
-                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Proxy Client (Axios via EU Server)</div>
-                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Worker: Photoroom Integration</div>
-                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> S3 Storage Integration</div>
-                                        <div class="flex items-center gap-2"><span class="text-green-500">✓</span> Projects Module & DB Saving</div>
-                                        <div class="flex items-center gap-2"><span class="text-indigo-600">⚡</span> Worker: Kling AI Integration</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Worker: Mubert Integration (Music)</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Worker: Yandex SpeechKit (TTS)</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Service: Script Generation (LLM)</div>
                                     </div>
                                 </details>
 
-                                <!-- Phase 3 -->
-                                <details class="group">
+                                <details class="group" open>
                                     <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-5 hover:bg-slate-50 transition-colors">
                                         <div class="flex items-center gap-3">
                                             <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 text-sm font-bold">3</span>
-                                            <span class="text-slate-800">Video Engine (Remotion + AWS)</span>
+                                            <span class="text-slate-800">Frontend & UI Core</span>
                                         </div>
-                                        <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-full">Planned</span>
+                                        <span class="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">In Progress</span>
                                     </summary>
                                     <div class="text-slate-600 p-5 pt-0 pl-16 text-sm space-y-2">
-                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> React Video Templates</div>
-                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> AWS Lambda Function Deploy</div>
-                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> NestJS Adapter for AWS Rendering</div>
+                                        <div class="flex items-center gap-2"><span class="text-indigo-500">▶</span> Next.js Init & Tailwind Setup</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Shadcn/UI Components</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Wizard Form (Upload -> Settings)</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Projects Gallery (My Videos)</div>
                                     </div>
                                 </details>
 
-                                <!-- Phase 4 -->
                                 <details class="group">
                                     <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-5 hover:bg-slate-50 transition-colors">
                                         <div class="flex items-center gap-3">
-                                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 text-sm font-bold">4</span>
-                                            <span class="text-slate-800">UI & Dashboard</span>
+                                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-sm font-bold">4</span>
+                                            <span class="text-slate-800">Advanced Video Logic</span>
                                         </div>
                                         <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-full">Planned</span>
                                     </summary>
                                     <div class="text-slate-600 p-5 pt-0 pl-16 text-sm space-y-2">
-                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Wizard (Steps 1-3)</div>
-                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> WebSocket Progress Bar</div>
-                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Auth System (JWT)</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Remotion Template Engine</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> AWS Lambda Rendering</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> WebSocket Status Updates</div>
                                     </div>
                                 </details>
+
+                                <details class="group">
+                                    <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-5 hover:bg-slate-50 transition-colors">
+                                        <div class="flex items-center gap-3">
+                                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-sm font-bold">5</span>
+                                            <span class="text-slate-800">Launch & Monetization</span>
+                                        </div>
+                                        <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-full">Planned</span>
+                                    </summary>
+                                    <div class="text-slate-600 p-5 pt-0 pl-16 text-sm space-y-2">
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Payment Gateway (Tinkoff/Yookassa)</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Admin Dashboard</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Transactional Emails</div>
+                                        <div class="flex items-center gap-2"><span class="text-slate-400">○</span> Legal (Terms & Privacy)</div>
+                                    </div>
+                                </details>
+
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 2: ARCHITECTURE -->
             <div id="architecture" class="tab-content">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-4">Hybrid Infrastructure Map</h2>
@@ -195,21 +210,17 @@
                         Visual representation of how we route traffic to avoid blocks (RU <-> EU) and utilize cheap compute (AWS).
                     </p>
 
-                    <!-- Custom CSS Diagram -->
                     <div class="relative w-full h-[500px] bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
                         
-                        <!-- 1. User Node -->
                         <div class="node-box absolute top-10 left-10 bg-white border-2 border-slate-300 p-3 rounded-lg w-40 text-center">
                             <div class="text-2xl mb-1">👤</div>
                             <div class="font-bold text-slate-700 text-sm">User (Browser)</div>
                             <div class="text-xs text-slate-400">Next.js UI</div>
                         </div>
 
-                        <!-- Line: User -> Core -->
                         <div class="connector connector-h" style="top: 70px; left: 170px; width: 100px;"></div>
                         <div class="absolute text-xs text-slate-400 font-mono bg-slate-50 px-1" style="top: 62px; left: 190px;">HTTP/WS</div>
 
-                        <!-- 2. Core Node (RU) -->
                         <div class="node-box absolute top-10 left-[270px] bg-indigo-50 border-2 border-indigo-200 p-4 rounded-lg w-64 shadow-sm">
                             <div class="text-2xl mb-1">🇷🇺 Timeweb (RU)</div>
                             <div class="font-bold text-indigo-900 text-sm">Backend Core</div>
@@ -221,30 +232,24 @@
                             </ul>
                         </div>
 
-                        <!-- Line: Core -> Proxy -->
                         <div class="connector connector-h" style="top: 70px; left: 526px; width: 100px;"></div>
                         <div class="absolute text-xs text-slate-400 font-mono bg-slate-50 px-1" style="top: 62px; left: 540px;">Proxy Req</div>
 
-                        <!-- 3. Proxy Node (EU) -->
                         <div class="node-box absolute top-10 left-[626px] bg-amber-50 border-2 border-amber-200 p-3 rounded-lg w-48 text-center shadow-sm">
                             <div class="text-2xl mb-1">🇪🇺 Timeweb (EU)</div>
                             <div class="font-bold text-amber-900 text-sm">Proxy Gateway</div>
                             <div class="text-xs text-amber-700">Cheap VPS + Dante</div>
                         </div>
 
-                        <!-- Line: Proxy -> AI -->
                         <div class="connector connector-v" style="top: 106px; left: 720px; height: 80px;"></div>
                         
-                        <!-- 4. External AI -->
                         <div class="node-box absolute top-[186px] left-[626px] bg-white border-2 border-slate-200 border-dashed p-3 rounded-lg w-48 text-center">
                             <div class="text-2xl mb-1">🤖 Global AI</div>
                             <div class="text-xs text-slate-500">Kling • Photoroom • Mubert</div>
                         </div>
 
-                        <!-- Line: Core -> AWS -->
                         <div class="connector connector-v" style="top: 146px; left: 398px; height: 154px;"></div>
                         
-                        <!-- 5. AWS Node -->
                         <div class="node-box absolute top-[300px] left-[270px] bg-orange-50 border-2 border-orange-200 p-4 rounded-lg w-64 shadow-sm">
                             <div class="text-2xl mb-1">⚡ AWS Global</div>
                             <div class="font-bold text-orange-900 text-sm">Render Engine</div>
@@ -258,10 +263,8 @@
                 </div>
             </div>
 
-            <!-- TAB 3: TECH STACK -->
             <div id="stack" class="tab-content">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Frontend -->
                     <div class="bg-white p-5 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
                         <div class="text-3xl mb-3">🎨</div>
                         <h3 class="font-bold text-slate-800 mb-2">Frontend</h3>
@@ -273,7 +276,6 @@
                         </ul>
                     </div>
 
-                    <!-- Backend -->
                     <div class="bg-white p-5 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
                         <div class="text-3xl mb-3">⚙️</div>
                         <h3 class="font-bold text-slate-800 mb-2">Backend</h3>
@@ -285,33 +287,30 @@
                         </ul>
                     </div>
 
-                    <!-- Data -->
                     <div class="bg-white p-5 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
                         <div class="text-3xl mb-3">🗄️</div>
                         <h3 class="font-bold text-slate-800 mb-2">Data & Infra</h3>
                         <ul class="text-sm text-slate-600 space-y-2">
                             <li class="flex items-center gap-2"><span class="w-2 h-2 bg-blue-500 rounded-full"></span>PostgreSQL 16</li>
                             <li class="flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full"></span>Redis 7</li>
-                            <li class="flex items-center gap-2"><span class="w-2 h-2 bg-blue-500 rounded-full"></span>Docker</li>
+                            <li class="flex items-center gap-2"><span class="w-2 h-2 bg-blue-500 rounded-full"></span>Timeweb S3</li>
                             <li class="flex items-center gap-2"><span class="w-2 h-2 bg-yellow-500 rounded-full"></span>AWS Lambda</li>
                         </ul>
                     </div>
 
-                    <!-- AI -->
                     <div class="bg-white p-5 rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
                         <div class="text-3xl mb-3">🤖</div>
                         <h3 class="font-bold text-slate-800 mb-2">Generative AI</h3>
                         <ul class="text-sm text-slate-600 space-y-2">
                             <li class="flex items-center gap-2"><span class="w-2 h-2 bg-green-500 rounded-full"></span>Kling AI (Video)</li>
                             <li class="flex items-center gap-2"><span class="w-2 h-2 bg-green-500 rounded-full"></span>Photoroom (BG)</li>
-                            <li class="flex items-center gap-2"><span class="w-2 h-2 bg-green-500 rounded-full"></span>YandexGPT (Text)</li>
+                            <li class="flex items-center gap-2"><span class="w-2 h-2 bg-green-500 rounded-full"></span>Yandex SpeechKit</li>
                             <li class="flex items-center gap-2"><span class="w-2 h-2 bg-green-500 rounded-full"></span>Mubert (Music)</li>
                         </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 4: RISKS -->
             <div id="risks" class="tab-content">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
                     <table class="min-w-full text-left text-sm whitespace-nowrap">
@@ -354,7 +353,6 @@
         </main>
     </div>
 
-    <!-- Logic -->
     <script>
         // State Management
         const state = {
@@ -390,17 +388,18 @@
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Phase 1: Infra', 'Phase 2: Backend/AI', 'Phase 3: Video', 'Phase 4: UI', 'Phase 5: Launch'],
+                    labels: ['Phase 1: Infra', 'Phase 2: Core/AI', 'Phase 3: UI', 'Phase 4: Render', 'Phase 5: Launch'],
                     datasets: [{
-                        data: [20, 30, 25, 15, 10], // Estimated weight
+                        data: [15, 30, 20, 20, 15], // Estimated weight
                         backgroundColor: [
-                            '#10b981', // Green (Done/Progress)
-                            '#6366f1', // Indigo
+                            '#10b981', // Green (Done)
+                            '#10b981', // Green (Done)
+                            '#6366f1', // Indigo (Current)
                             '#f59e0b', // Amber
-                            '#3b82f6', // Blue
                             '#64748b'  // Slate
                         ],
-                        borderWidth: 0,
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
                         hoverOffset: 4
                     }]
                 },
