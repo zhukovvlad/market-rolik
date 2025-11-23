@@ -46,19 +46,19 @@
             </div>
         </header>
 
-        <main class="container mx-auto px-4 py-8 flex-grow">
+        <main class="container mx-auto px-4 py-8 grow">
             
-            <div class="flex flex-wrap gap-2 mb-8 border-b border-slate-200 pb-1">
-                <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn px-6 py-2 text-sm font-medium rounded-t-lg bg-white border border-b-0 border-slate-200 text-indigo-600 border-t-2 border-t-indigo-600">
+            <div class="flex flex-wrap gap-2 mb-8 border-b border-slate-200">
+                <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn -mb-px px-6 py-2 text-sm font-medium rounded-t-lg bg-white border border-b-0 border-slate-200 text-indigo-600 border-t-2 border-t-indigo-600 z-10">
                     🗺️ Roadmap & Tasks
                 </button>
-                <button onclick="switchTab('architecture')" id="btn-architecture" class="tab-btn px-6 py-2 text-sm font-medium rounded-t-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                <button onclick="switchTab('architecture')" id="btn-architecture" class="tab-btn -mb-px px-6 py-2 text-sm font-medium rounded-t-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors border border-transparent">
                     🏗️ Architecture Map
                 </button>
-                <button onclick="switchTab('stack')" id="btn-stack" class="tab-btn px-6 py-2 text-sm font-medium rounded-t-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                <button onclick="switchTab('stack')" id="btn-stack" class="tab-btn -mb-px px-6 py-2 text-sm font-medium rounded-t-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors border border-transparent">
                     💻 Tech Stack
                 </button>
-                <button onclick="switchTab('risks')" id="btn-risks" class="tab-btn px-6 py-2 text-sm font-medium rounded-t-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                <button onclick="switchTab('risks')" id="btn-risks" class="tab-btn -mb-px px-6 py-2 text-sm font-medium rounded-t-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors border border-transparent">
                     🛡️ Risk Mgmt
                 </button>
             </div>
@@ -210,7 +210,7 @@
                         Visual representation of how we route traffic to avoid blocks (RU <-> EU) and utilize cheap compute (AWS).
                     </p>
 
-                    <div class="relative w-full h-[500px] bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                    <div class="relative w-full h-[500px] bg-slate-50 rounded-lg border border-slate-200 overflow-auto">
                         
                         <div class="node-box absolute top-10 left-10 bg-white border-2 border-slate-300 p-3 rounded-lg w-40 text-center">
                             <div class="text-2xl mb-1">👤</div>
@@ -369,8 +369,8 @@
             
             // Reset buttons styling
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('text-indigo-600', 'border-t-2', 'border-t-indigo-600', 'border-b-0', 'bg-white');
-                btn.classList.add('text-slate-500', 'hover:bg-slate-100');
+                btn.classList.remove('text-indigo-600', 'border-t-2', 'border-t-indigo-600', 'border-b-0', 'bg-white', 'z-10', 'border-slate-200');
+                btn.classList.add('text-slate-500', 'hover:bg-slate-100', 'border-transparent');
             });
 
             // Show active content
@@ -378,8 +378,8 @@
 
             // Style active button
             const activeBtn = document.getElementById(`btn-${tabId}`);
-            activeBtn.classList.remove('text-slate-500', 'hover:bg-slate-100');
-            activeBtn.classList.add('text-indigo-600', 'border-t-2', 'border-t-indigo-600', 'border-b-0', 'bg-white');
+            activeBtn.classList.remove('text-slate-500', 'hover:bg-slate-100', 'border-transparent');
+            activeBtn.classList.add('text-indigo-600', 'border-t-2', 'border-t-indigo-600', 'border-b-0', 'bg-white', 'z-10', 'border-slate-200');
         }
 
         // Initialize Chart (Task Distribution)
