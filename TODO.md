@@ -6,6 +6,7 @@
   - Create `(app)` group for Dashboard/Wizard.
   - Move `Navbar` to `(marketing)/layout.tsx`.
   - Create `AppHeader` for `(app)/layout.tsx`.
+- [x] **Mobile Menu**: Implement state and UI for mobile navigation drawer in `Navbar`.
 - [ ] **Wizard**: Implement multi-step form state management (Zustand or Context).
 - [ ] **Auth**: Integrate authentication (NextAuth.js or custom JWT flow).
 
