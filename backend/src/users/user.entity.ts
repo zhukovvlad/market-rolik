@@ -8,6 +8,11 @@ import {
 import { Project } from '../projects/project.entity';
 import { Transaction } from '../transactions/transaction.entity';
 
+export enum UserRole {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
+
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -16,7 +21,26 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ select: false }) // Не возвращать пароль при запросах по умолчанию
+  @Column({ nullable: true })
+  googleId: string;
+
+  @Column({ nullable: true })
+  firstName: string;
+
+  @Column({ nullable: true })
+  lastName: string;
+
+  @Column({ nullable: true })
+  avatarUrl: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  role: UserRole;
+
+  @Column({ select: false, nullable: true }) // Не возвращать пароль при запросах по умолчанию
   passwordHash: string;
 
   @Column({ default: 0 })
