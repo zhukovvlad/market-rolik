@@ -1,6 +1,6 @@
 # 🚀 Маркет-Ролик (MVP)
 
-**Статус:** 🚧 Phase 2 Completed (Backend Core & AI Pipeline)
+**Статус:** 🚧 Phase 3 In Progress (Frontend & Upload Integration)
 **Прогресс:** [Посмотреть Roadmap](roadmap.html)
 
 **Маркет-Ролик** — это SaaS-платформа для автоматической генерации **видео-обложек** для маркетплейсов (**Wildberries**, **Ozon**) с помощью:
@@ -15,6 +15,7 @@
 
 ## ✅ Реализованный функционал
 
+### Backend
 *   **Инфраструктура**: Docker Compose (PostgreSQL + Redis).
 *   **База данных**: TypeORM сущности (User, Project, Asset, Transaction).
 *   **Очереди задач**: BullMQ (Redis) для асинхронной обработки.
@@ -23,6 +24,12 @@
 *   **Image Processor**: Воркер для удаления фона с изображений (Photoroom API + Mock режим).
 *   **Video Processor**: Воркер для генерации видео (Kling AI + Mock режим).
 *   **Projects Module**: API для создания проектов и сохранения результатов генерации.
+*   **Upload Endpoint**: `POST /projects/upload` для загрузки изображений в S3 с валидацией.
+
+### Frontend
+*   **Landing Page**: Адаптивная главная страница с Hero, Features, How It Works секциями.
+*   **Navbar**: Навигация с мобильным меню и CTA кнопками.
+*   **Upload Wizard**: Компонент загрузки файлов с drag-and-drop и интеграцией с бэкендом.
 
 ---
 
@@ -205,9 +212,13 @@ docker-compose logs -f postgres
 
 ## 🗺 Roadmap
 
-* [ ] **Этап 1.2:** Настроить TypeORM в NestJS и создать сущности `User` и `Project`
-* [ ] **Этап 1.3:** Создать миграции и проверить подключение через pgAdmin
-* [ ] **Этап 2.1:** Подключить BullMQ и очередь `video-generation`
+* [x] **Phase 1:** Foundation & Infrastructure
+* [x] **Phase 2:** Backend Core & AI Pipeline
+* [x] **Phase 3 (Partial):** Frontend Landing Page & Upload Integration
+* [ ] **Phase 3 (Next):** Wizard Multi-Step Form & Project Management UI
+* [ ] **Phase 2.5:** Audio & Text Engines (Mubert, Yandex SpeechKit, LLM)
+* [ ] **Phase 4:** Advanced Video Logic (Remotion, Lambda Rendering)
+* [ ] **Phase 5:** Launch & Monetization
 
 ---
 
