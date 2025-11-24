@@ -369,8 +369,8 @@
             
             // Reset buttons styling
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('text-indigo-600', 'border-t-2', 'border-t-indigo-600', 'border-b-0', 'bg-white', 'z-10', 'border-slate-200');
-                btn.classList.add('text-slate-500', 'hover:bg-slate-100', 'border-transparent');
+                btn.classList.remove('text-indigo-600', 'border-t-2', 'border-t-indigo-600', 'border-b-0', 'bg-white', 'z-10', 'border-slate-200', 'hover:text-slate-700');
+                btn.classList.add('text-slate-500', 'hover:bg-slate-100', 'border-transparent', 'hover:text-slate-700');
             });
 
             // Show active content
@@ -378,7 +378,7 @@
 
             // Style active button
             const activeBtn = document.getElementById(`btn-${tabId}`);
-            activeBtn.classList.remove('text-slate-500', 'hover:bg-slate-100', 'border-transparent');
+            activeBtn.classList.remove('text-slate-500', 'hover:bg-slate-100', 'border-transparent', 'hover:text-slate-700');
             activeBtn.classList.add('text-indigo-600', 'border-t-2', 'border-t-indigo-600', 'border-b-0', 'bg-white', 'z-10', 'border-slate-200');
         }
 

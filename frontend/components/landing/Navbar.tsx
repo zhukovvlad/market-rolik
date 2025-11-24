@@ -1,0 +1,53 @@
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
+
+export default function Navbar() {
+    return (
+        <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                {/* Logo */}
+                <Link href="/" className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                        M
+                    </div>
+                    <span className="font-bold text-xl text-slate-900 tracking-tight">Market-Rolik</span>
+                </Link>
+
+                {/* Desktop Nav */}
+                <nav className="hidden md:flex items-center gap-8">
+                    <Link href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+                        Возможности
+                    </Link>
+                    <Link href="#how-it-works" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+                        Как это работает
+                    </Link>
+                    <Link href="#pricing" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+                        Тарифы
+                    </Link>
+                </nav>
+
+                {/* Auth Buttons */}
+                <div className="hidden md:flex items-center gap-4">
+                    <Link href="/login">
+                        <Button variant="ghost" className="text-slate-600 hover:text-indigo-600">
+                            Войти
+                        </Button>
+                    </Link>
+                    <Link href="/create">
+                        <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-sm">
+                            Начать бесплатно
+                        </Button>
+                    </Link>
+                </div>
+
+                {/* Mobile Menu Button */}
+                <div className="md:hidden">
+                    <Button variant="ghost" size="icon">
+                        <Menu className="w-6 h-6 text-slate-700" />
+                    </Button>
+                </div>
+            </div>
+        </header>
+    );
+}
