@@ -2,6 +2,7 @@
 
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 function AuthCallbackContent() {
@@ -13,39 +14,31 @@ function AuthCallbackContent() {
         const token = searchParams.get("token");
 
         if (token) {
-            try {
-                // Декодируем JWT с правильной поддержкой UTF-8 (кириллица)
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            // Очищаем URL от токена, чтобы он не сохранялся в истории
+            window.history.replaceState(null, '', window.location.pathname);
 
-                // Правильное декодирование UTF-8
-                const jsonPayload = decodeURIComponent(
-                    atob(base64)
-                        .split('')
-                        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                        .join('')
-                );
-
-                const payload = JSON.parse(jsonPayload);
-
-                const user = {
-                    id: payload.sub,
-                    email: payload.email,
-                    firstName: payload.firstName,
-                    lastName: payload.lastName,
-                    avatarUrl: payload.avatarUrl,
-                };
-
-                login(token, user);
-                router.push("/");
-            } catch (error) {
-                console.error("Failed to decode token", error);
-                router.push("/?error=invalid_token");
-            }
+            // Fetch user data from backend
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/me`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to fetch user');
+                    return res.json();
+                })
+                .then(user => {
+                    login(token, user);
+                    router.push("/");
+                })
+                .catch(error => {
+                    console.error("Failed to fetch user", error);
+                    router.push("/auth/error");
+                });
         } else {
             router.push("/");
         }
-    }, [searchParams, router]);
+    }, [searchParams, router, login]);
 
     return (
         <div className="flex items-center justify-center min-h-screen">

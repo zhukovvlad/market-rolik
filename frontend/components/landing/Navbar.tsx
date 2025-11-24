@@ -40,7 +40,11 @@ export default function Navbar() {
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
                                 {user.avatarUrl && (
-                                    <img src={user.avatarUrl} alt={user.firstName} className="w-8 h-8 rounded-full" />
+                                    <img
+                                        src={user.avatarUrl}
+                                        alt={user.firstName || "User avatar"}
+                                        className="w-8 h-8 rounded-full"
+                                    />
                                 )}
                                 <span className="text-sm font-medium text-slate-700">
                                     {user.firstName}
@@ -53,7 +57,7 @@ export default function Navbar() {
                     ) : (
                         <>
                             <Button asChild variant="ghost" className="text-slate-600 hover:text-indigo-600">
-                                <Link href="http://localhost:4000/auth/google">
+                                <Link href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/google`}>
                                     Войти через Google
                                 </Link>
                             </Button>
@@ -117,7 +121,7 @@ export default function Navbar() {
                         ) : (
                             <>
                                 <Button asChild variant="ghost" className="w-full justify-start text-slate-600">
-                                    <Link href="http://localhost:4000/auth/google">Войти через Google</Link>
+                                    <Link href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/google`}>Войти через Google</Link>
                                 </Button>
                                 <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
                                     <Link href="/create">Начать бесплатно</Link>

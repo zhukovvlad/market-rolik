@@ -10,10 +10,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         private configService: ConfigService,
         private authService: AuthService,
     ) {
+        const clientID = configService.get<string>('GOOGLE_CLIENT_ID');
+        const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
+        const callbackURL = configService.get<string>('GOOGLE_CALLBACK_URL');
+
+        if (!clientID || !clientSecret || !callbackURL) {
+            throw new Error('Google OAuth configuration is missing. Please check GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_CALLBACK_URL.');
+        }
+
         super({
-            clientID: configService.get<string>('GOOGLE_CLIENT_ID') || '',
-            clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET') || '',
-            callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL') || '',
+            clientID,
+            clientSecret,
+            callbackURL,
             scope: ['email', 'profile'],
         });
     }
@@ -21,13 +29,17 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
         const { id, name, emails, photos } = profile;
 
+        if (!emails?.[0]?.value) {
+            return done(new Error('Email not provided by Google'), undefined);
+        }
+
         // Формируем данные от Google
         const details = {
             googleId: id,
             email: emails[0].value,
-            firstName: name.givenName,
-            lastName: name.familyName,
-            picture: photos[0]?.value,
+            firstName: name?.givenName || null,
+            lastName: name?.familyName || null,
+            picture: photos?.[0]?.value,
         };
 
         // Вызываем сервис - он найдет/создаст юзера И выдаст токен

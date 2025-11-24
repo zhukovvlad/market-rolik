@@ -21,7 +21,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   googleId: string;
 
   @Column({ nullable: true })
