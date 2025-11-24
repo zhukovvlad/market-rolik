@@ -105,6 +105,9 @@ npm install @nestjs/typeorm typeorm pg \
 ```env
 PORT=4000
 
+# Frontend
+FRONTEND_URL=http://localhost:3000
+
 # Database
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
@@ -173,6 +176,16 @@ npx shadcn-ui@latest init
 ```bash
 npm install lucide-react axios
 ```
+
+### .env.local
+
+Создайте `frontend/.env.local` для локальной разработки:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+
+> **Примечание:** В продакшене замените на реальный URL бэкенда.
 
 ### Запуск
 
