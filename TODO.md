@@ -12,6 +12,9 @@
 
 ## ⚙️ Backend
 - [ ] **Uploads**: Implement `POST /projects/upload` endpoint (S3 integration).
+  - [x] Basic upload functionality
+  - [ ] Add JWT authentication guard
+  - [ ] Implement storage quota per user
 - [ ] **AI Engines**:
   - Integrate **Mubert** for background music generation.
   - Integrate **Yandex SpeechKit** for TTS (Text-to-Speech).

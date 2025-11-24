@@ -1,18 +1,19 @@
-"use client"; // Важно: это клиентский компонент
+"use client";
 
 import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UploadCloud, X, FileImage } from "lucide-react"; // Иконки (ставим ниже)
+import { UploadCloud, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface UploadStepProps {
-  onImageSelect: (file: File) => void;
+  onImageUploaded: (url: string) => void;
 }
 
-export default function UploadStep({ onImageSelect }: UploadStepProps) {
+export default function UploadStep({ onImageUploaded }: UploadStepProps) {
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Обработка перетаскивания
@@ -44,7 +45,7 @@ export default function UploadStep({ onImageSelect }: UploadStepProps) {
     }
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     // Проверка типа
     if (!file.type.startsWith("image/")) {
       toast.error("Пожалуйста, загрузите изображение (JPG, PNG)");
@@ -59,10 +60,32 @@ export default function UploadStep({ onImageSelect }: UploadStepProps) {
     // Создаем превью
     const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
-    
-    // Передаем файл наверх (родителю)
-    onImageSelect(file);
-    toast.success("Изображение загружено!");
+
+    // Загружаем на сервер
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("http://localhost:4000/projects/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Ошибка загрузки");
+      }
+
+      const data = await response.json();
+      toast.success("Изображение успешно загружено!");
+      onImageUploaded(data.url);
+    } catch (error) {
+      toast.error("Не удалось загрузить файл. Попробуйте снова.");
+      console.error("Upload error:", error);
+      clearImage();
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const clearImage = () => {
@@ -74,14 +97,13 @@ export default function UploadStep({ onImageSelect }: UploadStepProps) {
     <Card className="w-full max-w-xl mx-auto border-dashed border-2 shadow-sm transition-all hover:border-indigo-400">
       <CardContent className="p-6">
         <div
-          className={`relative flex flex-col items-center justify-center h-64 rounded-lg cursor-pointer transition-colors ${
-            dragActive ? "bg-indigo-50 border-indigo-500" : "bg-slate-50 hover:bg-slate-100"
-          }`}
+          className={`relative flex flex-col items-center justify-center h-64 rounded-lg cursor-pointer transition-colors ${dragActive ? "bg-indigo-50 border-indigo-500" : "bg-slate-50 hover:bg-slate-100"
+            } ${isUploading ? "pointer-events-none opacity-60" : ""}`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          onClick={() => inputRef.current?.click()}
+          onClick={() => !isUploading && inputRef.current?.click()}
         >
           <input
             ref={inputRef}
@@ -89,9 +111,15 @@ export default function UploadStep({ onImageSelect }: UploadStepProps) {
             className="hidden"
             accept="image/*"
             onChange={handleChange}
+            disabled={isUploading}
           />
 
-          {preview ? (
+          {isUploading ? (
+            <div className="text-center space-y-4">
+              <Loader2 className="h-12 w-12 text-indigo-600 animate-spin mx-auto" />
+              <p className="text-sm text-slate-600">Загрузка...</p>
+            </div>
+          ) : preview ? (
             <div className="relative w-full h-full p-2">
               <img
                 src={preview}
