@@ -23,8 +23,9 @@ export default function UploadStep({ onImageUploaded }: UploadStepProps) {
 
   // Cleanup object URL on unmount or change
   useEffect(() => {
+    const currentPreview = selectedFile?.preview;
     return () => {
-      if (selectedFile) URL.revokeObjectURL(selectedFile.preview);
+      if (currentPreview) URL.revokeObjectURL(currentPreview);
     };
   }, [selectedFile]);
 
@@ -155,10 +156,10 @@ export default function UploadStep({ onImageUploaded }: UploadStepProps) {
         </Card>
       ) : (
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
-          <div className="relative group aspect-[4/3] bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+          <div className="relative group aspect-4/3 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
             <img
               src={selectedFile.preview}
-              alt="Preview"
+              alt={`Preview of ${selectedFile.file.name}`}
               className="w-full h-full object-contain"
             />
             <div className="absolute top-4 right-4">

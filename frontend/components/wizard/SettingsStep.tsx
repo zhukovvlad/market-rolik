@@ -27,6 +27,10 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
                         src={imageUrl}
                         alt="Reference"
                         className="w-full h-full object-contain max-h-[500px]"
+                        onError={(e) => {
+                            e.currentTarget.style.display = 'none'; // Скрываем битое изображение
+                            // Можно также показать плейсхолдер или текст ошибки
+                        }}
                     />
                     <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-xs backdrop-blur-md">
                         Исходное изображение

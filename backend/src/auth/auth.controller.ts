@@ -25,7 +25,7 @@ export class AuthController {
     @UseFilters(OAuthExceptionFilter)
     async googleAuthRedirect(@Req() req, @Res() res) {
         // Passport уже сделал всю работу и положил токен в req.user
-        const { access_token, user } = req.user;
+        const { access_token } = req.user;
 
         // Редиректим на фронтенд, передавая токен в URL
         const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import UploadStep from "@/components/wizard/UploadStep";
 import SettingsStep from "@/components/wizard/SettingsStep";
 import { toast } from "sonner";
@@ -8,13 +8,21 @@ import { toast } from "sonner";
 export default function CreatePage() {
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const handleGenerate = async (settings: { prompt: string; aspectRatio: string }) => {
     setIsGenerating(true);
-    console.log("Generating with settings:", settings);
+    // console.log("Generating with settings:", settings);
 
     // Mock simulation for now
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setIsGenerating(false);
       toast.success("Генерация запущена! (Mock)");
     }, 2000);

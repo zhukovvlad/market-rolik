@@ -1,9 +1,17 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from '../users/user.entity';
 import * as bcrypt from 'bcrypt';
+
+interface OAuthDetails {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    picture?: string;
+    googleId?: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -14,7 +22,7 @@ export class AuthService {
     ) { }
 
     // --- ЛОГИКА ДЛЯ СОЦСЕТЕЙ (Google/GitHub/Yandex) ---
-    async validateOAuthLogin(details: any) {
+    async validateOAuthLogin(details: OAuthDetails) {
         const { email, firstName, lastName, picture, googleId } = details;
 
         // 1. Ищем пользователя по email
@@ -24,10 +32,10 @@ export class AuthService {
         if (!user) {
             user = this.usersRepository.create({
                 email,
-                firstName,
-                lastName,
-                avatarUrl: picture,
-                googleId,
+                firstName: firstName || '',
+                lastName: lastName || '',
+                avatarUrl: picture || '',
+                googleId: googleId || '',
                 role: UserRole.USER,
                 creditsBalance: 10, // Бонус за регистрацию
             });
@@ -35,10 +43,10 @@ export class AuthService {
         } else {
             // Обновляем данные, если они изменились
             let changed = false;
-            if (user.firstName !== firstName) { user.firstName = firstName; changed = true; }
-            if (user.lastName !== lastName) { user.lastName = lastName; changed = true; }
-            if (user.avatarUrl !== picture) { user.avatarUrl = picture; changed = true; }
-            if (!user.googleId) { user.googleId = googleId; changed = true; }
+            if (firstName && user.firstName !== firstName) { user.firstName = firstName; changed = true; }
+            if (lastName && user.lastName !== lastName) { user.lastName = lastName; changed = true; }
+            if (picture && user.avatarUrl !== picture) { user.avatarUrl = picture; changed = true; }
+            if (googleId && !user.googleId) { user.googleId = googleId; changed = true; }
 
             if (changed) {
                 await this.usersRepository.save(user);
@@ -70,7 +78,7 @@ export class AuthService {
     async login(email: string, password: string) {
         const user = await this.usersRepository.findOne({
             where: { email },
-            select: ['id', 'email', 'passwordHash', 'role', 'avatarUrl', 'creditsBalance']
+            select: ['id', 'email', 'passwordHash', 'role', 'avatarUrl', 'creditsBalance', 'firstName', 'lastName']
         });
 
         // Если юзер есть, но у него нет пароля (он регался через Google)
@@ -89,10 +97,6 @@ export class AuthService {
             sub: user.id,
             email: user.email,
             role: user.role,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            avatarUrl: user.avatarUrl,
-            credits: user.creditsBalance,
         };
 
         return {
@@ -113,7 +117,7 @@ export class AuthService {
     async getUserById(userId: string) {
         const user = await this.usersRepository.findOne({ where: { id: userId } });
         if (!user) {
-            throw new Error('User not found');
+            throw new NotFoundException('User not found');
         }
 
         return {

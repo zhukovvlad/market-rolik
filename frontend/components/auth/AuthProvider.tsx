@@ -33,8 +33,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const storedUser = localStorage.getItem("user");
 
         if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
+            // Check if token is expired
+            let isExpired = true;
+            try {
+                const base64Url = storedToken.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                const { exp } = JSON.parse(jsonPayload);
+                if (exp && Date.now() < exp * 1000) {
+                    isExpired = false;
+                }
+            } catch (e) {
+                console.error("Failed to parse token expiration:", e);
+            }
+
+            if (!isExpired) {
+                setToken(storedToken);
+                try {
+                    setUser(JSON.parse(storedUser));
+                } catch (error) {
+                    console.error("Failed to parse user data from localStorage:", error);
+                    localStorage.removeItem("user");
+                }
+            } else {
+                // Token expired or invalid
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+            }
         }
         setIsLoading(false);
     }, []);
