@@ -74,6 +74,7 @@ export default function UploadStep({ onImageUploaded }: UploadStepProps) {
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/projects/upload`, {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
 
