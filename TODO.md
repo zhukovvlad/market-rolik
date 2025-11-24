@@ -7,8 +7,13 @@
   - Move `Navbar` to `(marketing)/layout.tsx`.
   - Create `AppHeader` for `(app)/layout.tsx`.
 - [x] **Mobile Menu**: Implement state and UI for mobile navigation drawer in `Navbar`.
-- [ ] **Wizard**: Implement multi-step form state management (Zustand or Context).
-- [ ] **Auth**: Integrate authentication (NextAuth.js or custom JWT flow).
+- [ ] **Wizard**: Implement multi-step creation flow.
+  - [x] Step 1: Upload (Drag & Drop + Preview)
+  - [ ] **Multi-upload**: Support selecting and uploading multiple images at once.
+  - [x] Step 2: Settings (Prompt, Aspect Ratio)
+  - [ ] Step 3: Generation Progress
+  - [ ] Step 4: Result & Download
+- [x] **Auth**: Integrate authentication (Google OAuth + JWT flow).
 
 ## ⚙️ Backend
 - [ ] **Uploads**: Implement `POST /projects/upload` endpoint (S3 integration).
@@ -20,6 +25,7 @@
   - Integrate **Yandex SpeechKit** for TTS (Text-to-Speech).
   - Implement LLM service for script generation.
 - [ ] **Security**: Add Rate Limiting and JWT Guards to all endpoints.
+- [ ] **OAuth Reliability**: Добавить автоматические retry на уровне HTTP клиента для OAuth (улучшит надёжность соединений с Google APIs при сетевых проблемах).
 
 ## 📱 General / UX
 - [ ] **Mobile**: Ensure all new views are mobile-responsive.

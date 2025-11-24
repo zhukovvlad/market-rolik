@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   description: "Create viral videos for marketplaces",
 };
 
+import { AuthProvider } from "@/components/auth/AuthProvider"; // <--- Import
+
+// ...
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -18,8 +22,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {children}
-        <Toaster /> {/* <--- 2. Вставка компонента */}
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

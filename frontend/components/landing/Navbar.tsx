@@ -4,9 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const { user, logout } = useAuth();
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
@@ -34,16 +36,34 @@ export default function Navbar() {
 
                 {/* Auth Buttons */}
                 <div className="hidden md:flex items-center gap-4">
-                    <Button asChild variant="ghost" className="text-slate-600 hover:text-indigo-600">
-                        <Link href="/login">
-                            Войти
-                        </Link>
-                    </Button>
-                    <Button asChild className="bg-indigo-600 hover:bg-indigo-700 shadow-sm">
-                        <Link href="/create">
-                            Начать бесплатно
-                        </Link>
-                    </Button>
+                    {user ? (
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                {user.avatarUrl && (
+                                    <img src={user.avatarUrl} alt={user.firstName} className="w-8 h-8 rounded-full" />
+                                )}
+                                <span className="text-sm font-medium text-slate-700">
+                                    {user.firstName}
+                                </span>
+                            </div>
+                            <Button variant="ghost" onClick={logout} className="text-slate-600 hover:text-red-600">
+                                Выйти
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <Button asChild variant="ghost" className="text-slate-600 hover:text-indigo-600">
+                                <Link href="http://localhost:4000/auth/google">
+                                    Войти через Google
+                                </Link>
+                            </Button>
+                            <Button asChild className="bg-indigo-600 hover:bg-indigo-700 shadow-sm">
+                                <Link href="/create">
+                                    Начать бесплатно
+                                </Link>
+                            </Button>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile Menu Button */}
@@ -90,12 +110,20 @@ export default function Navbar() {
                         </Link>
                     </nav>
                     <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
-                        <Button asChild variant="ghost" className="w-full justify-start text-slate-600">
-                            <Link href="/login">Войти</Link>
-                        </Button>
-                        <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
-                            <Link href="/create">Начать бесплатно</Link>
-                        </Button>
+                        {user ? (
+                            <Button variant="ghost" onClick={logout} className="w-full justify-start text-slate-600">
+                                Выйти
+                            </Button>
+                        ) : (
+                            <>
+                                <Button asChild variant="ghost" className="w-full justify-start text-slate-600">
+                                    <Link href="http://localhost:4000/auth/google">Войти через Google</Link>
+                                </Button>
+                                <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
+                                    <Link href="/create">Начать бесплатно</Link>
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

@@ -16,6 +16,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { StorageModule } from './storage/storage.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -53,9 +54,10 @@ import { StorageModule } from './storage/storage.module';
     CommonModule,
     StorageModule,
     ProjectsModule,
+    AuthModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
