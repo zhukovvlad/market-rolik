@@ -29,21 +29,21 @@ export default function Navbar() {
 
                 {/* Auth Buttons */}
                 <div className="hidden md:flex items-center gap-4">
-                    <Link href="/login">
-                        <Button variant="ghost" className="text-slate-600 hover:text-indigo-600">
+                    <Button asChild variant="ghost" className="text-slate-600 hover:text-indigo-600">
+                        <Link href="/login">
                             Войти
-                        </Button>
-                    </Link>
-                    <Link href="/create">
-                        <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-sm">
+                        </Link>
+                    </Button>
+                    <Button asChild className="bg-indigo-600 hover:bg-indigo-700 shadow-sm">
+                        <Link href="/create">
                             Начать бесплатно
-                        </Button>
-                    </Link>
+                        </Link>
+                    </Button>
                 </div>
 
                 {/* Mobile Menu Button */}
                 <div className="md:hidden">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" aria-label="Открыть меню навигации">
                         <Menu className="w-6 h-6 text-slate-700" />
                     </Button>
                 </div>

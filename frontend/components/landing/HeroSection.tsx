@@ -30,28 +30,28 @@ export default function HeroSection() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <Link href="/create" className="w-full sm:w-auto">
-                        <Button size="lg" className="w-full sm:w-auto h-14 px-8 text-lg bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200">
+                    <Button asChild size="lg" className="w-full sm:w-auto h-14 px-8 text-lg bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200">
+                        <Link href="/create">
                             Попробовать бесплатно
                             <ArrowRight className="ml-2 w-5 h-5" />
-                        </Button>
-                    </Link>
-                    <Link href="#how-it-works" className="w-full sm:w-auto">
-                        <Button variant="outline" size="lg" className="w-full sm:w-auto h-14 px-8 text-lg">
+                        </Link>
+                    </Button>
+                    <Button asChild variant="outline" size="lg" className="w-full sm:w-auto h-14 px-8 text-lg">
+                        <Link href="#how-it-works">
                             Как это работает?
-                        </Button>
-                    </Link>
+                        </Link>
+                    </Button>
                 </div>
 
                 <div className="mt-12 text-sm text-slate-400 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
                     <span className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         Без регистрации карты
                     </span>
                     <span className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         10 бесплатных генераций
