@@ -6,10 +6,15 @@ import { Project } from './project.entity';
 import { Asset } from './asset.entity';
 import { User } from '../users/user.entity';
 
+import { StorageModule } from '../storage/storage.module';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([Project, Asset, User])],
+  imports: [
+    TypeOrmModule.forFeature([Project, Asset, User]),
+    StorageModule,
+  ],
   providers: [ProjectsService],
   controllers: [ProjectsController],
   exports: [ProjectsService],
 })
-export class ProjectsModule {}
+export class ProjectsModule { }
