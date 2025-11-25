@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,10 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
     const [prompt, setPrompt] = useState("");
     const [aspectRatio, setAspectRatio] = useState("9:16");
     const [imageError, setImageError] = useState(false);
+
+    useEffect(() => {
+        setImageError(false);
+    }, [imageUrl]);
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4">
