@@ -30,7 +30,7 @@ class Logger {
 
         // Flush logs before page unload
         if (typeof window !== 'undefined') {
-            window.addEventListener('beforeunload', () => this.flush());
+            window.addEventListener('beforeunload', () => this.flush(true));
         }
     }
 
@@ -103,7 +103,7 @@ class Logger {
         }
     }
 
-    private flush() {
+    private flush(useKeepalive = false) {
         if (this.flushTimeout) {
             clearTimeout(this.flushTimeout);
             this.flushTimeout = null;
@@ -118,6 +118,8 @@ class Logger {
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
         const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+        const url = `${apiUrl}/logger/frontend`;
+        const body = this.safeStringify(batch);
 
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
@@ -139,12 +141,31 @@ class Logger {
             }
         }
 
+        if (useKeepalive) {
+            if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+                const blob = new Blob([body], { type: 'application/json' });
+                navigator.sendBeacon(url, blob);
+                return;
+            }
+            
+            fetch(url, {
+                method: 'POST',
+                headers,
+                credentials: 'include',
+                body,
+                keepalive: true,
+            }).catch(err => {
+                console.error('Failed to send log batch to backend', err);
+            });
+            return;
+        }
+
         // Fire and forget - don't await
-        fetch(`${apiUrl}/logger/frontend`, {
+        fetch(url, {
             method: 'POST',
             headers,
             credentials: 'include',
-            body: this.safeStringify(batch),
+            body,
         }).catch(err => {
             // Prevent infinite loop if logging fails
             console.error('Failed to send log batch to backend', err);
