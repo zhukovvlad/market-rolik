@@ -13,7 +13,7 @@ import { toast } from "sonner";
 interface Project {
     id: string;
     title: string;
-    status: string;
+    status: 'DRAFT' | 'QUEUED' | 'PROCESSING' | 'RENDERING' | 'COMPLETED' | 'FAILED';
     createdAt: string;
     assets: { type: string; storageUrl: string }[];
     resultVideoUrl?: string; // Добавил, так как ProjectCard его использует
