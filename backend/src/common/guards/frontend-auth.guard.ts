@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class FrontendAuthGuard implements CanActivate {
@@ -11,13 +12,21 @@ export class FrontendAuthGuard implements CanActivate {
     const validApiKey = this.configService.get<string>('FRONTEND_API_KEY');
 
     if (!validApiKey) {
-        // If no key is configured, we might want to block or allow. 
-        // For security, blocking is better, but for dev maybe allow?
-        // Let's block to be safe as per "protect the route" instruction.
-        return false;
+        throw new UnauthorizedException('Invalid API Key');
     }
 
-    if (apiKey !== validApiKey) {
+    if (!apiKey) {
+        throw new UnauthorizedException('Invalid API Key');
+    }
+
+    const apiKeyBuffer = Buffer.from(apiKey);
+    const validApiKeyBuffer = Buffer.from(validApiKey);
+
+    if (apiKeyBuffer.length !== validApiKeyBuffer.length) {
+        throw new UnauthorizedException('Invalid API Key');
+    }
+
+    if (!crypto.timingSafeEqual(apiKeyBuffer, validApiKeyBuffer)) {
       throw new UnauthorizedException('Invalid API Key');
     }
 

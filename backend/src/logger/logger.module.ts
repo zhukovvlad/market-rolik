@@ -21,6 +21,11 @@ const frontendFilter = winston.format((info) => {
     return info.source === 'frontend' ? info : false;
 });
 
+// Custom format to exclude frontend logs from combined log
+const backendFilter = winston.format((info) => {
+    return info.source === 'frontend' ? false : info;
+});
+
 @Module({
     controllers: [LoggerController],
     imports: [
@@ -61,6 +66,7 @@ const frontendFilter = winston.format((info) => {
                     maxSize: '20m',
                     maxFiles: '14d',
                     format: winston.format.combine(
+                        backendFilter(),
                         winston.format.timestamp(),
                         winston.format.json(),
                     ),

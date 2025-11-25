@@ -20,6 +20,16 @@ interface RequestWithUser extends Request {
 
 @Injectable()
 export class HttpLoggingInterceptor implements NestInterceptor {
+    private readonly SENSITIVE_QUERY_PARAMS = [
+        'token',
+        'api_key',
+        'password',
+        'secret',
+        'authorization',
+        'access_token',
+        'refresh_token',
+    ];
+
     constructor(
         @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     ) {}
@@ -59,18 +69,9 @@ export class HttpLoggingInterceptor implements NestInterceptor {
     private sanitizeUrl(url: string): string {
         try {
             const urlObj = new URL(url, 'http://dummy-base');
-            const sensitiveKeys = [
-                'token',
-                'api_key',
-                'password',
-                'secret',
-                'authorization',
-                'access_token',
-                'refresh_token',
-            ];
 
             urlObj.searchParams.forEach((_, key) => {
-                if (sensitiveKeys.includes(key.toLowerCase())) {
+                if (this.SENSITIVE_QUERY_PARAMS.includes(key.toLowerCase())) {
                     urlObj.searchParams.set(key, '[REDACTED]');
                 }
             });

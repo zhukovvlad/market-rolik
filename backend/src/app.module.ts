@@ -34,8 +34,8 @@ import { HttpLoggingInterceptor } from './common/interceptors/http-logging.inter
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => [{
-        ttl: config.get('THROTTLE_TTL') || 60000,
-        limit: config.get('THROTTLE_LIMIT') || 10,
+        ttl: parseInt(config.get('THROTTLE_TTL') ?? '60000', 10),
+        limit: parseInt(config.get('THROTTLE_LIMIT') ?? '10', 10),
       }],
     }),
 
