@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UploadCloud, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { API_URL } from "@/lib/utils";
 
 interface UploadStepProps {
   onImageUploaded: (url: string) => void;
@@ -69,11 +70,6 @@ export default function UploadStep({ onImageUploaded }: UploadStepProps) {
       return;
     }
 
-    // Revoke previous if exists
-    if (selectedFile) {
-      URL.revokeObjectURL(selectedFile.preview);
-    }
-
     setSelectedFile({
       file,
       preview: URL.createObjectURL(file)
@@ -81,9 +77,6 @@ export default function UploadStep({ onImageUploaded }: UploadStepProps) {
   };
 
   const removeFile = () => {
-    if (selectedFile) {
-      URL.revokeObjectURL(selectedFile.preview);
-    }
     setSelectedFile(null);
   };
 
@@ -95,7 +88,7 @@ export default function UploadStep({ onImageUploaded }: UploadStepProps) {
       const formData = new FormData();
       formData.append("file", selectedFile.file);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/projects/upload`, {
+      const response = await fetch(`${API_URL}/projects/upload`, {
         method: "POST",
         credentials: "include",
         body: formData,

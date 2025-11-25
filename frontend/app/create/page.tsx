@@ -17,9 +17,8 @@ export default function CreatePage() {
     };
   }, []);
 
-  const handleGenerate = async (settings: { prompt: string; aspectRatio: string }) => {
+  const handleGenerate = async (_settings: { prompt: string; aspectRatio: string }) => {
     setIsGenerating(true);
-    // console.log("Generating with settings:", settings);
 
     // Mock simulation for now
     timeoutRef.current = setTimeout(() => {

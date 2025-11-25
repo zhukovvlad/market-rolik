@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
 interface User {
     id: string;
@@ -36,13 +37,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Check if token is expired
             let isExpired = true;
             try {
-                const base64Url = storedToken.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                const { exp } = JSON.parse(jsonPayload);
-                if (exp && Date.now() < exp * 1000) {
+                const decoded = jwtDecode<{ exp: number }>(storedToken);
+                if (decoded.exp && Date.now() < decoded.exp * 1000) {
                     isExpired = false;
                 }
             } catch (e) {
@@ -50,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             if (!isExpired) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setToken(storedToken);
                 try {
                     setUser(JSON.parse(storedUser));

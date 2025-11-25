@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wand2, Loader2 } from "lucide-react";
+import { Wand2, Loader2, ImageOff } from "lucide-react";
 
 interface SettingsStepProps {
     imageUrl: string;
@@ -17,24 +17,31 @@ interface SettingsStepProps {
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: SettingsStepProps) {
     const [prompt, setPrompt] = useState("");
     const [aspectRatio, setAspectRatio] = useState("9:16");
+    const [imageError, setImageError] = useState(false);
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4">
             {/* Левая колонка: Превью загруженного фото */}
             <Card className="overflow-hidden bg-slate-100 border-none shadow-inner">
                 <CardContent className="p-0 h-full flex items-center justify-center relative min-h-[300px]">
-                    <img
-                        src={imageUrl}
-                        alt="Reference"
-                        className="w-full h-full object-contain max-h-[500px]"
-                        onError={(e) => {
-                            e.currentTarget.style.display = 'none'; // Скрываем битое изображение
-                            // Можно также показать плейсхолдер или текст ошибки
-                        }}
-                    />
-                    <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-xs backdrop-blur-md">
-                        Исходное изображение
-                    </div>
+                    {!imageError ? (
+                        <>
+                            <img
+                                src={imageUrl}
+                                alt="Reference"
+                                className="w-full h-full object-contain max-h-[500px]"
+                                onError={() => setImageError(true)}
+                            />
+                            <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-xs backdrop-blur-md">
+                                Исходное изображение
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+                            <ImageOff className="w-12 h-12 mb-2 opacity-50" />
+                            <p className="text-sm">Не удалось загрузить изображение</p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 

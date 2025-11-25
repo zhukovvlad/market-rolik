@@ -2,8 +2,8 @@
 
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { API_URL } from "@/lib/utils";
 
 function AuthCallbackContent() {
     const router = useRouter();
@@ -18,7 +18,7 @@ function AuthCallbackContent() {
             window.history.replaceState(null, '', window.location.pathname);
 
             // Fetch user data from backend
-            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/me`, {
+            fetch(`${API_URL}/auth/me`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

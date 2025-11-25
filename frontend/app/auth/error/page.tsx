@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { API_URL } from "@/lib/utils";
 
 export default function AuthErrorPage() {
     return (
@@ -21,7 +22,7 @@ export default function AuthErrorPage() {
 
                 <div className="space-y-3">
                     <Button asChild className="w-full bg-indigo-600 hover:bg-indigo-700">
-                        <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/google`}>
+                        <a href={`${API_URL}/auth/google`}>
                             Повторить попытку
                         </a>
                     </Button>
