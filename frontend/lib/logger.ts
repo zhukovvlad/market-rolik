@@ -27,6 +27,11 @@ class Logger {
         this.isProduction = process.env.NODE_ENV === 'production';
         const envLevel = (process.env.NEXT_PUBLIC_LOG_LEVEL || 'info') as LogLevel;
         this.minLevel = this.levels[envLevel] ?? 1; // Default to info
+
+        // Flush logs before page unload
+        if (typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', () => this.flush());
+        }
     }
 
     private format(level: LogLevel, message: string, context?: string, data?: unknown): LogEntry {

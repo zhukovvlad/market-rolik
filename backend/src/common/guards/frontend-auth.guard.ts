@@ -19,8 +19,8 @@ export class FrontendAuthGuard implements CanActivate {
         throw new UnauthorizedException('Invalid API Key');
     }
 
-    const apiKeyBuffer = Buffer.from(apiKey);
-    const validApiKeyBuffer = Buffer.from(validApiKey);
+    const apiKeyBuffer = Buffer.from(apiKey, 'utf8');
+    const validApiKeyBuffer = Buffer.from(validApiKey, 'utf8');
 
     if (apiKeyBuffer.length !== validApiKeyBuffer.length) {
         throw new UnauthorizedException('Invalid API Key');
