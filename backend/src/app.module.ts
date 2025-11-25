@@ -33,10 +33,14 @@ import { HttpLoggingInterceptor } from './common/interceptors/http-logging.inter
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => [{
-        ttl: parseInt(config.get('THROTTLE_TTL') ?? '60000', 10),
-        limit: parseInt(config.get('THROTTLE_LIMIT') ?? '10', 10),
-      }],
+      useFactory: (config: ConfigService) => {
+        const ttl = parseInt(config.get('THROTTLE_TTL') ?? '60000', 10);
+        const limit = parseInt(config.get('THROTTLE_LIMIT') ?? '10', 10);
+        return [{
+          ttl: Number.isFinite(ttl) ? ttl : 60000,
+          limit: Number.isFinite(limit) ? limit : 10,
+        }];
+      },
     }),
 
     // 2. Подключение к БД
