@@ -2,7 +2,6 @@
 
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 function AuthCallbackContent() {
