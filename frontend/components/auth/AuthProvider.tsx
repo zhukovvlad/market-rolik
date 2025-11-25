@@ -70,14 +70,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const login = useCallback((newToken: string, newUser: User) => {
-        // Validate and apply defaults
-        if (typeof newUser.credits !== 'number') {
-            newUser.credits = 0;
-        }
+        const safeUser: User = {
+            ...newUser,
+            credits: typeof newUser.credits === "number" ? newUser.credits : 0,
+        };
+
         localStorage.setItem("token", newToken);
-        localStorage.setItem("user", JSON.stringify(newUser));
+        localStorage.setItem("user", JSON.stringify(safeUser));
         setToken(newToken);
-        setUser(newUser);
+        setUser(safeUser);
     }, []);
 
     const logout = useCallback(() => {
