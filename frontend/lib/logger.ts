@@ -31,6 +31,7 @@ class Logger {
         // Flush logs before page unload
         if (typeof window !== 'undefined') {
             window.addEventListener('beforeunload', () => this.flush(true));
+            window.addEventListener('pagehide', () => this.flush(true));
         }
     }
 
@@ -142,17 +143,25 @@ class Logger {
         }
 
         if (useKeepalive) {
+            const payload = {
+                logs: batch,
+                apiKey: apiKey,
+                authorization: headers['Authorization'],
+            };
+            const blob = new Blob([this.safeStringify(payload)], { type: 'application/json' });
+
             if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-                const blob = new Blob([body], { type: 'application/json' });
-                navigator.sendBeacon(url, blob);
-                return;
+                if (navigator.sendBeacon(url, blob)) {
+                    return;
+                }
             }
             
+            // Fallback to fetch with keepalive if sendBeacon fails or is unavailable
             fetch(url, {
                 method: 'POST',
-                headers,
+                headers, // We can still send headers with fetch, even if payload has them too
                 credentials: 'include',
-                body,
+                body: this.safeStringify(payload), // Use the same payload as beacon for consistency
                 keepalive: true,
             }).catch(err => {
                 console.error('Failed to send log batch to backend', err);

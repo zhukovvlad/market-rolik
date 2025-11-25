@@ -1,9 +1,11 @@
-import { Body, Controller, Post, Inject, UseGuards, UsePipes, ValidationPipe, ParseArrayPipe } from '@nestjs/common';
+import { Body, Controller, Post, Inject, UseGuards, BadRequestException } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger as WinstonLogger } from 'winston';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { FrontendAuthGuard } from '../common/guards/frontend-auth.guard';
 import { FrontendLogDto } from './dto/frontend-log.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Controller('logger')
 @UseGuards(ThrottlerGuard, FrontendAuthGuard)
@@ -13,12 +15,26 @@ export class LoggerController {
     ) { }
 
     @Post('frontend')
-    logFrontend(
-        @Body(new ParseArrayPipe({ items: FrontendLogDto, whitelist: true, forbidNonWhitelisted: true }))
-        body: FrontendLogDto[],
-    ) {
-        body.forEach((log) => {
-            const { level, message, context, timestamp, data } = log;
+    async logFrontend(@Body() body: any) {
+        let logs: any[] = [];
+
+        if (Array.isArray(body)) {
+            logs = body;
+        } else if (body && typeof body === 'object' && Array.isArray(body.logs)) {
+            logs = body.logs;
+        } else {
+            throw new BadRequestException('Invalid log format');
+        }
+
+        for (const logItem of logs) {
+            const logDto = plainToInstance(FrontendLogDto, logItem);
+            const errors = await validate(logDto, { whitelist: true, forbidNonWhitelisted: true });
+            
+            if (errors.length > 0) {
+                continue;
+            }
+
+            const { level, message, context, timestamp, data } = logDto;
 
             // Sanitize message to remove control characters (keep \t, \n, \r)
             const sanitizedMessage = message.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
@@ -31,7 +47,7 @@ export class LoggerController {
                 data: this.sanitizeData(data),
                 source: 'frontend',
             });
-        });
+        }
 
         return { success: true };
     }
