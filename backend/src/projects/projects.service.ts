@@ -14,7 +14,7 @@ export class ProjectsService {
     private assetsRepository: Repository<Asset>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) { }
 
   // Create a project
   async createProject(userId: string, title: string) {
@@ -33,14 +33,33 @@ export class ProjectsService {
     return await this.projectsRepository.save(project);
   }
 
-  // Find a project by ID
-  async findOne(id: string) {
+  // Find a project by ID (optionally check ownership)
+  async findOne(id: string, userId?: string) {
+    const where: any = { id };
+    if (userId) {
+      where.userId = userId;
+    }
+
     const project = await this.projectsRepository.findOne({
-      where: { id },
+      where,
       relations: ['assets'], // Eager load with assets
     });
-    if (!project) throw new NotFoundException(`Project ${id} not found`);
+
+    if (!project) {
+      // If userId was provided, it might exist but belong to someone else
+      // But for security, we just say "Not Found"
+      throw new NotFoundException(`Project not found`);
+    }
     return project;
+  }
+
+  // Find all projects for a user
+  async findAll(userId: string) {
+    return await this.projectsRepository.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+      relations: ['assets'],
+    });
   }
 
   // Add an asset (save AI processing result)
@@ -72,5 +91,16 @@ export class ProjectsService {
     });
 
     return await this.assetsRepository.save(asset);
+  }
+
+  // Удаление проекта
+  async remove(id: string, userId: string) {
+    // Удаляем только если ID совпадает И владелец совпадает
+    const result = await this.projectsRepository.delete({ id, userId });
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`Project ${id} not found or you don't have permission`);
+    }
+    return { deleted: true };
   }
 }

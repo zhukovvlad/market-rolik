@@ -19,7 +19,7 @@ export class Asset {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Project, (project) => project.assets)
+  @ManyToOne(() => Project, (project) => project.assets, { onDelete: 'CASCADE' })
   project: Project;
 
   @Column({
