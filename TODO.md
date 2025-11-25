@@ -21,7 +21,7 @@
 - [ ] **Database**: Generate and run migration for `User` entity changes (added `unique` constraint to `googleId`).
 - [ ] **Uploads**: Implement `POST /projects/upload` endpoint (S3 integration).
   - [x] Basic upload functionality
-  - [ ] Add JWT authentication guard
+  - [x] Add JWT authentication guard
   - [ ] Implement storage quota per user
 - [ ] **AI Engines**:
   - Integrate **Mubert** for background music generation.
