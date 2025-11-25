@@ -4,14 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from '../users/user.entity';
 import * as bcrypt from 'bcrypt';
-
-interface OAuthDetails {
-    email: string;
-    firstName?: string;
-    lastName?: string;
-    picture?: string;
-    googleId?: string;
-}
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { OAuthDetails } from './interfaces/oauth-details.interface';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +18,10 @@ export class AuthService {
     // --- ЛОГИКА ДЛЯ СОЦСЕТЕЙ (Google/GitHub/Yandex) ---
     async validateOAuthLogin(details: OAuthDetails) {
         const { email, firstName, lastName, picture, googleId } = details;
+
+        if (!email) {
+            throw new ConflictException('Email is required from OAuth provider');
+        }
 
         // 1. Ищем пользователя по email
         let user = await this.usersRepository.findOne({ where: { email } });
@@ -93,7 +91,7 @@ export class AuthService {
     }
 
     generateToken(user: User) {
-        const payload = {
+        const payload: JwtPayload = {
             sub: user.id,
             email: user.email,
             role: user.role,
