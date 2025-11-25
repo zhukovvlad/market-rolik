@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -20,7 +20,7 @@ export class AuthService {
         const { email, firstName, lastName, picture, googleId } = details;
 
         if (!email) {
-            throw new ConflictException('Email is required from OAuth provider');
+            throw new BadRequestException('Email is required from OAuth provider');
         }
 
         // 1. Ищем пользователя по email
@@ -33,7 +33,7 @@ export class AuthService {
                 firstName: firstName || '',
                 lastName: lastName || '',
                 avatarUrl: picture || '',
-                googleId: googleId || '',
+                googleId: googleId || null,
                 role: UserRole.USER,
                 creditsBalance: 10, // Бонус за регистрацию
             });

@@ -22,7 +22,7 @@ export class User {
   email: string;
 
   @Column({ nullable: true, unique: true })
-  googleId: string;
+  googleId: string | null;
 
   @Column({ nullable: true })
   firstName: string;
