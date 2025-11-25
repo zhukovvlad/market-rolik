@@ -5,12 +5,14 @@ interface LogEntry {
     message: string;
     context?: string;
     timestamp: string;
-    data?: any;
+    data?: unknown;
 }
 
 class Logger {
     private isProduction: boolean;
     private minLevel: number;
+    private lastSentTime = 0;
+    private readonly minInterval = 1000; // 1 second throttle for backend logs
     private levels: Record<LogLevel, number> = {
         debug: 0,
         info: 1,
@@ -24,7 +26,7 @@ class Logger {
         this.minLevel = this.levels[envLevel] ?? 1; // Default to info
     }
 
-    private format(level: LogLevel, message: string, context?: string, data?: any): LogEntry {
+    private format(level: LogLevel, message: string, context?: string, data?: unknown): LogEntry {
         return {
             level,
             message,
@@ -34,7 +36,7 @@ class Logger {
         };
     }
 
-    private log(level: LogLevel, message: string, context?: string, data?: any) {
+    private log(level: LogLevel, message: string, context?: string, data?: unknown) {
         if (this.levels[level] < this.minLevel) {
             return;
         }
@@ -50,13 +52,13 @@ class Logger {
             // In production, we might want to send this to a remote logging service
             // For now, we'll just console.log structured JSON if it's an error, or nothing for debug
             if (level === 'error' || level === 'warn') {
-                console[level](JSON.stringify(entry));
+                console[level](this.safeStringify(entry));
             }
         } else {
             // In development, pretty print
             const color = this.getColor(level);
             const contextStr = context ? `[${context}]` : '';
-            const dataStr = data ? '\n' + JSON.stringify(data, null, 2) : '';
+            const dataStr = data ? '\n' + this.safeStringify(data, 2) : '';
 
             console[level](
                 `%c${entry.timestamp} ${contextStr} ${level.toUpperCase()}: ${message}`,
@@ -66,16 +68,59 @@ class Logger {
         }
     }
 
+    private safeStringify(value: any, space?: number): string {
+        const seen = new WeakSet();
+        try {
+            return JSON.stringify(value, (key, val) => {
+                if (typeof val === 'object' && val !== null) {
+                    if (seen.has(val)) {
+                        return '[Circular]';
+                    }
+                    seen.add(val);
+                }
+                return val;
+            }, space);
+        } catch (error) {
+            return '<unserializable data>';
+        }
+    }
+
     private sendToBackend(entry: LogEntry) {
+        const now = Date.now();
+        if (now - this.lastSentTime < this.minInterval) {
+            return;
+        }
+        this.lastSentTime = now;
+
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
+
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+
+        if (apiKey) {
+            headers['x-api-key'] = apiKey;
+        }
+
+        // Try to get token from localStorage if available (client-side only)
+        if (typeof window !== 'undefined') {
+            try {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+            } catch (e) {
+                // Ignore localStorage errors
+            }
+        }
 
         // Fire and forget - don't await
         fetch(`${apiUrl}/logger/frontend`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(entry),
+            headers,
+            credentials: 'include',
+            body: this.safeStringify(entry),
         }).catch(err => {
             // Prevent infinite loop if logging fails
             console.error('Failed to send log to backend', err);
@@ -92,19 +137,19 @@ class Logger {
         }
     }
 
-    debug(message: string, context?: string, data?: any) {
+    debug(message: string, context?: string, data?: unknown) {
         this.log('debug', message, context, data);
     }
 
-    info(message: string, context?: string, data?: any) {
+    info(message: string, context?: string, data?: unknown) {
         this.log('info', message, context, data);
     }
 
-    warn(message: string, context?: string, data?: any) {
+    warn(message: string, context?: string, data?: unknown) {
         this.log('warn', message, context, data);
     }
 
-    error(message: string, context?: string, data?: any) {
+    error(message: string, context?: string, data?: unknown) {
         this.log('error', message, context, data);
     }
 }

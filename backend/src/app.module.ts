@@ -3,6 +3,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 // Импорт наших сущностей
 import { User } from './users/user.entity';
@@ -26,6 +27,16 @@ import { HttpLoggingInterceptor } from './common/interceptors/http-logging.inter
     // 1. Чтение .env файла
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+
+    // Throttler (Rate Limiting)
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [{
+        ttl: config.get('THROTTLE_TTL') || 60000,
+        limit: config.get('THROTTLE_LIMIT') || 10,
+      }],
     }),
 
     // 2. Подключение к БД

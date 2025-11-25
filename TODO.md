@@ -28,6 +28,7 @@
   - Integrate **Yandex SpeechKit** for TTS (Text-to-Speech).
   - Implement LLM service for script generation.
 - [ ] **Security**: Add Rate Limiting and JWT Guards to all endpoints.
+- [ ] **Logger Config**: Add `FRONTEND_API_KEY` to backend `.env` and configure frontend to send `x-api-key` header.
 - [ ] **OAuth Reliability**: Добавить автоматические retry на уровне HTTP клиента для OAuth (улучшит надёжность соединений с Google APIs при сетевых проблемах).
 - [ ] **Auth Refactor**: Миграция с localStorage на httpOnly Cookies (см. `docs/auth-migration-strategy.md`).
 
