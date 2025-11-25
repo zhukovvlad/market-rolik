@@ -15,22 +15,36 @@ export class LoggerController {
     ) { }
 
     @Post('frontend')
-    async logFrontend(@Body() body: any) {
+    async logFrontend(
+        @Body() body: FrontendLogDto[] | { logs: FrontendLogDto[] },
+    ) {
         let logs: any[] = [];
 
         if (Array.isArray(body)) {
             logs = body;
-        } else if (body && typeof body === 'object' && Array.isArray(body.logs)) {
-            logs = body.logs;
+        } else if (body && typeof body === 'object' && 'logs' in body && Array.isArray((body as any).logs)) {
+            logs = (body as any).logs;
         } else {
-            throw new BadRequestException('Invalid log format');
+            throw new BadRequestException(
+                'Invalid log format: expected an array of logs or an object with a logs[] property',
+            );
         }
 
         for (const logItem of logs) {
             const logDto = plainToInstance(FrontendLogDto, logItem);
-            const errors = await validate(logDto, { whitelist: true, forbidNonWhitelisted: true });
-            
+            const errors = await validate(logDto, {
+                whitelist: true,
+                forbidNonWhitelisted: true,
+            });
+
             if (errors.length > 0) {
+                this.logger.warn({
+                    level: 'warn',
+                    message: 'Dropped invalid frontend log item',
+                    context: 'Frontend:Validation',
+                    source: 'frontend',
+                    validationErrors: errors.map((e) => e.constraints),
+                });
                 continue;
             }
 

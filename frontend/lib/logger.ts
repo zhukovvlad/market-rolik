@@ -159,7 +159,7 @@ class Logger {
             // Fallback to fetch with keepalive if sendBeacon fails or is unavailable
             fetch(url, {
                 method: 'POST',
-                headers, // We can still send headers with fetch, even if payload has them too
+                headers, // Send auth in both headers (backward compat) and payload (consistency with beacon)
                 credentials: 'include',
                 body: this.safeStringify(payload), // Use the same payload as beacon for consistency
                 keepalive: true,
