@@ -1,5 +1,6 @@
-import { Controller, Post, Body, Get, Param, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Delete, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from '@nestjs/passport';
 import { StorageService } from '../storage/storage.service';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -10,6 +11,12 @@ export class ProjectsController {
     private readonly projectsService: ProjectsService,
     private readonly storageService: StorageService,
   ) { }
+
+  @Get()
+  @UseGuards(AuthGuard('jwt'))
+  async findAll(@Req() req) {
+    return this.projectsService.findAll(req.user.id);
+  }
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
@@ -29,16 +36,22 @@ export class ProjectsController {
   }
 
   @Post()
-  async create(@Body() createProjectDto: CreateProjectDto) {
-    // В будущем userId будем брать из JWT токена (req.user.id)
+  @UseGuards(AuthGuard('jwt'))
+  async create(@Body() createProjectDto: CreateProjectDto, @Req() req) {
     return this.projectsService.createProject(
-      createProjectDto.userId,
+      req.user.id,
       createProjectDto.title,
     );
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(id);
+  @UseGuards(AuthGuard('jwt'))
+  async findOne(@Param('id') id: string, @Req() req) {
+    return this.projectsService.findOne(id, req.user.id);
+  }
+  @Delete(':id')
+  @UseGuards(AuthGuard('jwt'))
+  async remove(@Param('id') id: string, @Req() req) {
+    return this.projectsService.remove(id, req.user.id);
   }
 }

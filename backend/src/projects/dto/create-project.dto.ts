@@ -1,9 +1,7 @@
-import { IsString, IsUUID, IsNotEmpty, Length } from 'class-validator';
+import { IsString, IsNotEmpty, Length } from 'class-validator';
 
 export class CreateProjectDto {
-  @IsUUID()
-  @IsNotEmpty()
-  userId: string;
+  // userId удаляем отсюда, он придет из JWT токена
 
   @IsString()
   @IsNotEmpty()

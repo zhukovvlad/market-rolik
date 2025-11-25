@@ -4,6 +4,7 @@ import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { API_URL } from "@/lib/utils";
+import { toast } from "sonner";
 
 function AuthCallbackContent() {
     const router = useRouter();
@@ -29,7 +30,8 @@ function AuthCallbackContent() {
                 })
                 .then(user => {
                     login(token, user);
-                    router.push("/");
+                    toast.success("Вход выполнен успешно!");
+                    router.push("/dashboard");
                 })
                 .catch(error => {
                     console.error("Failed to fetch user", error);

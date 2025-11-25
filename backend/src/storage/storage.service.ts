@@ -59,8 +59,10 @@ export class StorageService {
       // Формируем публичную ссылку (для Timeweb формат: https://s3.timeweb.com/bucket-name/file)
       // Или если привязан домен: https://bucket.s3.timeweb.com/file
       const endpoint = this.configService.getOrThrow<string>('S3_ENDPOINT');
-      const endpointUrl = new URL(endpoint);
-      const publicUrl = `${endpointUrl.protocol}//${this.bucket}.${endpointUrl.host}/${fileName}`;
+      // Используем Path-Style URL (как в S3Client config), так как Timeweb/Minio часто требуют именно его
+      // Было: bucket.s3.timeweb.com (Virtual-Hosted) -> ломалось
+      // Стало: s3.timeweb.com/bucket (Path-Style)
+      const publicUrl = `${endpoint}/${this.bucket}/${fileName}`;
 
       this.logger.log(`✅ File uploaded to S3: ${publicUrl}`);
       return publicUrl;

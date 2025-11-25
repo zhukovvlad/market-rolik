@@ -53,7 +53,10 @@ export class Project {
   resultVideoUrl: string;
 
   // Ассеты (видео-фрагменты, озвучка), привязанные к проекту
-  @OneToMany(() => Asset, (asset) => asset.project)
+  @OneToMany(() => Asset, (asset) => asset.project, {
+    cascade: true,
+    onDelete: 'CASCADE'
+  })
   assets: Asset[];
 
   @CreateDateColumn()
