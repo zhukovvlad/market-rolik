@@ -31,7 +31,7 @@
 - [ ] **Logger Config**: Add `FRONTEND_API_KEY` to backend `.env` and configure frontend to send `x-api-key` header.
 - [ ] **OAuth Reliability**: Добавить автоматические retry на уровне HTTP клиента для OAuth (улучшит надёжность соединений с Google APIs при сетевых проблемах).
 - [ ] **Auth Refactor**: Миграция с localStorage на httpOnly Cookies (см. `docs/auth-migration-strategy.md`).
-- [ ] **Optimization**: Реализовать генерацию превью (thumbnails) для видео на бэкенде (FFmpeg), чтобы не грузить тяжелые видео на фронтенде.
+- [ ] **Optimization**: Generate video thumbnails on the backend using FFmpeg to avoid loading heavy videos on the frontend.
 
 ## 📱 General / UX
 - [ ] **Mobile**: Ensure all new views are mobile-responsive.

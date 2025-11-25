@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { AppService } from './app.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
@@ -8,6 +8,9 @@ import { IsOptional, IsUrl, IsString, IsUUID } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './users/user.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { ProjectsService } from './projects/projects.service';
+import { Request } from 'express';
 
 interface IpifyResponse {
   ip: string;
@@ -47,6 +50,7 @@ export class AppController {
     private readonly storageService: StorageService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly projectsService: ProjectsService,
   ) {}
 
   @Get()
@@ -145,7 +149,17 @@ export class AppController {
 
     // Тест генерации Видео (Kling)
   @Post('test-video')
-  async testVideo(@Body() body: TestVideoDto) {
+  @UseGuards(AuthGuard('jwt'))
+  async testVideo(@Body() body: TestVideoDto, @Req() req: Request & { user: { id: string } }) {
+    // Verify project ownership
+    if (body.projectId) {
+      try {
+        await this.projectsService.findOne(body.projectId, req.user.id);
+      } catch (error) {
+        throw new ForbiddenException('You do not have access to this project');
+      }
+    }
+
     // Если картинки нет, берем дефолтную (но лучше передавать реальную из S3)
     const url =
       body.imageUrl ||

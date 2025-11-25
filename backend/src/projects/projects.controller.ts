@@ -1,4 +1,5 @@
 import { Controller, Post, Body, Get, Param, Delete, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { StorageService } from '../storage/storage.service';
@@ -14,11 +15,12 @@ export class ProjectsController {
 
   @Get()
   @UseGuards(AuthGuard('jwt'))
-  async findAll(@Req() req) {
+  async findAll(@Req() req: Request & { user: { id: string } }) {
     return this.projectsService.findAll(req.user.id);
   }
 
   @Post('upload')
+  @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile(
@@ -37,7 +39,7 @@ export class ProjectsController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  async create(@Body() createProjectDto: CreateProjectDto, @Req() req) {
+  async create(@Body() createProjectDto: CreateProjectDto, @Req() req: Request & { user: { id: string } }) {
     return this.projectsService.createProject(
       req.user.id,
       createProjectDto.title,
@@ -46,12 +48,12 @@ export class ProjectsController {
 
   @Get(':id')
   @UseGuards(AuthGuard('jwt'))
-  async findOne(@Param('id') id: string, @Req() req) {
+  async findOne(@Param('id') id: string, @Req() req: Request & { user: { id: string } }) {
     return this.projectsService.findOne(id, req.user.id);
   }
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  async remove(@Param('id') id: string, @Req() req) {
+  async remove(@Param('id') id: string, @Req() req: Request & { user: { id: string } }) {
     return this.projectsService.remove(id, req.user.id);
   }
 }
