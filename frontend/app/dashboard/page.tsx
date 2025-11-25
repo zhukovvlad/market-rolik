@@ -27,7 +27,10 @@ export default function DashboardPage() {
     useEffect(() => {
         const fetchProjects = async () => {
             const token = localStorage.getItem("token");
-            if (!token) return;
+            if (!token) {
+                setLoading(false);
+                return;
+            }
 
             try {
                 const res = await fetch(`${API_URL}/projects`, {
@@ -55,7 +58,7 @@ export default function DashboardPage() {
 
         // Оптимистичное обновление
         const oldProjects = [...projects];
-        setProjects(projects.filter(p => p.id !== projectId));
+        setProjects(prev => prev.filter(p => p.id !== projectId));
 
         try {
             const res = await fetch(`${API_URL}/projects/${projectId}`, {

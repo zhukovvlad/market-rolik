@@ -22,7 +22,7 @@ import {
 interface Project {
     id: string;
     title: string;
-    status: string;
+    status: 'DRAFT' | 'QUEUED' | 'PROCESSING' | 'RENDERING' | 'COMPLETED' | 'FAILED';
     createdAt: string;
     assets: { type: string; storageUrl: string }[];
     resultVideoUrl?: string;
@@ -33,7 +33,7 @@ interface ProjectCardProps {
     onDelete: (id: string) => void;
 }
 
-const statusColors: Record<string, string> = {
+const statusColors: Record<Project['status'], string> = {
     DRAFT: "bg-gray-100 text-gray-800",
     QUEUED: "bg-yellow-100 text-yellow-800",
     PROCESSING: "bg-blue-100 text-blue-800",
@@ -42,7 +42,7 @@ const statusColors: Record<string, string> = {
     FAILED: "bg-red-100 text-red-800",
 };
 
-const statusLabels: Record<string, string> = {
+const statusLabels: Record<Project['status'], string> = {
     DRAFT: "Черновик",
     QUEUED: "В очереди",
     PROCESSING: "Обработка",
@@ -54,7 +54,7 @@ const statusLabels: Record<string, string> = {
 export function ProjectCard({ project, onDelete }: ProjectCardProps) {
     // const [imageError, setImageError] = useState(false); // Больше не нужно, внутри MediaPreview
 
-    const getStatusBadge = (status: string) => {
+    const getStatusBadge = (status: Project['status']) => {
         const label = statusLabels[status] || status;
         const colorClass = statusColors[status] || "bg-gray-100 text-gray-800";
 
@@ -66,6 +66,10 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
     };
 
     const getPreviewAsset = (p: Project) => {
+        // Если проект завершен и есть видео, показываем его (или превью видео)
+        if (p.status === 'COMPLETED' && p.resultVideoUrl) {
+            return { type: 'VIDEO_RESULT', storageUrl: p.resultVideoUrl };
+        }
         // Приоритет: чистое фото -> любое фото -> первый ассет
         return p.assets?.find(a => a.type === 'IMAGE_CLEAN') || p.assets?.[0];
     };
