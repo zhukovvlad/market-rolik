@@ -11,8 +11,11 @@ interface LogEntry {
 class Logger {
     private isProduction: boolean;
     private minLevel: number;
-    private lastSentTime = 0;
-    private readonly minInterval = 1000; // 1 second throttle for backend logs
+    private logQueue: LogEntry[] = [];
+    private flushTimeout: NodeJS.Timeout | null = null;
+    private readonly flushInterval = 2000; // Flush every 2 seconds
+    private readonly maxBatchSize = 10; // Or when we have 10 logs
+
     private levels: Record<LogLevel, number> = {
         debug: 0,
         info: 1,
@@ -86,11 +89,27 @@ class Logger {
     }
 
     private sendToBackend(entry: LogEntry) {
-        const now = Date.now();
-        if (now - this.lastSentTime < this.minInterval) {
+        this.logQueue.push(entry);
+
+        if (this.logQueue.length >= this.maxBatchSize) {
+            this.flush();
+        } else if (!this.flushTimeout) {
+            this.flushTimeout = setTimeout(() => this.flush(), this.flushInterval);
+        }
+    }
+
+    private flush() {
+        if (this.flushTimeout) {
+            clearTimeout(this.flushTimeout);
+            this.flushTimeout = null;
+        }
+
+        if (this.logQueue.length === 0) {
             return;
         }
-        this.lastSentTime = now;
+
+        const batch = [...this.logQueue];
+        this.logQueue = [];
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
         const apiKey = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
@@ -120,10 +139,10 @@ class Logger {
             method: 'POST',
             headers,
             credentials: 'include',
-            body: this.safeStringify(entry),
+            body: this.safeStringify(batch),
         }).catch(err => {
             // Prevent infinite loop if logging fails
-            console.error('Failed to send log to backend', err);
+            console.error('Failed to send log batch to backend', err);
         });
     }
 
