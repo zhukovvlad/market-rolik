@@ -9,15 +9,7 @@ import { Plus, Video } from "lucide-react";
 import { API_URL } from "@/lib/utils";
 import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
-
-interface Project {
-    id: string;
-    title: string;
-    status: 'DRAFT' | 'QUEUED' | 'PROCESSING' | 'RENDERING' | 'COMPLETED' | 'FAILED';
-    createdAt: string;
-    assets: { type: string; storageUrl: string }[];
-    resultVideoUrl?: string; // Добавил, так как ProjectCard его использует
-}
+import { Project } from "@/lib/types";
 
 export default function DashboardPage() {
     const { user, isLoading: isAuthLoading } = useAuth();

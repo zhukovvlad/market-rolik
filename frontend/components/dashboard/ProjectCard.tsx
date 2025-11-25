@@ -18,15 +18,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-interface Project {
-    id: string;
-    title: string;
-    status: 'DRAFT' | 'QUEUED' | 'PROCESSING' | 'RENDERING' | 'COMPLETED' | 'FAILED';
-    createdAt: string;
-    assets: { type: string; storageUrl: string }[];
-    resultVideoUrl?: string;
-}
+import { Project } from "@/lib/types";
 
 interface ProjectCardProps {
     project: Project;
@@ -96,7 +88,7 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
                 </CardTitle>
             </CardHeader>
 
-            <CardContent className="pb-2 flex-grow">
+            <CardContent className="pb-2 grow">
                 <div className="flex items-center text-xs text-slate-400 gap-2">
                     <Calendar className="w-3 h-3" />
                     {new Date(project.createdAt).toLocaleDateString()}
