@@ -153,11 +153,8 @@ export class AppController {
   async testVideo(@Body() body: TestVideoDto, @Req() req: Request & { user: { id: string } }) {
     // Verify project ownership
     if (body.projectId) {
-      try {
-        await this.projectsService.findOne(body.projectId, req.user.id);
-      } catch (error) {
-        throw new ForbiddenException('You do not have access to this project');
-      }
+      await this.projectsService.findOne(body.projectId, req.user.id);
+      // Let ProjectsService throw its own HttpException for not-found/forbidden cases.
     }
 
     // Если картинки нет, берем дефолтную (но лучше передавать реальную из S3)
