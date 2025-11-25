@@ -8,11 +8,16 @@ export class FrontendAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const apiKey = request.headers['x-api-key'];
+    let apiKey = request.headers['x-api-key'];
     const validApiKey = this.configService.get<string>('FRONTEND_API_KEY');
 
     if (!validApiKey) {
         throw new UnauthorizedException('Invalid API Key');
+    }
+
+    // Fallback to body for beacon requests
+    if (!apiKey && request.body && request.body.apiKey) {
+        apiKey = request.body.apiKey;
     }
 
     if (!apiKey) {
