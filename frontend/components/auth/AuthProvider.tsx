@@ -50,7 +50,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // eslint-disable-next-line react-hooks/set-state-in-effect
                 setToken(storedToken);
                 try {
-                    setUser(JSON.parse(storedUser));
+                    const parsedUser = JSON.parse(storedUser);
+                    // Validate and apply defaults for new required fields
+                    if (typeof parsedUser.credits !== 'number') {
+                        parsedUser.credits = 0;
+                    }
+                    setUser(parsedUser);
                 } catch (error) {
                     console.error("Failed to parse user data from localStorage:", error);
                     localStorage.removeItem("user");

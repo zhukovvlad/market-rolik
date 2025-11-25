@@ -55,8 +55,8 @@ export default function CreatePage() {
       const genRes = await fetch(`${API_URL}/test-video`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-          // Тут тоже можно добавить Authorization, если защитим роут в будущем
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           projectId: project.id,

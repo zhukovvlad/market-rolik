@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { ImageOff, Video, FileVideo } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MediaPreviewProps {
     src?: string | null;
     alt: string;
     type?: string; // 'IMAGE_CLEAN', 'VIDEO_FRAGMENT' etc.
     className?: string;
-    aspectRatio?: "video" | "square" | "portrait"; // Можно добавить для управления пропорциями
 }
 
 export function MediaPreview({ src, alt, type, className }: MediaPreviewProps) {
@@ -15,7 +15,7 @@ export function MediaPreview({ src, alt, type, className }: MediaPreviewProps) {
     // Если нет источника или произошла ошибка загрузки
     if (!src || error) {
         return (
-            <div className={`w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50 ${className}`}>
+            <div className={cn("w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50", className)}>
                 {error ? (
                     <>
                         <ImageOff className="w-10 h-10 mb-2 opacity-50" />
@@ -36,7 +36,7 @@ export function MediaPreview({ src, alt, type, className }: MediaPreviewProps) {
         return (
             <video
                 src={`${src}#t=0.001`} // Хак: Media Fragments URI заставляет браузер показать первый кадр
-                className={`object-cover ${className}`}
+                className={cn("object-cover", className)}
                 muted
                 loop
                 playsInline
@@ -52,7 +52,7 @@ export function MediaPreview({ src, alt, type, className }: MediaPreviewProps) {
         <img
             src={src}
             alt={alt}
-            className={`object-cover ${className}`}
+            className={cn("object-cover", className)}
             onError={() => setError(true)}
         />
     );
