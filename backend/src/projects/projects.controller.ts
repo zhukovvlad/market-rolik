@@ -6,6 +6,8 @@ import { StorageService } from '../storage/storage.service';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 
+type AuthenticatedRequest = Request & { user: { id: string } };
+
 @Controller('projects')
 export class ProjectsController {
   constructor(
@@ -15,7 +17,7 @@ export class ProjectsController {
 
   @Get()
   @UseGuards(AuthGuard('jwt'))
-  async findAll(@Req() req: Request & { user: { id: string } }) {
+  async findAll(@Req() req: AuthenticatedRequest) {
     return this.projectsService.findAll(req.user.id);
   }
 
@@ -39,7 +41,7 @@ export class ProjectsController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  async create(@Body() createProjectDto: CreateProjectDto, @Req() req: Request & { user: { id: string } }) {
+  async create(@Body() createProjectDto: CreateProjectDto, @Req() req: AuthenticatedRequest) {
     return this.projectsService.createProject(
       req.user.id,
       createProjectDto.title,
@@ -48,12 +50,12 @@ export class ProjectsController {
 
   @Get(':id')
   @UseGuards(AuthGuard('jwt'))
-  async findOne(@Param('id') id: string, @Req() req: Request & { user: { id: string } }) {
+  async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.projectsService.findOne(id, req.user.id);
   }
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  async remove(@Param('id') id: string, @Req() req: Request & { user: { id: string } }) {
+  async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.projectsService.remove(id, req.user.id);
   }
 }
