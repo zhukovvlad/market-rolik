@@ -75,7 +75,6 @@ import { HttpLoggingInterceptor } from './common/interceptors/http-logging.inter
     AuthModule,
     LoggerModule,
     TypeOrmModule.forFeature([User]),
-    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [
