@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
@@ -17,6 +18,8 @@ import { AppService } from './app.service';
 
 import { StorageModule } from './storage/storage.module';
 import { AuthModule } from './auth/auth.module';
+import { LoggerModule } from './logger/logger.module';
+import { HttpLoggingInterceptor } from './common/interceptors/http-logging.interceptor';
 
 @Module({
   imports: [
@@ -55,9 +58,16 @@ import { AuthModule } from './auth/auth.module';
     StorageModule,
     ProjectsModule,
     AuthModule,
+    LoggerModule,
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpLoggingInterceptor,
+    },
+  ],
 })
 export class AppModule { }
