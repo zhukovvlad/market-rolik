@@ -51,7 +51,6 @@ export default function CreatePage() {
       const project = await projectRes.json();
 
       // 3. Запускаем генерацию видео (POST /test-video)
-      // Этот эндпоинт пока тестовый, ему токен не обязателен, но проект ID нужен
       const genRes = await fetch(`${API_URL}/test-video`, {
         method: 'POST',
         headers: {
