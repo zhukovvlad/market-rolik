@@ -27,12 +27,12 @@ export default function DashboardPage() {
             }
 
             try {
-                const res = await axios.get(`${API_URL}/projects`, {
+                const res = await axios.get<Project[]>(`${API_URL}/projects`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setProjects(res.data);
             } catch (error) {
-                console.error("Failed to fetch projects", error);
+                console.error("Failed to fetch projects", error instanceof Error ? error.message : error);
                 toast.error("Не удалось загрузить проекты");
             } finally {
                 setLoading(false);
