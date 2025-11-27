@@ -13,6 +13,7 @@ export class AiTextService {
   private readonly logger = new Logger(AiTextService.name);
   private genAI: GoogleGenAI;
   private readonly allowedHosts: string[] = [];
+  private static readonly MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
@@ -54,9 +55,9 @@ export class AiTextService {
     this.validateImageUrl(imageUrl);
 
     try {
-      this.logger.log(`Analyzing image with Gemini 2.0 Flash: ${imageUrl}`);
+      this.logger.log(`Analyzing image with Gemini 2.5 Flash: ${imageUrl}`);
 
-      // Fetch the image with timeout and size limit
+      // Fetch image with timeout and size limits
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
 
@@ -77,13 +78,13 @@ export class AiTextService {
       }
 
       const contentLength = imageResp.headers.get('content-length');
-      if (contentLength && parseInt(contentLength, 10) > 10 * 1024 * 1024) { // 10MB limit
+      if (contentLength && parseInt(contentLength, 10) > AiTextService.MAX_IMAGE_SIZE) {
         throw new BadRequestException('Image is too large (max 10MB)');
       }
 
       const imageBuffer = await imageResp.arrayBuffer();
 
-      if (imageBuffer.byteLength > 10 * 1024 * 1024) {
+      if (imageBuffer.byteLength > AiTextService.MAX_IMAGE_SIZE) {
         throw new BadRequestException('Image is too large (max 10MB)');
       }
 
@@ -100,7 +101,7 @@ export class AiTextService {
       `;
 
       const response = await this.genAI.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-2.5-flash',
         contents: [
           { text: prompt },
           {

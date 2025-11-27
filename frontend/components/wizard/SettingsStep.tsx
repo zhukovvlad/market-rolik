@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,11 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
     const [prompt, setPrompt] = useState("");
     const [aspectRatio, setAspectRatio] = useState("9:16");
     const [imageError, setImageError] = useState(false);
+
+    // Reset error state when imageUrl changes
+    useEffect(() => {
+        setImageError(false);
+    }, [imageUrl]);
 
     const handleGenerate = () => {
         onGenerate({ prompt, aspectRatio });

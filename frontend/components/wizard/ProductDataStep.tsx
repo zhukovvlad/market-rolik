@@ -234,7 +234,7 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                 <div className="flex justify-end">
                     <Button
                         variant="outline"
-                        className="bg-linear-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-500 hover:text-cyan-400 hover:border-cyan-500/50"
+                        className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-500 hover:text-cyan-400 hover:border-cyan-500/50"
                         onClick={handleMagicFill}
                         disabled={!uploadedUrl || isAnalyzing}
                     >

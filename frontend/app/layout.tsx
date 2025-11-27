@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const unbounded = Unbounded({ subsets: ["latin"], variable: "--font-heading" });
@@ -21,11 +22,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${unbounded.variable} ${jetbrainsMono.variable} font-sans antialiased bg-background text-foreground`}>
+      <body className={cn(
+        inter.variable,
+        unbounded.variable,
+        jetbrainsMono.variable,
+        "font-sans antialiased bg-background text-foreground"
+      )}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem
+          enableSystem={false}
           disableTransitionOnChange
         >
           <AuthProvider>

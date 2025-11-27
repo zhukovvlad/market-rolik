@@ -81,6 +81,11 @@ class Logger {
         const seen = new WeakSet();
         try {
             return JSON.stringify(value, (key, val) => {
+                // Redact sensitive fields
+                if (key.toLowerCase().includes('authorization') || key.toLowerCase().includes('token') || key.toLowerCase().includes('password')) {
+                    return '[REDACTED]';
+                }
+
                 if (typeof val === 'object' && val !== null) {
                     if (seen.has(val)) {
                         return '[Circular]';
