@@ -14,6 +14,7 @@ interface SettingsStepProps {
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: SettingsStepProps) {
     const [prompt, setPrompt] = useState("");
     const [aspectRatio, setAspectRatio] = useState("9:16");
+    const [imageError, setImageError] = useState(false);
 
     const handleGenerate = () => {
         onGenerate({ prompt, aspectRatio });
@@ -24,9 +25,19 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
             {/* Left: Preview */}
             <div className="flex flex-col gap-4">
                 <h3 className="text-xl font-bold font-heading">Превью</h3>
-                <div className={`relative rounded-xl overflow-hidden border border-border bg-black/50 shadow-2xl transition-all duration-500 ${aspectRatio === "9:16" ? "aspect-[9/16] max-w-xs mx-auto" : "aspect-[3/4] max-w-sm mx-auto"}`}>
-                    <img src={imageUrl} alt="Preview" className="w-full h-full object-cover opacity-80" />
-                    <div className="absolute inset-0 flex items-center justify-center">
+                <div className={`relative rounded-xl overflow-hidden border border-border bg-black/50 shadow-2xl transition-all duration-500 ${aspectRatio === "9:16" ? "aspect-9/16 max-w-xs mx-auto" : "aspect-3/4 max-w-sm mx-auto"}`}>
+                    <img 
+                        src={imageUrl} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover opacity-80" 
+                        onError={() => setImageError(true)}
+                    />
+                    {imageError && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                            <span className="text-muted-foreground">Failed to load image</span>
+                        </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <p className="text-white/50 text-sm font-medium backdrop-blur-sm px-3 py-1 rounded-full bg-black/30">
                             {aspectRatio} Preview
                         </p>
@@ -41,7 +52,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
 
                     <div className="space-y-3">
                         <Label className="text-base">Формат видео</Label>
-                        <RadioGroup defaultValue="9:16" value={aspectRatio} onValueChange={setAspectRatio} className="grid grid-cols-2 gap-4">
+                        <RadioGroup value={aspectRatio} onValueChange={setAspectRatio} className="grid grid-cols-2 gap-4">
                             <div>
                                 <RadioGroupItem value="9:16" id="r1" className="peer sr-only" />
                                 <Label
