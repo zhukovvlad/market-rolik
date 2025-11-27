@@ -6,7 +6,7 @@ export default function HeroSection() {
     return (
         <section className="relative overflow-hidden bg-background pt-12 pb-20 lg:pt-24 lg:pb-32">
             {/* Background Grid */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#27272A_1px,transparent_1px),linear-gradient(to_bottom,#27272A_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#27272A_1px,transparent_1px),linear-gradient(to_bottom,#27272A_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20 pointer-events-none"></div>
 
             <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
@@ -55,7 +55,7 @@ export default function HeroSection() {
                     </div>
 
                     {/* Split Screen Visual */}
-                    <div className="relative mx-auto w-full max-w-lg lg:max-w-none aspect-square lg:aspect-[4/3] rounded-2xl overflow-hidden border border-border bg-card shadow-2xl">
+                    <div className="relative mx-auto w-full max-w-lg lg:max-w-none aspect-square lg:aspect-4/3 rounded-2xl overflow-hidden border border-border bg-card shadow-2xl">
                         <div className="absolute inset-0 flex">
                             {/* Left: Static (B&W) */}
                             <div className="w-1/2 h-full bg-neutral-900 relative overflow-hidden border-r border-primary/50">
@@ -72,7 +72,7 @@ export default function HeroSection() {
                             <div className="w-1/2 h-full bg-neutral-800 relative overflow-hidden">
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     {/* Placeholder for video */}
-                                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse"></div>
+                                    <div className="w-full h-full bg-linear-to-br from-primary/20 to-secondary/20 animate-pulse"></div>
                                     <span className="absolute text-primary font-mono text-xs font-bold">GENERATING...</span>
                                 </div>
                                 <div className="absolute bottom-4 right-4 font-mono text-xs text-secondary">
