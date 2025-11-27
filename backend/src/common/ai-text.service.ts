@@ -79,13 +79,13 @@ export class AiTextService {
 
       const contentLength = imageResp.headers.get('content-length');
       if (contentLength && parseInt(contentLength, 10) > AiTextService.MAX_IMAGE_SIZE) {
-        throw new BadRequestException('Image is too large (max 10MB)');
+        throw new BadRequestException(`Image is too large (max ${AiTextService.MAX_IMAGE_SIZE / 1024 / 1024}MB)`);
       }
 
       const imageBuffer = await imageResp.arrayBuffer();
 
       if (imageBuffer.byteLength > AiTextService.MAX_IMAGE_SIZE) {
-        throw new BadRequestException('Image is too large (max 10MB)');
+        throw new BadRequestException(`Image is too large (max ${AiTextService.MAX_IMAGE_SIZE / 1024 / 1024}MB)`);
       }
 
       const base64Image = Buffer.from(imageBuffer).toString('base64');
