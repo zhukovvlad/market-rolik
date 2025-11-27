@@ -16,7 +16,7 @@ export class AiTextService {
   private static readonly MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
   private static get MAX_IMAGE_SIZE_MB(): number {
-    return this.MAX_IMAGE_SIZE / 1024 / 1024;
+    return AiTextService.MAX_IMAGE_SIZE / 1024 / 1024;
   }
 
   constructor(private configService: ConfigService) {
