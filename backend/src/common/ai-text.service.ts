@@ -15,6 +15,10 @@ export class AiTextService {
   private readonly allowedHosts: string[] = [];
   private static readonly MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
+  private static get MAX_IMAGE_SIZE_MB(): number {
+    return this.MAX_IMAGE_SIZE / 1024 / 1024;
+  }
+
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (!apiKey) {
@@ -79,13 +83,13 @@ export class AiTextService {
 
       const contentLength = imageResp.headers.get('content-length');
       if (contentLength && parseInt(contentLength, 10) > AiTextService.MAX_IMAGE_SIZE) {
-        throw new BadRequestException(`Image is too large (max ${AiTextService.MAX_IMAGE_SIZE / 1024 / 1024}MB)`);
+        throw new BadRequestException(`Image is too large (max ${AiTextService.MAX_IMAGE_SIZE_MB}MB)`);
       }
 
       const imageBuffer = await imageResp.arrayBuffer();
 
       if (imageBuffer.byteLength > AiTextService.MAX_IMAGE_SIZE) {
-        throw new BadRequestException(`Image is too large (max ${AiTextService.MAX_IMAGE_SIZE / 1024 / 1024}MB)`);
+        throw new BadRequestException(`Image is too large (max ${AiTextService.MAX_IMAGE_SIZE_MB}MB)`);
       }
 
       const base64Image = Buffer.from(imageBuffer).toString('base64');
@@ -129,6 +133,9 @@ export class AiTextService {
       }
       return parsed as ProductData;
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       this.logger.error('Failed to generate product data', error instanceof Error ? error.stack : String(error));
       // Fallback data
       return {
