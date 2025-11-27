@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { API_URL } from "@/lib/utils";
 
+// Note: This interface should be kept in sync with backend/src/common/ai-text.service.ts
 interface ProductData {
     title: string;
     description: string;
@@ -80,6 +81,7 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                     "Content-Type": "multipart/form-data",
                     Authorization: `Bearer ${token}`,
                 },
+                timeout: 30000, // 30 second timeout for image uploads
             });
 
             setUploadedUrl(res.data.url);
@@ -112,7 +114,13 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setProductData(res.data);
+            // Validate response structure
+            const { title, description, usps } = res.data;
+            setProductData({
+                title: title || "",
+                description: description || "",
+                usps: Array.isArray(usps) ? usps.slice(0, 3) : ["", "", ""],
+            });
             toast.success("Данные заполнены магией AI! ✨");
         } catch (error) {
             console.error("AI analysis failed", error);
