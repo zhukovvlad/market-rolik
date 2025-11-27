@@ -10,6 +10,7 @@ import { API_URL } from "@/lib/utils";
 import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { Project } from "@/lib/types";
+import { logger } from "@/lib/logger";
 
 import axios from "axios";
 
@@ -32,7 +33,7 @@ export default function DashboardPage() {
                 });
                 setProjects(res.data);
             } catch (error) {
-                console.error("Failed to fetch projects", error instanceof Error ? error.message : error);
+                logger.error("Failed to fetch projects", "DashboardPage", error);
                 toast.error("Не удалось загрузить проекты");
             } finally {
                 setLoading(false);
