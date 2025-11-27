@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,9 +33,23 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Cleanup object URLs to avoid memory leaks
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
+
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const selectedFile = e.target.files[0];
+            
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+            
             setFile(selectedFile);
             setPreviewUrl(URL.createObjectURL(selectedFile));
 
@@ -136,6 +150,9 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                                 size="icon"
                                 className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={() => {
+                                    if (previewUrl) {
+                                        URL.revokeObjectURL(previewUrl);
+                                    }
                                     setFile(null);
                                     setPreviewUrl(null);
                                     setUploadedUrl(null);
