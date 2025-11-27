@@ -64,12 +64,17 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
     const handleUpload = async () => {
         if (!file) return;
 
+        const token = localStorage.getItem("token");
+        if (!token) {
+            toast.error("Пожалуйста, войдите в систему");
+            return;
+        }
+
         setIsUploading(true);
         try {
             const formData = new FormData();
             formData.append("file", file);
 
-            const token = localStorage.getItem("token");
             const res = await axios.post(`${API_URL}/projects/upload`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
@@ -93,9 +98,14 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
             return;
         }
 
+        const token = localStorage.getItem("token");
+        if (!token) {
+            toast.error("Пожалуйста, войдите в систему");
+            return;
+        }
+
         setIsAnalyzing(true);
         try {
-            const token = localStorage.getItem("token");
             const res = await axios.post(
                 `${API_URL}/ai/analyze-image`,
                 { imageUrl: uploadedUrl },
@@ -141,7 +151,7 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                     </p>
                 </div>
 
-                <div className="relative aspect-[4/3] bg-muted/30 border-2 border-dashed border-muted-foreground/25 rounded-xl overflow-hidden flex flex-col items-center justify-center group hover:border-primary/50 transition-colors">
+                <div className="relative aspect-4/3 bg-muted/30 border-2 border-dashed border-muted-foreground/25 rounded-xl overflow-hidden flex flex-col items-center justify-center group hover:border-primary/50 transition-colors">
                     {previewUrl ? (
                         <>
                             <img src={previewUrl} alt="Preview" className="w-full h-full object-contain" />
@@ -182,7 +192,7 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                 {/* Thumbnails (Placeholder for future multi-upload) */}
                 <div className="grid grid-cols-3 gap-4">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="aspect-[4/3] bg-muted/30 border border-border rounded-lg flex items-center justify-center">
+                        <div key={i} className="aspect-4/3 bg-muted/30 border border-border rounded-lg flex items-center justify-center">
                             <ImageIcon className="w-6 h-6 text-muted-foreground/50" />
                         </div>
                     ))}
@@ -215,7 +225,7 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                 <div className="flex justify-end">
                     <Button
                         variant="outline"
-                        className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-500 hover:text-cyan-400 hover:border-cyan-500/50"
+                        className="bg-linear-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-500 hover:text-cyan-400 hover:border-cyan-500/50"
                         onClick={handleMagicFill}
                         disabled={!uploadedUrl || isAnalyzing}
                     >
