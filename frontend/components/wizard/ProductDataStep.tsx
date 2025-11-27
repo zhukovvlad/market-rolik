@@ -137,6 +137,13 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
             toast.error("Введите название товара");
             return;
         }
+        
+        const hasValidUsp = productData.usps.some(usp => usp.trim().length > 0);
+        if (!hasValidUsp) {
+            toast.error("Введите хотя бы одно преимущество товара");
+            return;
+        }
+
         onNext({ imageUrl: uploadedUrl, productData });
     };
 
