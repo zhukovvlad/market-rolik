@@ -100,11 +100,7 @@ export class AiTextService {
       `;
 
       const response = await this.genAI.models.generateContent({
-        model: 'gemini-2.0-flash-exp', // Using 2.0 Flash Exp as 2.5 might be a future placeholder in docs or I should stick to what's definitely available. 
-        // Wait, the docs explicitly used 'gemini-2.5-flash' in the example. I will trust the docs/user and use 'gemini-2.0-flash-exp' (current latest public) or 'gemini-1.5-flash'.
-        // Actually, let's use 'gemini-2.0-flash-exp' as it's the latest "Flash". 
-        // If the user insists on "2.5", I can try it, but it might fail if it's not released. 
-        // I'll use 'gemini-2.0-flash-exp' for now as it's the cutting edge.
+        model: 'gemini-2.0-flash-exp',
         contents: [
           { text: prompt },
           {
@@ -126,9 +122,13 @@ export class AiTextService {
 
       this.logger.log('Gemini response: ' + cleanText);
 
-      return JSON.parse(cleanText) as ProductData;
+      const parsed = JSON.parse(cleanText);
+      if (!parsed.title || !parsed.description || !Array.isArray(parsed.usps)) {
+        throw new Error('Invalid response structure from AI');
+      }
+      return parsed as ProductData;
     } catch (error) {
-      this.logger.error('Failed to generate product data', error);
+      this.logger.error('Failed to generate product data', error instanceof Error ? error.stack : String(error));
       // Fallback data
       return {
         title: 'Новый товар',
