@@ -99,28 +99,7 @@
   --sidebar-ring: #8B5CF6;
 }
 
-/* Enforce dark mode variables even if .dark class is missing, or just map .dark to root */
-.dark {
-  --background: #09090B;
-  --foreground: #FAFAFA;
-  --card: #18181B;
-  --card-foreground: #FAFAFA;
-  --popover: #18181B;
-  --popover-foreground: #FAFAFA;
-  --primary: #8B5CF6;
-  --primary-foreground: #FFFFFF;
-  --secondary: #CCFF00;
-  --secondary-foreground: #000000;
-  --muted: #27272A;
-  --muted-foreground: #A1A1AA;
-  --accent: #27272A;
-  --accent-foreground: #FAFAFA;
-  --destructive: #EF4444;
-  --destructive-foreground: #FAFAFA;
-  --border: #27272A;
-  --input: #27272A;
-  --ring: #8B5CF6;
-}
+/* Dark mode only - all variables defined in :root */
 
 @layer base {
   * {

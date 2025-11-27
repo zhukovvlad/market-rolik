@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Logger, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger, UseGuards, Req, ForbiddenException, BadRequestException, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AppService } from './app.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
@@ -12,6 +12,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ProjectsService } from './projects/projects.service';
 import { Request } from 'express';
 import { AiTextService } from './common/ai-text.service';
+import { AnalyzeImageDto } from './dto/analyze-image.dto';
 
 interface IpifyResponse {
   ip: string;
@@ -151,11 +152,9 @@ export class AppController {
 
   @Post('ai/analyze-image')
   @UseGuards(AuthGuard('jwt'))
-  async analyzeImage(@Body('imageUrl') imageUrl: string) {
-    if (!imageUrl) {
-      throw new Error('imageUrl is required');
-    }
-    return this.aiTextService.generateProductData(imageUrl);
+  @UsePipes(new ValidationPipe())
+  async analyzeImage(@Body() dto: AnalyzeImageDto) {
+    return this.aiTextService.generateProductData(dto.imageUrl);
   }
 
   // Тест генерации Видео (Kling)

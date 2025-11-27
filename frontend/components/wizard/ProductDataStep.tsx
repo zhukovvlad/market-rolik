@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,12 +7,7 @@ import { Upload, Sparkles, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 import { API_URL } from "@/lib/utils";
-
-interface ProductData {
-    title: string;
-    description: string;
-    usps: string[];
-}
+import { ProductData } from "@/types/product";
 
 interface ProductDataStepProps {
     onNext: (data: { imageUrl: string; productData: ProductData }) => void;
@@ -33,9 +28,23 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Cleanup object URLs to avoid memory leaks
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
+
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const selectedFile = e.target.files[0];
+            
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+            
             setFile(selectedFile);
             setPreviewUrl(URL.createObjectURL(selectedFile));
 
@@ -50,17 +59,23 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
     const handleUpload = async () => {
         if (!file) return;
 
+        const token = localStorage.getItem("token");
+        if (!token) {
+            toast.error("Пожалуйста, войдите в систему");
+            return;
+        }
+
         setIsUploading(true);
         try {
             const formData = new FormData();
             formData.append("file", file);
 
-            const token = localStorage.getItem("token");
             const res = await axios.post(`${API_URL}/projects/upload`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                     Authorization: `Bearer ${token}`,
                 },
+                timeout: 30000, // 30 second timeout for image uploads
             });
 
             setUploadedUrl(res.data.url);
@@ -79,16 +94,27 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
             return;
         }
 
+        const token = localStorage.getItem("token");
+        if (!token) {
+            toast.error("Пожалуйста, войдите в систему");
+            return;
+        }
+
         setIsAnalyzing(true);
         try {
-            const token = localStorage.getItem("token");
             const res = await axios.post(
                 `${API_URL}/ai/analyze-image`,
                 { imageUrl: uploadedUrl },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setProductData(res.data);
+            // Validate response structure
+            const { title, description, usps } = res.data;
+            setProductData({
+                title: title || "",
+                description: description || "",
+                usps: Array.isArray(usps) ? usps.slice(0, 3) : ["", "", ""],
+            });
             toast.success("Данные заполнены магией AI! ✨");
         } catch (error) {
             console.error("AI analysis failed", error);
@@ -113,6 +139,13 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
             toast.error("Введите название товара");
             return;
         }
+        
+        const hasValidUsp = productData.usps.some(usp => usp.trim().length > 0);
+        if (!hasValidUsp) {
+            toast.error("Введите хотя бы одно преимущество товара");
+            return;
+        }
+
         onNext({ imageUrl: uploadedUrl, productData });
     };
 
@@ -127,7 +160,7 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                     </p>
                 </div>
 
-                <div className="relative aspect-[4/3] bg-muted/30 border-2 border-dashed border-muted-foreground/25 rounded-xl overflow-hidden flex flex-col items-center justify-center group hover:border-primary/50 transition-colors">
+                <div className="relative aspect-4/3 bg-muted/30 border-2 border-dashed border-muted-foreground/25 rounded-xl overflow-hidden flex flex-col items-center justify-center group hover:border-primary/50 transition-colors">
                     {previewUrl ? (
                         <>
                             <img src={previewUrl} alt="Preview" className="w-full h-full object-contain" />
@@ -136,6 +169,9 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                                 size="icon"
                                 className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={() => {
+                                    if (previewUrl) {
+                                        URL.revokeObjectURL(previewUrl);
+                                    }
                                     setFile(null);
                                     setPreviewUrl(null);
                                     setUploadedUrl(null);
@@ -165,7 +201,7 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                 {/* Thumbnails (Placeholder for future multi-upload) */}
                 <div className="grid grid-cols-3 gap-4">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="aspect-[4/3] bg-muted/30 border border-border rounded-lg flex items-center justify-center">
+                        <div key={i} className="aspect-4/3 bg-muted/30 border border-border rounded-lg flex items-center justify-center">
                             <ImageIcon className="w-6 h-6 text-muted-foreground/50" />
                         </div>
                     ))}
@@ -198,7 +234,7 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                 <div className="flex justify-end">
                     <Button
                         variant="outline"
-                        className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-500 hover:text-cyan-400 hover:border-cyan-500/50"
+                        className="bg-linear-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-500 hover:text-cyan-400 hover:border-cyan-500/50"
                         onClick={handleMagicFill}
                         disabled={!uploadedUrl || isAnalyzing}
                     >

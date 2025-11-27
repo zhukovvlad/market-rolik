@@ -10,6 +10,7 @@ import { API_URL } from "@/lib/utils";
 import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { Project } from "@/lib/types";
+import { logger } from "@/lib/logger";
 
 import axios from "axios";
 
@@ -27,12 +28,12 @@ export default function DashboardPage() {
             }
 
             try {
-                const res = await axios.get(`${API_URL}/projects`, {
+                const res = await axios.get<Project[]>(`${API_URL}/projects`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 setProjects(res.data);
             } catch (error) {
-                console.error("Failed to fetch projects", error);
+                logger.error("Failed to fetch projects", "DashboardPage", error);
                 toast.error("Не удалось загрузить проекты");
             } finally {
                 setLoading(false);

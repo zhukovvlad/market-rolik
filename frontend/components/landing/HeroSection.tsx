@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Play } from "lucide-react";
+import { ArrowRight, Sparkles, Play, ChevronRight } from "lucide-react";
 
 export default function HeroSection() {
     return (
@@ -83,7 +83,7 @@ export default function HeroSection() {
                             {/* Center Divider/Slider */}
                             <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-primary shadow-[0_0_10px_rgba(139,92,246,0.8)] z-10 flex items-center justify-center -translate-x-1/2">
                                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg border-2 border-white">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white w-4 h-4"><path d="m9 18 6-6-6-6" /></svg>
+                                    <ChevronRight className="text-white w-4 h-4" />
                                 </div>
                             </div>
                         </div>
