@@ -1,12 +1,9 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wand2, Loader2, ImageOff } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Loader2, Smartphone, Monitor } from "lucide-react";
 
 interface SettingsStepProps {
     imageUrl: string;
@@ -17,90 +14,84 @@ interface SettingsStepProps {
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: SettingsStepProps) {
     const [prompt, setPrompt] = useState("");
     const [aspectRatio, setAspectRatio] = useState("9:16");
-    const [imageError, setImageError] = useState(false);
 
-    useEffect(() => {
-        setImageError(false);
-    }, [imageUrl]);
+    const handleGenerate = () => {
+        onGenerate({ prompt, aspectRatio });
+    };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4">
-            {/* Левая колонка: Превью загруженного фото */}
-            <Card className="overflow-hidden bg-slate-100 border-none shadow-inner">
-                <CardContent className="p-0 h-full flex items-center justify-center relative min-h-[300px]">
-                    {!imageError ? (
-                        <>
-                            <img
-                                src={imageUrl}
-                                alt="Reference"
-                                className="w-full h-full object-contain max-h-[500px]"
-                                onError={() => setImageError(true)}
-                            />
-                            <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-xs backdrop-blur-md">
-                                Исходное изображение
-                            </div>
-                        </>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center text-slate-400 p-8 text-center">
-                            <ImageOff className="w-12 h-12 mb-2 opacity-50" />
-                            <p className="text-sm">Не удалось загрузить изображение</p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Правая колонка: Настройки */}
-            <div className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Настройки магии ✨</h2>
-                    <p className="text-slate-500 text-sm">Нейросеть оживит ваше фото на основе этих параметров.</p>
-                </div>
-
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <Label>Что должно происходить? (Промпт)</Label>
-                        <Textarea
-                            placeholder="Пример: Кроссовок медленно вращается в воздухе, вокруг летают неоновые искры, кинематографичный свет..."
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            className="h-32 resize-none bg-white"
-                        />
-                        <p className="text-xs text-slate-400">
-                            Чем детальнее описание, тем круче результат.
+        <div className="w-full max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            {/* Left: Preview */}
+            <div className="flex flex-col gap-4">
+                <h3 className="text-xl font-bold font-heading">Превью</h3>
+                <div className={`relative rounded-xl overflow-hidden border border-border bg-black/50 shadow-2xl transition-all duration-500 ${aspectRatio === "9:16" ? "aspect-[9/16] max-w-xs mx-auto" : "aspect-[3/4] max-w-sm mx-auto"}`}>
+                    <img src={imageUrl} alt="Preview" className="w-full h-full object-cover opacity-80" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <p className="text-white/50 text-sm font-medium backdrop-blur-sm px-3 py-1 rounded-full bg-black/30">
+                            {aspectRatio} Preview
                         </p>
                     </div>
+                </div>
+            </div>
 
-                    <div className="space-y-2">
-                        <Label>Формат видео</Label>
-                        <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                            <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="Выберите формат" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="9:16">📱 9:16 (Reels / Stories)</SelectItem>
-                                <SelectItem value="3:4">🛒 3:4 (Карточка товара)</SelectItem>
-                                <SelectItem value="16:9">🎬 16:9 (YouTube)</SelectItem>
-                            </SelectContent>
-                        </Select>
+            {/* Right: Settings */}
+            <div className="flex flex-col gap-8 bg-card p-6 rounded-2xl border border-border">
+                <div className="space-y-4">
+                    <h3 className="text-xl font-bold font-heading">Настройки видео</h3>
+
+                    <div className="space-y-3">
+                        <Label className="text-base">Формат видео</Label>
+                        <RadioGroup defaultValue="9:16" value={aspectRatio} onValueChange={setAspectRatio} className="grid grid-cols-2 gap-4">
+                            <div>
+                                <RadioGroupItem value="9:16" id="r1" className="peer sr-only" />
+                                <Label
+                                    htmlFor="r1"
+                                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
+                                >
+                                    <Smartphone className="mb-3 h-6 w-6" />
+                                    <span className="font-semibold">Stories (9:16)</span>
+                                </Label>
+                            </div>
+                            <div>
+                                <RadioGroupItem value="3:4" id="r2" className="peer sr-only" />
+                                <Label
+                                    htmlFor="r2"
+                                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
+                                >
+                                    <Monitor className="mb-3 h-6 w-6" />
+                                    <span className="font-semibold">Post (3:4)</span>
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+
+                    <div className="space-y-3">
+                        <Label htmlFor="prompt" className="text-base">Сценарий анимации (Промпт)</Label>
+                        <Textarea
+                            id="prompt"
+                            placeholder="Опишите, что должно происходить в видео (например: 'Медленное вращение, искры, неоновый свет')"
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                            className="min-h-[120px] resize-none"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            Оставьте пустым, чтобы AI сам придумал сценарий.
+                        </p>
                     </div>
                 </div>
 
                 <Button
                     size="lg"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-lg h-14 shadow-lg shadow-indigo-200"
-                    onClick={() => onGenerate({ prompt, aspectRatio })}
+                    onClick={handleGenerate}
                     disabled={isGenerating}
+                    className="w-full text-lg h-14 shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-shadow"
                 >
                     {isGenerating ? (
                         <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Генерация... (это займет ~2 мин)
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Создаем магию...
                         </>
                     ) : (
-                        <>
-                            <Wand2 className="mr-2 h-5 w-5" />
-                            Запустить генерацию
-                        </>
+                        "Создать проект 🚀"
                     )}
                 </Button>
             </div>

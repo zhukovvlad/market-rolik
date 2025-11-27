@@ -23,27 +23,27 @@ const steps = [
 
 export default function HowItWorks() {
     return (
-        <section id="how-it-works" className="py-20 bg-slate-900 text-white">
+        <section id="how-it-works" className="py-24 bg-background text-foreground relative">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl font-bold mb-4">Как это работает?</h2>
-                    <p className="text-slate-400 text-lg">Три простых шага к идеальной видео-обложке</p>
+                    <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading">Как это работает?</h2>
+                    <p className="text-muted-foreground text-lg">Три простых шага к идеальной видео-обложке</p>
                 </div>
 
                 <div className="relative grid grid-cols-1 md:grid-cols-3 gap-12">
                     {/* Connector Line (Desktop only) */}
-                    <div className="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-slate-700 z-0"></div>
+                    <div className="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-border z-0"></div>
 
                     {steps.map((step, index) => (
-                        <div key={index} className="relative z-10 flex flex-col items-center text-center">
-                            <div className="w-24 h-24 rounded-full bg-slate-800 border-4 border-slate-900 flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/20">
-                                <step.icon className="w-10 h-10 text-indigo-400" />
+                        <div key={index} className="relative z-10 flex flex-col items-center text-center group">
+                            <div className="w-24 h-24 rounded-full bg-card border-4 border-background flex items-center justify-center mb-6 shadow-lg group-hover:shadow-[0_0_20px_rgba(139,92,246,0.2)] transition-shadow duration-300">
+                                <step.icon className="w-10 h-10 text-primary" />
                             </div>
-                            <div className="inline-block px-3 py-1 rounded-full bg-indigo-600/20 text-indigo-400 text-sm font-bold mb-4">
+                            <div className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4 border border-primary/20">
                                 ШАГ {step.id}
                             </div>
-                            <h3 className="text-xl font-bold mb-3">{step.title}</h3>
-                            <p className="text-slate-400 leading-relaxed max-w-xs">
+                            <h3 className="text-xl font-bold mb-3 font-heading">{step.title}</h3>
+                            <p className="text-muted-foreground leading-relaxed max-w-xs text-sm">
                                 {step.description}
                             </p>
                         </div>

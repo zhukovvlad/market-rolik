@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+// import { Inter, Unbounded, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner"; // <--- 1. Импорт
+import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
-const inter = Inter({ subsets: ["latin"] });
+// const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+// const unbounded = Unbounded({ subsets: ["latin"], variable: "--font-heading" });
+// const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "Market-Rolik | AI Video Generator",
-  description: "Create viral videos for marketplaces",
+  title: "AviAI | Digital Alchemy for E-commerce",
+  description: "Transform static photos into sales with generative AI.",
 };
-
-import { AuthProvider } from "@/components/auth/AuthProvider"; // <--- Import
-
-// ...
 
 export default function RootLayout({
   children,
@@ -20,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="dark">
+      <body className={`font-sans antialiased bg-background text-foreground`}>
         <AuthProvider>
           {children}
           <Toaster />

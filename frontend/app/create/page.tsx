@@ -2,27 +2,35 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import UploadStep from "@/components/wizard/UploadStep";
+import ProductDataStep from "@/components/wizard/ProductDataStep";
 import SettingsStep from "@/components/wizard/SettingsStep";
 import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { API_URL } from "@/lib/utils";
 
+interface ProductData {
+  title: string;
+  description: string;
+  usps: string[];
+}
+
 export default function CreatePage() {
   const [step, setStep] = useState(1);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [productData, setProductData] = useState<ProductData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const router = useRouter();
 
-  // Шаг 1: Фото загружено
-  const handleImageUploaded = (url: string) => {
-    setUploadedUrl(url);
+  // Шаг 1: Данные собраны
+  const handleProductDataNext = (data: { imageUrl: string; productData: ProductData }) => {
+    setUploadedUrl(data.imageUrl);
+    setProductData(data.productData);
     setStep(2); // Переходим к настройкам
   };
 
   // Шаг 2: Запуск генерации
   const handleGenerate = async (settings: { prompt: string; aspectRatio: string }) => {
-    if (!uploadedUrl) return;
+    if (!uploadedUrl || !productData) return;
 
     // 1. Берем токен
     const token = localStorage.getItem("token");
@@ -35,15 +43,14 @@ export default function CreatePage() {
     setIsGenerating(true);
     try {
       // 2. Создаем проект (POST /projects)
-      // Важно: userId больше не шлем, шлем только title и Токен
       const projectRes = await fetch(`${API_URL}/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // <--- КЛЮЧЕВОЙ МОМЕНТ
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          title: settings.prompt.slice(0, 30) || 'Новый проект'
+          title: productData.title || 'Новый проект'
         })
       });
 
@@ -80,21 +87,21 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 py-8 flex flex-col items-center justify-center">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            {step === 1 ? "Шаг 1: Загрузка" : "Шаг 2: Настройки"}
+          <h1 className="text-3xl font-bold text-foreground mb-2 font-heading">
+            {step === 1 ? "Шаг 1: Данные товара" : "Шаг 2: Настройки видео"}
           </h1>
-          <p className="text-slate-500">
-            {step === 1 ? "Загрузите фото товара для обработки" : "Настройте параметры анимации"}
+          <p className="text-muted-foreground">
+            {step === 1 ? "Загрузите фото и заполните информацию" : "Выберите формат и стиль анимации"}
           </p>
         </div>
 
         <div className="w-full flex justify-center">
           {step === 1 && (
-            <UploadStep onImageUploaded={handleImageUploaded} />
+            <ProductDataStep onNext={handleProductDataNext} />
           )}
 
           {step === 2 && uploadedUrl && (

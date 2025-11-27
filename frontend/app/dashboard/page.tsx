@@ -11,6 +11,8 @@ import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { Project } from "@/lib/types";
 
+import axios from "axios";
+
 export default function DashboardPage() {
     const { user, isLoading: isAuthLoading } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
@@ -25,15 +27,13 @@ export default function DashboardPage() {
             }
 
             try {
-                const res = await fetch(`${API_URL}/projects`, {
+                const res = await axios.get(`${API_URL}/projects`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                if (res.ok) {
-                    const data = await res.json();
-                    setProjects(data);
-                }
+                setProjects(res.data);
             } catch (error) {
                 console.error("Failed to fetch projects", error);
+                toast.error("Не удалось загрузить проекты");
             } finally {
                 setLoading(false);
             }
@@ -53,12 +53,9 @@ export default function DashboardPage() {
         setProjects(prev => prev.filter(p => p.id !== projectId));
 
         try {
-            const res = await fetch(`${API_URL}/projects/${projectId}`, {
-                method: 'DELETE',
+            await axios.delete(`${API_URL}/projects/${projectId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-
-            if (!res.ok) throw new Error("Ошибка удаления");
 
             toast.success("Проект удален");
         } catch (error) {
