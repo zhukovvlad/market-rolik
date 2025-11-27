@@ -54,9 +54,9 @@ export class AiTextService {
     this.validateImageUrl(imageUrl);
 
     try {
-      this.logger.log(`Analyzing image with Gemini 2.0 Flash: ${imageUrl}`);
+      this.logger.log(`Analyzing image with Gemini 2.5 Flash: ${imageUrl}`);
 
-      // Fetch the image with timeout and size limit
+      // Fetch image with timeout and size limits
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
 
@@ -100,7 +100,7 @@ export class AiTextService {
       `;
 
       const response = await this.genAI.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-2.5-flash',
         contents: [
           { text: prompt },
           {
