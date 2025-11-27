@@ -35,6 +35,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
                         src={imageUrl} 
                         alt="Preview" 
                         className="w-full h-full object-cover opacity-80" 
+                        onLoad={() => setImageError(false)}
                         onError={() => setImageError(true)}
                     />
                     {imageError && (
