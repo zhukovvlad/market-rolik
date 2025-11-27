@@ -11,6 +11,7 @@ import { User } from './users/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { ProjectsService } from './projects/projects.service';
 import { Request } from 'express';
+import { AiTextService } from './common/ai-text.service';
 
 interface IpifyResponse {
   ip: string;
@@ -51,7 +52,8 @@ export class AppController {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly projectsService: ProjectsService,
-  ) {}
+    private readonly aiTextService: AiTextService,
+  ) { }
 
   @Get()
   getHello(): string {
@@ -147,7 +149,16 @@ export class AppController {
     }
   }
 
-    // Тест генерации Видео (Kling)
+  @Post('ai/analyze-image')
+  @UseGuards(AuthGuard('jwt'))
+  async analyzeImage(@Body('imageUrl') imageUrl: string) {
+    if (!imageUrl) {
+      throw new Error('imageUrl is required');
+    }
+    return this.aiTextService.generateProductData(imageUrl);
+  }
+
+  // Тест генерации Видео (Kling)
   @Post('test-video')
   @UseGuards(AuthGuard('jwt'))
   async testVideo(@Body() body: TestVideoDto, @Req() req: Request & { user: { id: string } }) {
