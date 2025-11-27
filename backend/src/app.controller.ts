@@ -152,7 +152,6 @@ export class AppController {
 
   @Post('ai/analyze-image')
   @UseGuards(AuthGuard('jwt'))
-  @UsePipes(new ValidationPipe())
   async analyzeImage(@Body() dto: AnalyzeImageDto) {
     return this.aiTextService.generateProductData(dto.imageUrl);
   }
