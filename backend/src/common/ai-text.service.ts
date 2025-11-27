@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
 
 export interface ProductData {
@@ -11,25 +12,81 @@ export interface ProductData {
 export class AiTextService {
   private readonly logger = new Logger(AiTextService.name);
   private genAI: GoogleGenAI;
+  private readonly allowedHosts: string[] = [];
 
-  constructor() {
-    const apiKey = process.env.GEMINI_API_KEY;
+  constructor(private configService: ConfigService) {
+    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (!apiKey) {
       this.logger.warn('GEMINI_API_KEY is not set. AI features will not work.');
     }
     this.genAI = new GoogleGenAI({ apiKey: apiKey || '' });
+
+    // Initialize allowed hosts from S3 config
+    const s3Endpoint = this.configService.get<string>('S3_ENDPOINT');
+    if (s3Endpoint) {
+      try {
+        const url = new URL(s3Endpoint);
+        this.allowedHosts.push(url.hostname);
+      } catch (e) {
+        this.logger.warn(`Invalid S3_ENDPOINT: ${s3Endpoint}`);
+      }
+    }
+  }
+
+  private validateImageUrl(url: string): void {
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch (e) {
+      throw new BadRequestException('Invalid URL format');
+    }
+
+    if (parsedUrl.protocol !== 'https:') {
+      throw new BadRequestException('Only HTTPS URLs are allowed');
+    }
+
+    if (this.allowedHosts.length > 0 && !this.allowedHosts.includes(parsedUrl.hostname)) {
+      throw new BadRequestException(`Domain ${parsedUrl.hostname} is not allowed. Allowed domains: ${this.allowedHosts.join(', ')}`);
+    }
   }
 
   async generateProductData(imageUrl: string): Promise<ProductData> {
-    try {
-      this.logger.log(`Analyzing image with Gemini 2.5 Flash: ${imageUrl}`);
+    this.validateImageUrl(imageUrl);
 
-      // Fetch the image
-      const imageResp = await fetch(imageUrl);
-      if (!imageResp.ok) {
-        throw new Error(`Failed to fetch image: ${imageResp.statusText}`);
+    try {
+      this.logger.log(`Analyzing image with Gemini 2.0 Flash: ${imageUrl}`);
+
+      // Fetch the image with timeout and size limit
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
+
+      let imageResp: Response;
+      try {
+        imageResp = await fetch(imageUrl, { signal: controller.signal });
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          throw new BadRequestException('Image fetch timed out');
+        }
+        throw err;
+      } finally {
+        clearTimeout(timeoutId);
       }
+
+      if (!imageResp.ok) {
+        throw new BadRequestException(`Failed to fetch image: ${imageResp.statusText}`);
+      }
+
+      const contentLength = imageResp.headers.get('content-length');
+      if (contentLength && parseInt(contentLength, 10) > 10 * 1024 * 1024) { // 10MB limit
+        throw new BadRequestException('Image is too large (max 10MB)');
+      }
+
       const imageBuffer = await imageResp.arrayBuffer();
+
+      if (imageBuffer.byteLength > 10 * 1024 * 1024) {
+        throw new BadRequestException('Image is too large (max 10MB)');
+      }
+
       const base64Image = Buffer.from(imageBuffer).toString('base64');
       const mimeType = imageResp.headers.get('content-type') || 'image/jpeg';
 
