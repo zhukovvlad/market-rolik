@@ -7,12 +7,7 @@ import SettingsStep from "@/components/wizard/SettingsStep";
 import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { API_URL } from "@/lib/utils";
-
-interface ProductData {
-  title: string;
-  description: string;
-  usps: string[];
-}
+import { ProductData } from "@/types/product";
 
 export default function CreatePage() {
   const [step, setStep] = useState(1);

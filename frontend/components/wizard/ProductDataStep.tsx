@@ -7,13 +7,7 @@ import { Upload, Sparkles, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 import { API_URL } from "@/lib/utils";
-
-// Note: This interface should be kept in sync with backend/src/common/ai-text.service.ts
-interface ProductData {
-    title: string;
-    description: string;
-    usps: string[];
-}
+import { ProductData } from "@/types/product";
 
 interface ProductDataStepProps {
     onNext: (data: { imageUrl: string; productData: ProductData }) => void;
