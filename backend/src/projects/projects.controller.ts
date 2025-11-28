@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Delete, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Delete, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
@@ -7,8 +7,9 @@ import { CleanupService } from '../storage/cleanup.service';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AssetType } from './asset.entity';
+import { UserRole } from '../users/user.entity';
 
-type AuthenticatedRequest = Request & { user: { id: string } };
+type AuthenticatedRequest = Request & { user: { id: string; role: UserRole } };
 
 @Controller('projects')
 export class ProjectsController {
@@ -83,9 +84,12 @@ export class ProjectsController {
   
   @Get('cleanup/run-now')
   @UseGuards(AuthGuard('jwt'))
-  async runCleanup() {
+  async runCleanup(@Req() req: AuthenticatedRequest) {
     // NOTE: This endpoint is primarily for operational/testing use.
-    // TODO: Restrict to admin users or specific environments if needed.
+    if (req.user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only admins can run cleanup manually');
+    }
+    
     const result = await this.cleanupService.runCleanupNow();
     return {
       message: 'Cleanup completed',

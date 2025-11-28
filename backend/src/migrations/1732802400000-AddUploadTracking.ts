@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class AddUploadTracking1732802400000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+    // PostgreSQL 13+ supports gen_random_uuid() natively without extensions
     await queryRunner.createTable(
       new Table({
         name: 'upload_tracking',
@@ -12,7 +12,7 @@ export class AddUploadTracking1732802400000 implements MigrationInterface {
             type: 'uuid',
             isPrimary: true,
             generationStrategy: 'uuid',
-            default: 'uuid_generate_v4()',
+            default: 'gen_random_uuid()',
           },
           {
             name: 'fileUrl',
