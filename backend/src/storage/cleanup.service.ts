@@ -17,7 +17,7 @@ export class CleanupService implements OnModuleInit {
     private uploadTrackingRepository: Repository<UploadTracking>,
     private storageService: StorageService,
   ) {
-    this.logger.log('CleanupService initialized. Cron job will run every minute.');
+    this.logger.log('CleanupService initialized. Cron job will run every 20 minutes.');
   }
 
   async onModuleInit() {
@@ -54,10 +54,12 @@ export class CleanupService implements OnModuleInit {
    * Clean up files uploaded more than 20 minutes ago that are not in assets table
    */
   @Cron('0 */20 * * * *') // Every 20 minutes
-  async cleanupOrphanedFiles(): Promise<void> {
-    this.logger.log('Starting cleanup of orphaned files...');
+  async cleanupOrphanedFiles(): Promise<{ deleted: number; claimed: number }> {
+    this.logger.log('Starting cleanup of orphaned files (every 20 minutes)...');
 
     const twentyMinutesAgo = new Date(Date.now() - 20 * 60 * 1000); // 20 minutes
+    let deleted = 0;
+    let claimed = 0;
 
     // Find unclaimed uploads older than threshold
     const orphanedUploads = await this.uploadTrackingRepository.find({
@@ -83,11 +85,13 @@ export class CleanupService implements OnModuleInit {
           // Delete tracking record
           await this.uploadTrackingRepository.remove(upload);
           this.logger.log(`Deleted orphaned file: ${upload.fileUrl} (uploaded at ${upload.uploadedAt})`);
+          deleted++;
         } else {
           // File exists in assets but wasn't marked as claimed - fix it
           upload.claimed = true;
           await this.uploadTrackingRepository.save(upload);
           this.logger.log(`File found in assets, marked as claimed: ${upload.fileUrl}`);
+          claimed++;
         }
       } catch (error) {
         this.logger.error(`Failed to process orphaned file ${upload.fileUrl}:`, error);
@@ -99,18 +103,21 @@ export class CleanupService implements OnModuleInit {
     } else {
       this.logger.log(`Cleanup completed`);
     }
+
+    return { deleted, claimed };
   }
 
   /**
    * Manual cleanup trigger (for testing)
    */
-  async runCleanupNow(): Promise<{ deleted: number; tracked: number }> {
-    await this.cleanupOrphanedFiles();
+  async runCleanupNow(): Promise<{ deleted: number; tracked: number; claimed: number }> {
+    const { deleted, claimed } = await this.cleanupOrphanedFiles();
     const trackedCount = await this.uploadTrackingRepository.count({
       where: { claimed: false },
     });
     return {
-      deleted: 0, // Would need to track this separately
+      deleted,
+      claimed,
       tracked: trackedCount,
     };
   }

@@ -8,8 +8,6 @@ import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { API_URL } from "@/lib/utils";
 import { ProductData } from "@/types/product";
-import { Input } from "@/components/ui/input";
-import { Pencil } from "lucide-react";
 
 export default function CreatePage() {
   const [step, setStep] = useState(1);

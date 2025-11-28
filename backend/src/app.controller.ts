@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { User } from './users/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { ProjectsService } from './projects/projects.service';
+import { AssetType } from './projects/asset.entity';
 import { Request } from 'express';
 import { AiTextService } from './common/ai-text.service';
 import { AnalyzeImageDto } from './dto/analyze-image.dto';
@@ -177,7 +178,7 @@ export class AppController {
         await this.projectsService.addAsset(
           body.projectId,
           body.imageUrl,
-          'IMAGE_CLEAN' as any,
+          AssetType.IMAGE_CLEAN,
           's3',
           {
             uploadedAt: new Date().toISOString(),
