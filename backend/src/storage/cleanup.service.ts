@@ -101,7 +101,7 @@ export class CleanupService implements OnModuleInit {
     if (orphanedUploads.length === 0) {
       this.logger.log('No orphaned files found');
     } else {
-      this.logger.log(`Cleanup completed`);
+      this.logger.log(`Cleanup completed: deleted ${deleted}, claimed ${claimed}`);
     }
 
     return { deleted, claimed };
