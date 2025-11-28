@@ -6,6 +6,7 @@ import { StorageService } from '../storage/storage.service';
 import { CleanupService } from '../storage/cleanup.service';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { AssetType } from './asset.entity';
 
 type AuthenticatedRequest = Request & { user: { id: string } };
 
@@ -36,20 +37,20 @@ export class ProjectsController {
       }),
     )
     file: Express.Multer.File,
+    @Req() req: AuthenticatedRequest,
     @Body('projectId') projectId?: string,
-    @Req() req?: AuthenticatedRequest,
   ) {
     const url = await this.storageService.uploadFile(file.buffer, file.mimetype);
     
     // Track this upload for cleanup
-    await this.cleanupService.trackUploadedFile(url, req?.user?.id);
+    await this.cleanupService.trackUploadedFile(url, req.user.id);
     
     // If projectId is provided, save the image as an asset
-    if (projectId && req?.user?.id) {
+    if (projectId && req.user.id) {
       await this.projectsService.addAsset(
         projectId,
         url,
-        'IMAGE_CLEAN' as any,
+        AssetType.IMAGE_CLEAN,
         's3',
         {
           originalName: file.originalname,
@@ -83,6 +84,8 @@ export class ProjectsController {
   @Get('cleanup/run-now')
   @UseGuards(AuthGuard('jwt'))
   async runCleanup() {
+    // NOTE: This endpoint is primarily for operational/testing use.
+    // TODO: Restrict to admin users or specific environments if needed.
     const result = await this.cleanupService.runCleanupNow();
     return {
       message: 'Cleanup completed',

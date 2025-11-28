@@ -2,6 +2,7 @@ import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class AddUploadTracking1732802400000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
     await queryRunner.createTable(
       new Table({
         name: 'upload_tracking',
@@ -36,9 +37,19 @@ export class AddUploadTracking1732802400000 implements MigrationInterface {
       }),
       true,
     );
+
+    // Add indexes for cleanup queries
+    await queryRunner.query(
+      'CREATE INDEX idx_upload_tracking_claimed_uploaded ON upload_tracking (claimed, uploadedAt)'
+    );
+    await queryRunner.query(
+      'CREATE INDEX idx_upload_tracking_user_id ON upload_tracking (userId)'
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query('DROP INDEX IF EXISTS idx_upload_tracking_claimed_uploaded');
+    await queryRunner.query('DROP INDEX IF EXISTS idx_upload_tracking_user_id');
     await queryRunner.dropTable('upload_tracking');
   }
 }
