@@ -8,18 +8,28 @@ import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { API_URL } from "@/lib/utils";
 import { ProductData } from "@/types/product";
+import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
 
 export default function CreatePage() {
   const [step, setStep] = useState(1);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [productData, setProductData] = useState<ProductData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [projectTitle, setProjectTitle] = useState("Untitled Project");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const router = useRouter();
 
   // Шаг 1: Данные собраны
   const handleProductDataNext = (data: { imageUrl: string; productData: ProductData }) => {
     setUploadedUrl(data.imageUrl);
     setProductData(data.productData);
+    
+    // Auto-update project title from product title if still default
+    if (projectTitle === "Untitled Project" && data.productData.title) {
+      setProjectTitle(data.productData.title);
+    }
+    
     setStep(2); // Переходим к настройкам
   };
 
@@ -45,7 +55,7 @@ export default function CreatePage() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          title: productData.title || 'Новый проект'
+          title: projectTitle
         })
       });
 
@@ -96,7 +106,13 @@ export default function CreatePage() {
 
         <div className="w-full flex justify-center">
           {step === 1 && (
-            <ProductDataStep onNext={handleProductDataNext} />
+            <ProductDataStep 
+              onNext={handleProductDataNext}
+              projectTitle={projectTitle}
+              setProjectTitle={setProjectTitle}
+              isEditingTitle={isEditingTitle}
+              setIsEditingTitle={setIsEditingTitle}
+            />
           )}
 
           {step === 2 && uploadedUrl && (

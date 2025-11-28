@@ -171,6 +171,26 @@ export class AppController {
       body.imageUrl ||
       'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop';
 
+    // Save the uploaded image as an asset (if not already saved)
+    if (body.projectId && body.imageUrl) {
+      try {
+        await this.projectsService.addAsset(
+          body.projectId,
+          body.imageUrl,
+          'IMAGE_CLEAN' as any,
+          's3',
+          {
+            uploadedAt: new Date().toISOString(),
+            source: 'user_upload',
+          }
+        );
+        this.logger.log(`Image saved as asset for project ${body.projectId}`);
+      } catch (error) {
+        // If asset already exists or other error, log but continue
+        this.logger.warn('Could not save image asset:', error instanceof Error ? error.message : String(error));
+      }
+    }
+
     const job = await this.videoQueue.add('generate-kling', {
       projectId: body.projectId,
       imageUrl: url,

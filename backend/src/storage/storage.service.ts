@@ -1,6 +1,6 @@
 // src/storage/storage.service.ts
 import { Injectable, Logger } from '@nestjs/common';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -102,5 +102,34 @@ export class StorageService {
 
     // Берем левую часть до плюса (для +xml, +json и т.д.)
     return subtype.split('+')[0] || 'bin';
+  }
+
+  /**
+   * Delete file from S3 by URL
+   */
+  async deleteFile(fileUrl: string): Promise<void> {
+    try {
+      // Extract file key from URL
+      // Example: https://s3.timeweb.com/bucket/uploads/file.jpg -> uploads/file.jpg
+      const endpoint = this.configService.getOrThrow<string>('S3_ENDPOINT');
+      const prefix = `${endpoint}/${this.bucket}/`;
+      
+      if (!fileUrl.startsWith(prefix)) {
+        throw new Error(`Invalid file URL: ${fileUrl}`);
+      }
+
+      const fileKey = fileUrl.substring(prefix.length);
+
+      const command = new DeleteObjectCommand({
+        Bucket: this.bucket,
+        Key: fileKey,
+      });
+
+      await this.s3Client.send(command);
+      this.logger.log(`✅ File deleted from S3: ${fileUrl}`);
+    } catch (error) {
+      this.logger.error(`❌ S3 Delete Error: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 }

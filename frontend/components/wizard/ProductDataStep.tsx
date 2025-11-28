@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Sparkles, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload, Sparkles, X, Image as ImageIcon, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 import { API_URL } from "@/lib/utils";
@@ -11,14 +11,19 @@ import { ProductData } from "@/types/product";
 
 interface ProductDataStepProps {
     onNext: (data: { imageUrl: string; productData: ProductData }) => void;
+    projectTitle: string;
+    setProjectTitle: (title: string) => void;
+    isEditingTitle: boolean;
+    setIsEditingTitle: (editing: boolean) => void;
 }
 
-export default function ProductDataStep({ onNext }: ProductDataStepProps) {
+export default function ProductDataStep({ onNext, projectTitle, setProjectTitle, isEditingTitle, setIsEditingTitle }: ProductDataStepProps) {
     const [file, setFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     const [productData, setProductData] = useState<ProductData>({
         title: "",
@@ -40,19 +45,55 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const selectedFile = e.target.files[0];
-            
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-            }
-            
-            setFile(selectedFile);
-            setPreviewUrl(URL.createObjectURL(selectedFile));
+            processFile(selectedFile);
+        }
+    };
 
-            // Auto-fill title from filename
-            const filename = selectedFile.name.split('.').slice(0, -1).join('.');
-            // Capitalize first letter and replace hyphens/underscores with spaces
-            const formattedTitle = filename.charAt(0).toUpperCase() + filename.slice(1).replace(/[-_]/g, ' ');
-            setProductData(prev => ({ ...prev, title: formattedTitle }));
+    const processFile = (selectedFile: File) => {
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+        }
+        
+        setFile(selectedFile);
+        setPreviewUrl(URL.createObjectURL(selectedFile));
+
+        // Auto-fill title from filename
+        const filename = selectedFile.name.split('.').slice(0, -1).join('.');
+        // Capitalize first letter and replace hyphens/underscores with spaces
+        const formattedTitle = filename.charAt(0).toUpperCase() + filename.slice(1).replace(/[-_]/g, ' ');
+        setProductData(prev => ({ ...prev, title: formattedTitle }));
+    };
+
+    const handleDragEnter = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        const files = e.dataTransfer.files;
+        if (files && files[0]) {
+            const droppedFile = files[0];
+            if (droppedFile.type.startsWith('image/')) {
+                processFile(droppedFile);
+            } else {
+                toast.error("Пожалуйста, загрузите файл изображения");
+            }
         }
     };
 
@@ -153,6 +194,31 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
         <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Left Column: Image Upload */}
             <div className="flex flex-col gap-6">
+                {/* Project Title Section */}
+                <div className="mb-2">
+                    {isEditingTitle ? (
+                        <div className="flex items-center gap-2">
+                            <Input
+                                value={projectTitle}
+                                onChange={(e) => setProjectTitle(e.target.value)}
+                                onBlur={() => setIsEditingTitle(false)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') setIsEditingTitle(false);
+                                }}
+                                autoFocus
+                                className="text-2xl font-bold border-primary"
+                            />
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3 group cursor-pointer" onClick={() => setIsEditingTitle(true)}>
+                            <h2 className="text-2xl font-bold text-foreground underline decoration-primary decoration-2 underline-offset-4">
+                                {projectTitle}
+                            </h2>
+                            <Pencil className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                    )}
+                </div>
+
                 <div className="space-y-2">
                     <h2 className="text-2xl font-bold font-heading">Добавьте фотографии товара</h2>
                     <p className="text-muted-foreground text-sm">
@@ -160,7 +226,17 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                     </p>
                 </div>
 
-                <div className="relative aspect-4/3 bg-muted/30 border-2 border-dashed border-muted-foreground/25 rounded-xl overflow-hidden flex flex-col items-center justify-center group hover:border-primary/50 transition-colors">
+                <div 
+                    className={`relative aspect-4/3 bg-muted/30 border-2 border-dashed rounded-xl overflow-hidden flex flex-col items-center justify-center group transition-colors ${
+                        isDragging 
+                            ? 'border-primary bg-primary/5' 
+                            : 'border-muted-foreground/25 hover:border-primary/50'
+                    }`}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                >
                     {previewUrl ? (
                         <>
                             <img src={previewUrl} alt="Preview" className="w-full h-full object-contain" />
@@ -234,7 +310,7 @@ export default function ProductDataStep({ onNext }: ProductDataStepProps) {
                 <div className="flex justify-end">
                     <Button
                         variant="outline"
-                        className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-500 hover:text-cyan-400 hover:border-cyan-500/50"
+                        className="bg-linear-to-r from-cyan-500/10 to-blue-500/10 border-cyan-500/20 text-cyan-500 hover:text-cyan-400 hover:border-cyan-500/50"
                         onClick={handleMagicFill}
                         disabled={!uploadedUrl || isAnalyzing}
                     >
