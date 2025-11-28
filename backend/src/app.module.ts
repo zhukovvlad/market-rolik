@@ -4,12 +4,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 
 // Импорт наших сущностей
 import { User } from './users/user.entity';
 import { Project } from './projects/project.entity';
 import { Asset } from './projects/asset.entity';
 import { Transaction } from './transactions/transaction.entity';
+import { UploadTracking } from './storage/upload-tracking.entity';
 import { QueuesModule } from './queues/queues.module';
 import { CommonModule } from './common/common.module';
 import { ProjectsModule } from './projects/projects.module';
@@ -28,6 +30,9 @@ import { HttpLoggingInterceptor } from './common/interceptors/http-logging.inter
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
+    // Schedule Module for cron jobs
+    ScheduleModule.forRoot(),
 
     // Throttler (Rate Limiting)
     ThrottlerModule.forRootAsync({
@@ -53,7 +58,7 @@ import { HttpLoggingInterceptor } from './common/interceptors/http-logging.inter
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Project, Asset, Transaction],
+        entities: [User, Project, Asset, Transaction, UploadTracking],
         synchronize: true, // ВНИМАНИЕ: Только для разработки! В проде используем миграции.
       }),
       inject: [ConfigService],

@@ -3,6 +3,7 @@ import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { StorageService } from '../storage/storage.service';
+import { CleanupService } from '../storage/cleanup.service';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 
@@ -13,6 +14,7 @@ export class ProjectsController {
   constructor(
     private readonly projectsService: ProjectsService,
     private readonly storageService: StorageService,
+    private readonly cleanupService: CleanupService,
   ) { }
 
   @Get()
@@ -34,8 +36,32 @@ export class ProjectsController {
       }),
     )
     file: Express.Multer.File,
+    @Body('projectId') projectId?: string,
+    @Req() req?: AuthenticatedRequest,
   ) {
     const url = await this.storageService.uploadFile(file.buffer, file.mimetype);
+    
+    // Track this upload for cleanup
+    await this.cleanupService.trackUploadedFile(url, req?.user?.id);
+    
+    // If projectId is provided, save the image as an asset
+    if (projectId && req?.user?.id) {
+      await this.projectsService.addAsset(
+        projectId,
+        url,
+        'IMAGE_CLEAN' as any,
+        's3',
+        {
+          originalName: file.originalname,
+          mimeType: file.mimetype,
+          size: file.size,
+        }
+      );
+      
+      // File is now saved, stop tracking for cleanup
+      await this.cleanupService.untrackFile(url);
+    }
+    
     return { url };
   }
 
@@ -53,6 +79,17 @@ export class ProjectsController {
   async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.projectsService.findOne(id, req.user.id);
   }
+  
+  @Get('cleanup/run-now')
+  @UseGuards(AuthGuard('jwt'))
+  async runCleanup() {
+    const result = await this.cleanupService.runCleanupNow();
+    return {
+      message: 'Cleanup completed',
+      ...result,
+    };
+  }
+  
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {

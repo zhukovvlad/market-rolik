@@ -95,6 +95,8 @@ export class AiTextService {
       const base64Image = Buffer.from(imageBuffer).toString('base64');
       const mimeType = imageResp.headers.get('content-type') || 'image/jpeg';
 
+      this.logger.log(`Image fetched successfully. Size: ${imageBuffer.byteLength} bytes, MIME: ${mimeType}`);
+
       const prompt = `
         Analyze this product image and generate a JSON response with the following fields:
         1. "title": A short, catchy product name (in Russian).
@@ -104,6 +106,8 @@ export class AiTextService {
         Return ONLY valid JSON. Do not use markdown code blocks.
       `;
 
+      this.logger.log('Calling Gemini API...');
+      
       const response = await this.genAI.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: [
@@ -120,6 +124,8 @@ export class AiTextService {
         }
       });
 
+      this.logger.log('Gemini API call completed');
+
       const text = response.text;
 
       // Clean up markdown if present (though responseMimeType: 'application/json' should handle it)
@@ -129,6 +135,7 @@ export class AiTextService {
 
       const parsed = JSON.parse(cleanText);
       if (!parsed.title || !parsed.description || !Array.isArray(parsed.usps)) {
+        this.logger.error('Invalid response structure. Parsed:', parsed);
         throw new Error('Invalid response structure from AI');
       }
       return parsed as ProductData;
@@ -136,7 +143,25 @@ export class AiTextService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      this.logger.error('Failed to generate product data', error instanceof Error ? error.stack : String(error));
+      
+      // Enhanced error logging
+      this.logger.error('Failed to generate product data');
+      this.logger.error(`Error type: ${error?.constructor?.name}`);
+      this.logger.error(`Error message: ${error instanceof Error ? error.message : String(error)}`);
+      
+      if (error instanceof Error) {
+        this.logger.error(`Error stack: ${error.stack}`);
+      }
+      
+      // Log the actual error object
+      if (error && typeof error === 'object') {
+        try {
+          this.logger.error(`Error details: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`);
+        } catch (e) {
+          this.logger.error('Could not stringify error object');
+        }
+      }
+      
       // Fallback data
       return {
         title: 'Новый товар',
