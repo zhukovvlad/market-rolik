@@ -45,6 +45,7 @@ export default function Navbar() {
                                     </span>
                                 </div>
                                 <Button 
+                                    type="button"
                                     variant="ghost" 
                                     onClick={logout}
                                     className="text-gray-300 hover:text-white hover:bg-purple-500/10"
@@ -76,6 +77,7 @@ export default function Navbar() {
                         )}
                     </div>
                     <button 
+                        type="button"
                         className="md:hidden p-2" 
                         onClick={() => setIsOpen(!isOpen)}
                         aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -118,6 +120,7 @@ export default function Navbar() {
                                     Dashboard
                                 </Link>
                                 <Button 
+                                    type="button"
                                     variant="ghost" 
                                     onClick={() => { logout(); setIsOpen(false); }}
                                     className="w-full text-gray-300 hover:text-white hover:bg-purple-500/10 justify-start px-0"
