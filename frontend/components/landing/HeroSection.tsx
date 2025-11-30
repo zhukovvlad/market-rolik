@@ -19,22 +19,18 @@ export default function HeroSection() {
             <h1 className="text-5xl lg:text-6xl text-white mb-6">Transform Photos into <span className="bg-linear-to-r from-purple-400 via-fuchsia-400 to-purple-400 bg-clip-text text-transparent animate-pulse">Sales</span></h1>
             <p className="text-xl text-gray-400 mb-8">Digital Alchemy for marketplace sellers. We turn static images into rich video content using generative AI and precise code engineering.</p>
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Link href="/auth/register">
-                <button className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-linear-to-r from-purple-500 to-fuchsia-500 text-white rounded-lg hover:shadow-xl hover:shadow-purple-500/50 transition-all border border-purple-400/20">
-                  Start Free Trial
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right w-5 h-5" aria-hidden="true">
-                    <path d="M5 12h14"></path>
-                    <path d="m12 5 7 7-7 7"></path>
-                  </svg>
-                </button>
+              <Link href="/auth/register" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-linear-to-r from-purple-500 to-fuchsia-500 text-white rounded-lg hover:shadow-xl hover:shadow-purple-500/50 transition-all border border-purple-400/20">
+                Start Free Trial
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right w-5 h-5" aria-hidden="true">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
               </Link>
-              <Link href="#how-it-works">
-                <button className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-black text-white rounded-lg border-2 border-purple-500/30 hover:border-purple-500 hover:bg-purple-500/10 transition-all">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-play w-5 h-5" aria-hidden="true">
-                    <path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path>
-                  </svg>
-                  Watch Demo
-                </button>
+              <Link href="#how-it-works" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-black text-white rounded-lg border-2 border-purple-500/30 hover:border-purple-500 hover:bg-purple-500/10 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-play w-5 h-5" aria-hidden="true">
+                  <path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path>
+                </svg>
+                Watch Demo
               </Link>
             </div>
             <div className="flex items-center gap-8">

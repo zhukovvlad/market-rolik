@@ -1,6 +1,7 @@
+import React from 'react';
 import { AbsoluteFill } from 'remotion';
 
-export const MyComposition = () => {
+export const MyComposition: React.FC = () => {
   return (
     <AbsoluteFill className="bg-slate-50 flex items-center justify-center">
       <div className="text-center space-y-4">
