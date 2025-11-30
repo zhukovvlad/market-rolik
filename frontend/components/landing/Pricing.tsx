@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function Pricing() {
   return (
@@ -53,7 +54,7 @@ export default function Pricing() {
                 <span className="text-gray-300">Watermark included</span>
               </li>
             </ul>
-            <button className="w-full py-3 rounded-lg transition-all bg-linear-to-r from-purple-500 to-fuchsia-500 text-white hover:shadow-lg hover:shadow-purple-500/50 border border-purple-400/20">Start Free Trial</button>
+            <Link href="/auth/register" className="w-full py-3 rounded-lg transition-all bg-linear-to-r from-purple-500 to-fuchsia-500 text-white hover:shadow-lg hover:shadow-purple-500/50 border border-purple-400/20 block text-center">Start Free Trial</Link>
           </div>
           <div className="relative p-8 rounded-2xl bg-linear-to-b from-purple-600 to-fuchsia-600 text-white shadow-2xl shadow-purple-500/50 scale-105 border border-purple-400/50">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-linear-to-r from-yellow-400 to-lime-400 text-black rounded-full text-sm flex items-center gap-1">
@@ -122,7 +123,7 @@ export default function Pricing() {
                 <span className="text-white">API access</span>
               </li>
             </ul>
-            <button className="w-full py-3 rounded-lg transition-all bg-white text-purple-600 hover:shadow-lg hover:shadow-white/20">Start Free Trial</button>
+            <Link href="/auth/register" className="w-full py-3 rounded-lg transition-all bg-white text-purple-600 hover:shadow-lg hover:shadow-white/20 block text-center">Start Free Trial</Link>
           </div>
           <div className="relative p-8 rounded-2xl bg-linear-to-b from-gray-900 to-black border-2 border-purple-500/20">
             <div className="text-center mb-6">
@@ -182,7 +183,7 @@ export default function Pricing() {
                 <span className="text-gray-300">SLA guarantee</span>
               </li>
             </ul>
-            <button className="w-full py-3 rounded-lg transition-all bg-linear-to-r from-purple-500 to-fuchsia-500 text-white hover:shadow-lg hover:shadow-purple-500/50 border border-purple-400/20">Contact Sales</button>
+            <Link href="/contact" className="w-full py-3 rounded-lg transition-all bg-linear-to-r from-purple-500 to-fuchsia-500 text-white hover:shadow-lg hover:shadow-purple-500/50 border border-purple-400/20 block text-center">Contact Sales</Link>
           </div>
         </div>
       </div>

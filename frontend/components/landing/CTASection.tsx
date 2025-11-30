@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function CTASection() {
   return (
@@ -20,14 +21,14 @@ export default function CTASection() {
             <h2 className="text-4xl lg:text-5xl text-white mb-6 max-w-3xl mx-auto">Ready to Assemble Your Success?</h2>
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">Start your 14-day trial. Experience the power of digital alchemy. No credit card required.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-linear-to-r from-purple-500 to-fuchsia-500 text-white rounded-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all border border-purple-400/20">
+              <Link href="/auth/register" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-linear-to-r from-purple-500 to-fuchsia-500 text-white rounded-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all border border-purple-400/20">
                 Start Free Trial
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right w-5 h-5" aria-hidden="true">
                   <path d="M5 12h14"></path>
                   <path d="m12 5 7 7-7 7"></path>
                 </svg>
-              </button>
-              <button className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-transparent text-white rounded-lg border-2 border-purple-500/50 hover:border-purple-500 hover:bg-purple-500/10 transition-all">Schedule Demo</button>
+              </Link>
+              <Link href="/demo" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-transparent text-white rounded-lg border-2 border-purple-500/50 hover:border-purple-500 hover:bg-purple-500/10 transition-all">Schedule Demo</Link>
             </div>
             <p className="mt-6 text-sm text-gray-400">✓ No credit card required  ✓ 14-day access  ✓ Cancel anytime</p>
           </div>
