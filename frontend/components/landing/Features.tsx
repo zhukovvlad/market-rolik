@@ -1,75 +1,81 @@
-import { Cpu, Zap, Gem, Code } from "lucide-react";
-
-const features = [
-    {
-        icon: Cpu,
-        title: "Генеративная мощь",
-        description: "Объединяем Kling и Hailuo для создания реалистичной динамики.",
-        color: "text-primary",
-        bg: "bg-primary/10",
-        border: "border-primary/20"
-    },
-    {
-        icon: Code,
-        title: "Инженерная точность",
-        description: "Программный код Remotion гарантирует идеальный монтаж каждый раз.",
-        color: "text-secondary",
-        bg: "bg-secondary/10",
-        border: "border-secondary/20"
-    },
-    {
-        icon: Gem,
-        title: "Премиальное качество",
-        description: "Ваш контент будет выглядеть дорого. Мы превращаем пиксели в золото.",
-        color: "text-primary",
-        bg: "bg-primary/10",
-        border: "border-primary/20"
-    },
-    {
-        icon: Zap,
-        title: "Мгновенная скорость",
-        description: "От загрузки фото до готового видео — всего 60 секунд.",
-        color: "text-secondary",
-        bg: "bg-secondary/10",
-        border: "border-secondary/20"
-    },
-];
+import React from 'react';
 
 export default function Features() {
-    return (
-        <section id="features" className="py-24 bg-background relative overflow-hidden">
-            {/* Background Glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
-
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 font-heading">
-                        ДНК <span className="text-primary">AviAI</span>
-                    </h2>
-                    <p className="text-lg text-muted-foreground">
-                        Мы демократизируем создание Rich-контента. Наш "Сборщик" трансформирует статику в динамику, используя передовые нейросети.
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {features.map((feature, index) => (
-                        <div
-                            key={index}
-                            className={`group p-6 rounded-2xl border ${feature.border} bg-card hover:bg-card/80 hover:shadow-[0_0_20px_rgba(139,92,246,0.1)] transition-all duration-300`}
-                        >
-                            <div className={`w-12 h-12 rounded-xl ${feature.bg} ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                                <feature.icon className="w-6 h-6" />
-                            </div>
-                            <h3 className="text-xl font-semibold text-foreground mb-2 font-heading">
-                                {feature.title}
-                            </h3>
-                            <p className="text-muted-foreground leading-relaxed text-sm">
-                                {feature.description}
-                            </p>
-                        </div>
-                    ))}
-                </div>
+  return (
+    <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-black relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500 to-transparent"></div>
+      <div className="max-w-7xl mx-auto relative">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl lg:text-5xl text-white mb-4">The Assembler's Toolkit</h2>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">Professional-grade features that transform raw materials into conversion gold.</p>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="group p-6 rounded-2xl bg-linear-to-b from-gray-900 to-black border border-purple-500/20 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all">
+            <div className="w-12 h-12 bg-linear-to-br from-purple-500 to-fuchsia-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sparkles w-6 h-6 text-black" aria-hidden="true">
+                <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path>
+                <path d="M20 2v4"></path>
+                <path d="M22 4h-4"></path>
+                <circle cx="4" cy="20" r="2"></circle>
+              </svg>
             </div>
-        </section>
-    );
+            <h3 className="text-xl text-white mb-2">Generative AI Power</h3>
+            <p className="text-gray-400">Kling &amp; Hailuo neural networks transform static images into dynamic video content with professional motion.</p>
+          </div>
+          <div className="group p-6 rounded-2xl bg-linear-to-b from-gray-900 to-black border border-purple-500/20 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all">
+            <div className="w-12 h-12 bg-linear-to-br from-yellow-400 to-lime-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-zap w-6 h-6 text-black" aria-hidden="true">
+                <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+              </svg>
+            </div>
+            <h3 className="text-xl text-white mb-2">Lightning Fast Assembly</h3>
+            <p className="text-gray-400">Remotion-powered video generation in under 5 minutes. Precision code meets AI creativity.</p>
+          </div>
+          <div className="group p-6 rounded-2xl bg-linear-to-b from-gray-900 to-black border border-purple-500/20 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all">
+            <div className="w-12 h-12 bg-linear-to-br from-purple-500 to-fuchsia-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-globe w-6 h-6 text-black" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+                <path d="M2 12h20"></path>
+              </svg>
+            </div>
+            <h3 className="text-xl text-white mb-2">Multi-Marketplace Ready</h3>
+            <p className="text-gray-400">Optimized for Amazon, Wildberries, Ozon, and 50+ other platforms with format-specific exports.</p>
+          </div>
+          <div className="group p-6 rounded-2xl bg-linear-to-b from-gray-900 to-black border border-purple-500/20 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all">
+            <div className="w-12 h-12 bg-linear-to-br from-green-400 to-emerald-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trending-up w-6 h-6 text-black" aria-hidden="true">
+                <path d="M16 7h6v6"></path>
+                <path d="m22 7-8.5 8.5-5-5L2 17"></path>
+              </svg>
+            </div>
+            <h3 className="text-xl text-white mb-2">3x Conversion Boost</h3>
+            <p className="text-gray-400">Rich video content dramatically outperforms static images in click-through and conversion rates.</p>
+          </div>
+          <div className="group p-6 rounded-2xl bg-linear-to-b from-gray-900 to-black border border-purple-500/20 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all">
+            <div className="w-12 h-12 bg-linear-to-br from-purple-500 to-fuchsia-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-palette w-6 h-6 text-black" aria-hidden="true">
+                <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"></path>
+                <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+                <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+                <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+                <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+              </svg>
+            </div>
+            <h3 className="text-xl text-white mb-2">Professional Templates</h3>
+            <p className="text-gray-400">Curated library of premium templates designed for maximum marketplace impact.</p>
+          </div>
+          <div className="group p-6 rounded-2xl bg-linear-to-b from-gray-900 to-black border border-purple-500/20 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all">
+            <div className="w-12 h-12 bg-linear-to-br from-yellow-400 to-lime-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield w-6 h-6 text-black" aria-hidden="true">
+                <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path>
+              </svg>
+            </div>
+            <h3 className="text-xl text-white mb-2">Brand Control</h3>
+            <p className="text-gray-400">Full customization of colors, fonts, and branding. Your identity, our technology.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
