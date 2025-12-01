@@ -1,5 +1,6 @@
 import { IsString, IsNotEmpty, Length, IsOptional, ValidateNested, IsArray, MaxLength, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ASPECT_RATIOS } from '../constants';
 
 class ProjectSettingsDto {
   @IsOptional()
@@ -20,7 +21,7 @@ class ProjectSettingsDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(500)
+  @MaxLength(2048)
   mainImage?: string;
 
   @IsOptional()
@@ -30,7 +31,7 @@ class ProjectSettingsDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['16:9', '9:16', '1:1'])
+  @IsIn(ASPECT_RATIOS)
   aspectRatio?: string;
 }
 
