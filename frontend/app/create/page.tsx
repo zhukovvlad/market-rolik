@@ -61,8 +61,9 @@ export default function CreatePage() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const signal = controller.signal;
 
     setIsGenerating(true);
     try {
@@ -125,8 +126,10 @@ export default function CreatePage() {
       console.error(e);
       toast.error("Что-то пошло не так. Попробуйте еще раз.");
     } finally {
-      setIsGenerating(false);
-      abortControllerRef.current = null;
+      if (abortControllerRef.current === controller) {
+        setIsGenerating(false);
+        abortControllerRef.current = null;
+      }
     }
   };
 
