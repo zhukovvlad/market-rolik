@@ -234,6 +234,7 @@ S3_PUBLIC_URL=https://your-bucket.timeweb.cloud
 OPENAI_API_KEY=your-openai-key
 GEMINI_API_KEY=your-gemini-key
 PIAPI_API_KEY=your-piapi-key
+KLING_API_KEY=your-kling-key
 PHOTOROOM_API_KEY=your-photoroom-key
 
 # Google OAuth
@@ -421,7 +422,7 @@ If video generation times out:
 3. Consider increasing timeout: `VIDEO_MAX_POLL_ATTEMPTS=60` (10 minutes)
 
 Logs will show:
-```
+```log
 ⏱️ Kling Task abc123 TIMEOUT after 30 attempts (300.5s). Last status: processing
 ```
 

@@ -53,7 +53,7 @@ npm run migration:run
 
 ## Environment Variables
 
-Required variables (see `.env.example` for full list):
+Minimal required variables (see `.env.example` for complete list with all options):
 
 ```env
 # Database
