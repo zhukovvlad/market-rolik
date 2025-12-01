@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Project, ProjectStatus } from './project.entity';
 import { Asset, AssetType } from './asset.entity';
 import { User } from '../users/user.entity';
+import { ProjectSettings } from './interfaces/project-settings.interface';
 
 @Injectable()
 export class ProjectsService {
@@ -17,7 +18,7 @@ export class ProjectsService {
   ) { }
 
   // Create a project
-  async createProject(userId: string, title: string, settings: Record<string, any> = {}) {
+  async createProject(userId: string, title: string, settings: ProjectSettings = {}) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);

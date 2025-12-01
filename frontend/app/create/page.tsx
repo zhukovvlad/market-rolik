@@ -8,6 +8,7 @@ import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { API_URL } from "@/lib/utils";
 import { ProductData } from "@/types/product";
+import { ProjectSettings, CreateProjectRequest } from "@/types/project";
 
 export default function CreatePage() {
   const [step, setStep] = useState(1);
@@ -35,7 +36,7 @@ export default function CreatePage() {
   };
 
   // Шаг 2: Запуск генерации
-  const handleGenerate = async (settings: { prompt: string; aspectRatio: string }) => {
+  const handleGenerate = async (settings: Required<Pick<ProjectSettings, 'prompt' | 'aspectRatio'>>) => {
     if (!uploadedUrl || !productData) return;
 
     // 1. Берем токен
@@ -49,23 +50,27 @@ export default function CreatePage() {
     setIsGenerating(true);
     try {
       // 2. Создаем проект (POST /projects)
+      const projectSettings: ProjectSettings = {
+         productName: productData.title,
+         description: productData.description,
+         usps: productData.usps,
+         mainImage: uploadedUrl,
+         prompt: settings.prompt,
+         aspectRatio: settings.aspectRatio
+      };
+
+      const requestBody: CreateProjectRequest = {
+          title: projectTitle, // Отправляем актуальный заголовок
+          settings: projectSettings
+      };
+
       const projectRes = await fetch(`${API_URL}/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          title: projectTitle, // Отправляем актуальный заголовок
-          settings: { // Сохраняем все данные в JSON
-             productName: productData.title,
-             description: productData.description,
-             usps: productData.usps,
-             mainImage: uploadedUrl,
-             prompt: settings.prompt,
-             aspectRatio: settings.aspectRatio
-          }
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!projectRes.ok) throw new Error('Ошибка создания проекта');

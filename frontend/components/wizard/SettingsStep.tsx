@@ -4,10 +4,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2, Smartphone, Monitor } from "lucide-react";
+import { ProjectSettings } from "@/types/project";
 
 interface SettingsStepProps {
     imageUrl: string;
-    onGenerate: (settings: { prompt: string; aspectRatio: string }) => void;
+    onGenerate: (settings: Required<Pick<ProjectSettings, 'prompt' | 'aspectRatio'>>) => void;
     isGenerating: boolean;
 }
 
