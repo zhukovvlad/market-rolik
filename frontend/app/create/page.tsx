@@ -58,6 +58,9 @@ export default function CreatePage() {
     }
 
     // Create AbortController for this request chain
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     abortControllerRef.current = new AbortController();
     const signal = abortControllerRef.current.signal;
 

@@ -1,31 +1,36 @@
-import { IsString, IsNotEmpty, Length, IsObject, IsOptional, ValidateNested, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, Length, IsOptional, ValidateNested, IsArray, MaxLength, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ProjectSettings } from '../interfaces/project-settings.interface';
 
 class ProjectSettingsDto {
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   productName?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   description?: string;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @MaxLength(200, { each: true })
   usps?: string[];
 
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   mainImage?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   prompt?: string;
 
   @IsOptional()
   @IsString()
+  @IsIn(['16:9', '9:16', '1:1'])
   aspectRatio?: string;
 }
 
