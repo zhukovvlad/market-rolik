@@ -69,8 +69,8 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
     const previewAsset = getPreviewAsset(project);
 
     return (
-        <Card className="group overflow-hidden hover:shadow-lg transition-shadow border-slate-200 flex flex-col h-full">
-            <Link href={`/projects/${project.id}`} className="block relative h-48 bg-slate-100 overflow-hidden cursor-pointer">
+        <Card className="group overflow-hidden hover:shadow-lg transition-shadow border-border bg-card flex flex-col h-full">
+            <Link href={`/projects/${project.id}`} className="block relative h-48 bg-muted overflow-hidden cursor-pointer">
                 <MediaPreview
                     src={previewAsset?.storageUrl}
                     alt={project.title}
@@ -83,30 +83,30 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
             </Link>
 
             <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-lg truncate" title={project.title}>
+                <CardTitle className="text-lg truncate text-card-foreground" title={project.title}>
                     {project.title}
                 </CardTitle>
             </CardHeader>
 
             <CardContent className="pb-2 grow">
-                <div className="flex items-center text-xs text-slate-400 gap-2">
+                <div className="flex items-center text-xs text-muted-foreground gap-2">
                     <Calendar className="w-3 h-3" />
                     {new Date(project.createdAt).toLocaleDateString()}
-                    <span className="text-slate-300">•</span>
+                    <span className="text-muted-foreground/50">•</span>
                     {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true, locale: ru })}
                 </div>
             </CardContent>
 
             <CardFooter className="p-4 pt-2 gap-2 mt-auto">
                 <Link href={`/projects/${project.id}`} className="flex-1">
-                    <Button variant="ghost" className="w-full text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                    <Button variant="ghost" className="w-full text-primary hover:text-primary hover:bg-primary/10">
                         Открыть
                     </Button>
                 </Link>
 
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-600 hover:bg-red-50">
+                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
                             <Trash2 className="w-4 h-4" />
                         </Button>
                     </AlertDialogTrigger>

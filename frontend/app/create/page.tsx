@@ -134,14 +134,14 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
+      <main className="container mx-auto px-4 pt-24 pb-8 flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
         <div className="mb-8 text-center space-y-2">
-          <h1 className="text-3xl font-bold text-slate-900 font-heading">
+          <h1 className="text-3xl font-bold text-foreground font-heading">
             {step === 1 ? "Шаг 1: Данные товара" : "Шаг 2: Настройки видео"}
           </h1>
-          <p className="text-slate-500">
+          <p className="text-muted-foreground">
             {step === 1 ? "Загрузите фото и заполните информацию" : "Выберите формат и стиль анимации"}
           </p>
         </div>

@@ -306,7 +306,7 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
             </div>
 
             {/* Right Column: Form Data */}
-            <div className="flex flex-col gap-6 bg-card/50 p-6 rounded-2xl border border-border/50">
+            <div className="flex flex-col gap-6 bg-card p-6 rounded-2xl border border-border">
                 <div className="flex justify-end">
                     <Button
                         variant="outline"

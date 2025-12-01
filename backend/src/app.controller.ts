@@ -14,6 +14,7 @@ import { AssetType } from './projects/asset.entity';
 import { Request } from 'express';
 import { AiTextService } from './common/ai-text.service';
 import { AnalyzeImageDto } from './dto/analyze-image.dto';
+import { RenderService } from './common/render.service';
 
 interface IpifyResponse {
   ip: string;
@@ -55,6 +56,7 @@ export class AppController {
     private readonly userRepository: Repository<User>,
     private readonly projectsService: ProjectsService,
     private readonly aiTextService: AiTextService,
+    private readonly renderService: RenderService,
   ) { }
 
   @Get()
@@ -204,5 +206,17 @@ export class AppController {
       message:
         'Видео генерируется. Это займет время (в Mock-режиме 10 сек). Проверяй консоль.',
     };
+  }
+
+  @Post('test-render')
+  async testRender() {
+    const videoPath = await this.renderService.renderVideo({
+      title: "Тестовый Рендер",
+      mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000",
+      usps: ["Работает на сервере", "Без браузера", "MP4 готов"],
+      primaryColor: "#ef4444" // Красный
+    });
+    
+    return { status: 'success', path: videoPath };
   }
 }
