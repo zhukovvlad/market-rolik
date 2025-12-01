@@ -34,9 +34,9 @@ const statusLabels: Record<Project['status'], string> = {
 };
 
 export default function ProjectDetailsPage() {
-    const { id } = useParams();
+    const { id } = useParams<{ id: string }>();
     const router = useRouter();
-    const { isLoading: isAuthLoading } = useAuth();
+    const { isLoading: isAuthLoading, token } = useAuth();
 
     const [project, setProject] = useState<Project | null>(null);
     const [loading, setLoading] = useState(true);
@@ -44,8 +44,11 @@ export default function ProjectDetailsPage() {
     // Загрузка проекта
     useEffect(() => {
         const fetchProject = async () => {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+            if (!token) {
+                setLoading(false);
+                router.push("/dashboard");
+                return;
+            }
 
             try {
                 const res = await axios.get<Project>(`${API_URL}/projects/${id}`, {
@@ -66,12 +69,18 @@ export default function ProjectDetailsPage() {
         };
 
         if (!isAuthLoading) fetchProject();
-    }, [id, isAuthLoading, router]);
+    }, [id, isAuthLoading, router, token]);
 
     // Удаление
     const handleDelete = async () => {
         if (!confirm("Вы уверены? Это действие необратимо.")) return;
-        const token = localStorage.getItem("token");
+        
+        if (!token) {
+            toast.error("Требуется авторизация");
+            router.push("/dashboard");
+            return;
+        }
+
         try {
             await axios.delete(`${API_URL}/projects/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -261,7 +270,7 @@ export default function ProjectDetailsPage() {
                                         <label className="text-xs text-muted-foreground uppercase font-bold">
                                             Prompt для AI
                                         </label>
-                                        <div className="mt-2 p-3 bg-muted rounded-lg border border-border text-sm text-foreground font-mono wrap-break-word">
+                                        <div className="mt-2 p-3 bg-muted rounded-lg border border-border text-sm text-foreground font-mono whitespace-pre-wrap wrap-break-word">
                                             {project.settings.prompt}
                                         </div>
                                     </div>

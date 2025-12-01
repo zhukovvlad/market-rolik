@@ -5,6 +5,8 @@ import * as SeparatorPrimitive from "@radix-ui/react-separator"
 
 import { cn } from "@/lib/utils"
 
+export type SeparatorProps = React.ComponentProps<typeof SeparatorPrimitive.Root>;
+
 function Separator({
   className,
   orientation = "horizontal",

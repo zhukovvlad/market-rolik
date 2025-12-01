@@ -7,7 +7,6 @@ export interface ProjectSettings {
     mainImage?: string;
     prompt?: string;
     aspectRatio?: string;
-    [key: string]: unknown;
 }
 
 export interface Project {
