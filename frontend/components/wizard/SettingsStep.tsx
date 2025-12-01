@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, Smartphone, Monitor, Square } from "lucide-react";
+import { Loader2, Smartphone, Monitor, Square, RectangleVertical } from "lucide-react";
 import { ProjectSettings, AspectRatio, ASPECT_RATIOS } from "@/types/project";
 
 interface SettingsStepProps {
@@ -16,7 +16,7 @@ const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: React.Elem
     "9:16": { label: "Stories (9:16)", Icon: Smartphone },
     "16:9": { label: "Landscape (16:9)", Icon: Monitor },
     "1:1": { label: "Square (1:1)", Icon: Square },
-    "3:4": { label: "Post (3:4)", Icon: Monitor },
+    "3:4": { label: "Post (3:4)", Icon: RectangleVertical },
 };
 
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: SettingsStepProps) {
