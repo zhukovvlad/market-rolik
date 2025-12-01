@@ -4,13 +4,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2, Smartphone, Monitor, Square } from "lucide-react";
-import { ProjectSettings, AspectRatio } from "@/types/project";
+import { ProjectSettings, AspectRatio, ASPECT_RATIOS } from "@/types/project";
 
 interface SettingsStepProps {
     imageUrl: string;
     onGenerate: (settings: Required<Pick<ProjectSettings, 'prompt' | 'aspectRatio'>>) => void;
     isGenerating: boolean;
 }
+
+const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: React.ElementType }> = {
+    "9:16": { label: "Stories (9:16)", Icon: Smartphone },
+    "16:9": { label: "Landscape (16:9)", Icon: Monitor },
+    "1:1": { label: "Square (1:1)", Icon: Square },
+    "3:4": { label: "Post (3:4)", Icon: Monitor },
+};
 
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: SettingsStepProps) {
     const [prompt, setPrompt] = useState("");
@@ -32,7 +39,10 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
             case '16:9': return "aspect-video max-w-full mx-auto";
             case '1:1': return "aspect-square max-w-sm mx-auto";
             case '3:4': return "aspect-[3/4] max-w-sm mx-auto";
-            default: return "aspect-[9/16] max-w-xs mx-auto";
+            default: {
+                const _exhaustive: never = ratio;
+                return "aspect-[9/16] max-w-xs mx-auto";
+            }
         }
     };
 
@@ -70,46 +80,21 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
                     <div className="space-y-3">
                         <Label className="text-base">Формат видео</Label>
                         <RadioGroup value={aspectRatio} onValueChange={(v) => setAspectRatio(v as AspectRatio)} className="grid grid-cols-2 gap-4">
-                            <div>
-                                <RadioGroupItem value="9:16" id="r1" className="peer sr-only" />
-                                <Label
-                                    htmlFor="r1"
-                                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
-                                >
-                                    <Smartphone className="mb-3 h-6 w-6" />
-                                    <span className="font-semibold text-xs">Stories (9:16)</span>
-                                </Label>
-                            </div>
-                            <div>
-                                <RadioGroupItem value="16:9" id="r2" className="peer sr-only" />
-                                <Label
-                                    htmlFor="r2"
-                                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
-                                >
-                                    <Monitor className="mb-3 h-6 w-6" />
-                                    <span className="font-semibold text-xs">Landscape (16:9)</span>
-                                </Label>
-                            </div>
-                            <div>
-                                <RadioGroupItem value="1:1" id="r3" className="peer sr-only" />
-                                <Label
-                                    htmlFor="r3"
-                                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
-                                >
-                                    <Square className="mb-3 h-6 w-6" />
-                                    <span className="font-semibold text-xs">Square (1:1)</span>
-                                </Label>
-                            </div>
-                            <div>
-                                <RadioGroupItem value="3:4" id="r4" className="peer sr-only" />
-                                <Label
-                                    htmlFor="r4"
-                                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
-                                >
-                                    <Monitor className="mb-3 h-6 w-6" />
-                                    <span className="font-semibold text-xs">Post (3:4)</span>
-                                </Label>
-                            </div>
+                            {ASPECT_RATIOS.map((ratio) => {
+                                const { label, Icon } = ASPECT_RATIO_CONFIG[ratio];
+                                return (
+                                    <div key={ratio}>
+                                        <RadioGroupItem value={ratio} id={`r-${ratio}`} className="peer sr-only" />
+                                        <Label
+                                            htmlFor={`r-${ratio}`}
+                                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
+                                        >
+                                            <Icon className="mb-3 h-6 w-6" />
+                                            <span className="font-semibold text-xs">{label}</span>
+                                        </Label>
+                                    </div>
+                                );
+                            })}
                         </RadioGroup>
                     </div>
 

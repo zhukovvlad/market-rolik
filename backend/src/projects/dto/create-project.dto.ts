@@ -30,7 +30,6 @@ class ProjectSettingsDto {
   prompt?: string;
 
   @IsOptional()
-  @IsString()
   @IsIn(ASPECT_RATIOS)
   aspectRatio?: AspectRatio;
 }
