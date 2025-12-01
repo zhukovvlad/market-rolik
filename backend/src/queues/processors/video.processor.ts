@@ -172,9 +172,11 @@ export class VideoProcessor {
       return { result: s3Url };
     } catch (error) {
       const failedDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(1);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
-        `❌ Pipeline FAILED for Project ${projectId} after ${failedDuration}s: ${error.message}`,
-        error.stack,
+        `❌ Pipeline FAILED for Project ${projectId} after ${failedDuration}s: ${errorMessage}`,
+        errorStack,
       );
       
       // Update project status to FAILED
@@ -183,8 +185,9 @@ export class VideoProcessor {
         project.status = ProjectStatus.FAILED;
         await this.projectsService.save(project);
       } catch (updateError) {
+        const updateErrorMessage = updateError instanceof Error ? updateError.message : String(updateError);
         this.logger.error(
-          `Failed to update project status to FAILED: ${updateError.message}`,
+          `Failed to update project status to FAILED: ${updateErrorMessage}`,
         );
       }
       

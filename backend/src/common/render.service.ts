@@ -8,10 +8,12 @@ import * as fs from 'fs';
 @Injectable()
 export class RenderService {
   private readonly logger = new Logger(RenderService.name);
+  private lastLoggedProgress = 0;
 
   constructor(private readonly configService: ConfigService) {}
 
   async renderVideo(data: VideoCompositionInput): Promise<string> {
+    this.lastLoggedProgress = 0;
     this.logger.log('🎬 Starting Render process...');
 
     // Configuration from environment
@@ -57,8 +59,9 @@ export class RenderService {
       },
       puppeteerInstance: undefined,
       onProgress: ({ progress }) => {
-        if (progress % 0.1 < 0.01) {
-          // Log every 10%
+        const percent = Math.floor(progress * 10) * 10;
+        if (percent > this.lastLoggedProgress) {
+          this.lastLoggedProgress = percent;
           this.logger.log(`Rendering progress: ${(progress * 100).toFixed(0)}%`);
         }
       },
