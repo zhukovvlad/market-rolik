@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { renderMedia, selectComposition } from '@remotion/renderer';
+import { VideoCompositionInput } from './interfaces/video-composition.interface';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -7,57 +9,62 @@ import * as fs from 'fs';
 export class RenderService {
   private readonly logger = new Logger(RenderService.name);
 
-  async renderVideo(data: {
-    title: string;
-    mainImage: string;
-    usps: string[];
-    primaryColor: string;
-  }): Promise<string> {
-    
+  constructor(private readonly configService: ConfigService) {}
+
+  async renderVideo(data: VideoCompositionInput): Promise<string> {
     this.logger.log('🎬 Starting Render process...');
 
-    // 1. Путь к бандлу (который мы собрали)
-    const bundleLocation = path.join(process.cwd(), 'remotion-build');
-    
-    // 2. Выбираем композицию (ID из Root.tsx)
+    // Configuration from environment
+    const bundleLocation = this.configService.get<string>(
+      'REMOTION_BUNDLE_PATH',
+      path.join(process.cwd(), '..', 'video', 'remotion-build'),
+    );
+    const outputDir = this.configService.get<string>(
+      'REMOTION_OUTPUT_DIR',
+      path.join(process.cwd(), 'output'),
+    );
+    const compositionId = this.configService.get<string>(
+      'REMOTION_COMPOSITION_ID',
+      'WbClassic',
+    );
+
+    // Select composition
     const composition = await selectComposition({
       serveUrl: bundleLocation,
-      id: 'WbClassic',
-      inputProps: data, // Передаем данные
+      id: compositionId,
+      inputProps: data,
     });
 
-    // 3. Создаем папку для готовых видео, если нет
-    const outputDir = path.join(process.cwd(), 'output');
+    // Ensure output directory exists
     if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir);
+      fs.mkdirSync(outputDir, { recursive: true });
     }
-    
+
     const fileName = `video-${Date.now()}.mp4`;
     const outputFile = path.join(outputDir, fileName);
 
-    // 4. Рендерим!
+    // Render video with properly typed chromiumOptions
     await renderMedia({
       composition,
       serveUrl: bundleLocation,
       codec: 'h264',
       outputLocation: outputFile,
       inputProps: data,
-
       chromiumOptions: {
-        enableMultiProcessOnLinux: true, // Включаем многопроцессность (стабильнее)
-        // @ts-ignore
-        args: [
-            '--no-sandbox', 
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage', // Критично для Docker/WSL (использует диск вместо RAM для шаринга)
-            '--disable-gpu',           // Отключаем GPU, если его нет (на серверах часто помогает)
-            '--disable-web-security'   // На всякий случай, чтобы не ругался на CORS локально
-        ]
-      } as any,
+        enableMultiProcessOnLinux: true,
+        headless: true,
+        gl: 'swiftshader',
+      },
+      puppeteerInstance: undefined,
+      onProgress: ({ progress }) => {
+        if (progress % 0.1 < 0.01) {
+          // Log every 10%
+          this.logger.log(`Rendering progress: ${(progress * 100).toFixed(0)}%`);
+        }
+      },
     });
-    
 
     this.logger.log(`✅ Render done: ${outputFile}`);
-    return outputFile; // Возвращаем путь к файлу
+    return outputFile;
   }
 }
