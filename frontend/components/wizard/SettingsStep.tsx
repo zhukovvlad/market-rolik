@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, Smartphone, Monitor } from "lucide-react";
-import { ProjectSettings } from "@/types/project";
+import { Loader2, Smartphone, Monitor, Square } from "lucide-react";
+import { ProjectSettings, AspectRatio } from "@/types/project";
 
 interface SettingsStepProps {
     imageUrl: string;
@@ -14,7 +14,7 @@ interface SettingsStepProps {
 
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: SettingsStepProps) {
     const [prompt, setPrompt] = useState("");
-    const [aspectRatio, setAspectRatio] = useState("9:16");
+    const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
     const [imageError, setImageError] = useState(false);
 
     // Reset error state when imageUrl changes
@@ -26,12 +26,22 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
         onGenerate({ prompt, aspectRatio });
     };
 
+    const getPreviewStyle = (ratio: AspectRatio) => {
+        switch (ratio) {
+            case '9:16': return "aspect-[9/16] max-w-xs mx-auto";
+            case '16:9': return "aspect-video max-w-full mx-auto";
+            case '1:1': return "aspect-square max-w-sm mx-auto";
+            case '3:4': return "aspect-[3/4] max-w-sm mx-auto";
+            default: return "aspect-[9/16] max-w-xs mx-auto";
+        }
+    };
+
     return (
         <div className="w-full max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             {/* Left: Preview */}
             <div className="flex flex-col gap-4">
                 <h3 className="text-xl font-bold font-heading">Превью</h3>
-                <div className={`relative rounded-xl overflow-hidden border border-border bg-black/50 shadow-2xl transition-all duration-500 ${aspectRatio === "9:16" ? "aspect-9/16 max-w-xs mx-auto" : "aspect-3/4 max-w-sm mx-auto"}`}>
+                <div className={`relative rounded-xl overflow-hidden border border-border bg-black/50 shadow-2xl transition-all duration-500 ${getPreviewStyle(aspectRatio)}`}>
                     <img 
                         src={imageUrl} 
                         alt="Preview" 
@@ -59,7 +69,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
 
                     <div className="space-y-3">
                         <Label className="text-base">Формат видео</Label>
-                        <RadioGroup value={aspectRatio} onValueChange={setAspectRatio} className="grid grid-cols-2 gap-4">
+                        <RadioGroup value={aspectRatio} onValueChange={(v) => setAspectRatio(v as AspectRatio)} className="grid grid-cols-2 gap-4">
                             <div>
                                 <RadioGroupItem value="9:16" id="r1" className="peer sr-only" />
                                 <Label
@@ -67,17 +77,37 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
                                     className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
                                 >
                                     <Smartphone className="mb-3 h-6 w-6" />
-                                    <span className="font-semibold">Stories (9:16)</span>
+                                    <span className="font-semibold text-xs">Stories (9:16)</span>
                                 </Label>
                             </div>
                             <div>
-                                <RadioGroupItem value="3:4" id="r2" className="peer sr-only" />
+                                <RadioGroupItem value="16:9" id="r2" className="peer sr-only" />
                                 <Label
                                     htmlFor="r2"
                                     className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
                                 >
                                     <Monitor className="mb-3 h-6 w-6" />
-                                    <span className="font-semibold">Post (3:4)</span>
+                                    <span className="font-semibold text-xs">Landscape (16:9)</span>
+                                </Label>
+                            </div>
+                            <div>
+                                <RadioGroupItem value="1:1" id="r3" className="peer sr-only" />
+                                <Label
+                                    htmlFor="r3"
+                                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
+                                >
+                                    <Square className="mb-3 h-6 w-6" />
+                                    <span className="font-semibold text-xs">Square (1:1)</span>
+                                </Label>
+                            </div>
+                            <div>
+                                <RadioGroupItem value="3:4" id="r4" className="peer sr-only" />
+                                <Label
+                                    htmlFor="r4"
+                                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
+                                >
+                                    <Monitor className="mb-3 h-6 w-6" />
+                                    <span className="font-semibold text-xs">Post (3:4)</span>
                                 </Label>
                             </div>
                         </RadioGroup>
