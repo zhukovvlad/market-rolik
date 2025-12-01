@@ -68,17 +68,17 @@ export default function DashboardPage() {
     if (isAuthLoading) return <div className="p-10 text-center">Загрузка...</div>;
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-background">
             <Navbar />
 
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 pt-24 pb-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Мои проекты</h1>
-                        <p className="text-slate-500">Управляйте вашими видео-генерациями</p>
+                        <h1 className="text-3xl font-bold text-foreground">Мои проекты</h1>
+                        <p className="text-muted-foreground">Управляйте вашими видео-генерациями</p>
                     </div>
                     <Link href="/create">
-                        <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-md">
+                        <Button className="bg-primary hover:bg-primary/90 shadow-md text-primary-foreground">
                             <Plus className="mr-2 h-4 w-4" /> Новый проект
                         </Button>
                     </Link>
@@ -86,14 +86,14 @@ export default function DashboardPage() {
 
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {[1, 2, 3].map(i => <div key={i} className="h-64 bg-slate-200 animate-pulse rounded-xl"></div>)}
+                        {[1, 2, 3].map(i => <div key={i} className="h-64 bg-muted animate-pulse rounded-xl"></div>)}
                     </div>
                 ) : projects.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
-                        <div className="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="text-center py-20 bg-card rounded-2xl border border-dashed border-border">
+                        <div className="w-16 h-16 bg-muted text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-4">
                             <Video className="w-8 h-8" />
                         </div>
-                        <h3 className="text-lg font-medium text-slate-900 mb-2">У вас пока нет проектов</h3>
+                        <h3 className="text-lg font-medium text-foreground mb-2">У вас пока нет проектов</h3>
                         <Link href="/create"><Button variant="outline">Создать проект</Button></Link>
                     </div>
                 ) : (

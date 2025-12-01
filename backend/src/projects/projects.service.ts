@@ -104,4 +104,8 @@ export class ProjectsService {
     }
     return { deleted: true };
   }
+
+  async save(project: Project) {
+    return this.projectsRepository.save(project);
+  }
 }
