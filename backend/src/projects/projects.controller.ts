@@ -9,6 +9,8 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { AssetType } from './asset.entity';
 import { UserRole } from '../users/user.entity';
 
+import { ProjectSettings } from './interfaces/project-settings.interface';
+
 type AuthenticatedRequest = Request & { user: { id: string; role: UserRole } };
 
 @Controller('projects')
@@ -73,7 +75,7 @@ export class ProjectsController {
     return this.projectsService.createProject(
       req.user.id,
       createProjectDto.title,
-      createProjectDto.settings
+      createProjectDto.settings as ProjectSettings
     );
   }
 

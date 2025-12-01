@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import ProductDataStep from "@/components/wizard/ProductDataStep";
 import SettingsStep from "@/components/wizard/SettingsStep";
@@ -21,6 +21,16 @@ export default function CreatePage() {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   
   const router = useRouter();
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cleanup: abort requests on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Шаг 1: Данные собраны
   const handleProductDataNext = (data: { imageUrl: string; productData: ProductData }) => {
@@ -47,6 +57,10 @@ export default function CreatePage() {
       return;
     }
 
+    // Create AbortController for this request chain
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     setIsGenerating(true);
     try {
       // 2. Создаем проект (POST /projects)
@@ -70,7 +84,8 @@ export default function CreatePage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        signal
       });
 
       if (!projectRes.ok) throw new Error('Ошибка создания проекта');
@@ -87,7 +102,8 @@ export default function CreatePage() {
           projectId: project.id,
           imageUrl: uploadedUrl,
           prompt: settings.prompt
-        })
+        }),
+        signal
       });
 
       if (!genRes.ok) throw new Error('Ошибка запуска генерации');
@@ -97,11 +113,17 @@ export default function CreatePage() {
       // 4. Перенаправляем в Дашборд
       router.push("/dashboard");
 
-    } catch (e) {
+    } catch (e: any) {
+      // Don't show error toast if request was aborted (user navigated away)
+      if (e.name === 'AbortError') {
+        console.log('Request aborted');
+        return;
+      }
       console.error(e);
       toast.error("Что-то пошло не так. Попробуйте еще раз.");
     } finally {
       setIsGenerating(false);
+      abortControllerRef.current = null;
     }
   };
 
