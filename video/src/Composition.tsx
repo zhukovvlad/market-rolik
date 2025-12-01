@@ -2,12 +2,12 @@ import React from 'react';
 import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig, spring, interpolate } from 'remotion';
 import { z } from 'zod';
 
-// Схема данных (без изменений)
+// Схема данных с валидацией URL и hex-цветов
 export const myCompSchema = z.object({
   title: z.string(),
-  mainImage: z.string(),
+  mainImage: z.string().url(),
   usps: z.array(z.string()),
-  primaryColor: z.string(),
+  primaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex color"),
 });
 
 export const MyComposition: React.FC<z.infer<typeof myCompSchema>> = ({
@@ -33,17 +33,7 @@ export const MyComposition: React.FC<z.infer<typeof myCompSchema>> = ({
   // Интерполируем: На 0 кадре масштаб 1.0 (нормальный), потом чуть растет
   const scale = interpolate(scaleSpring, [0, 1], [1, 1.05]); 
 
-  // 3. Заголовок: Пусть вылетает очень быстро, но на 0 кадре он должен быть "почти" на месте
-  // Или давай сделаем его статичным на 0 кадре для обложки?
-  // Лучший вариант для WB: Заголовок виден СРАЗУ.
-  const titleOpacity = spring({
-      frame: frame - 5, // Небольшая задержка, но на превью (0 кадр) текст будет прозрачным? НЕТ.
-      // Давай сделаем текст просто появляющимся без прозрачности для обложки?
-      // РЕШЕНИЕ: Текст вылетает, НО для обложки мы полагаемся на то, что товар занимает 80% экрана.
-      fps
-  });
-  
-  // Давай сделаем вылет более резким (Pop-up), но начнем его с масштаба 0.8, а не с пустоты
+  // 3. Заголовок: вылет с эффектом Pop-up
   const titleScale = interpolate(scaleSpring, [0, 1], [0.8, 1]);
   
   // Для обложки важно, чтобы ТОВАР был главным.

@@ -1,98 +1,200 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Market-Rolik Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS-based backend for AI-powered video generation marketplace.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- 🎬 **Video Generation Pipeline** - Kling AI integration for product videos
+- 🎨 **Background Removal** - Photoroom API for image processing
+- 🎥 **Server-Side Rendering** - Remotion for dynamic video composition
+- 🔐 **Authentication** - Google OAuth integration
+- 📦 **Storage** - S3-compatible cloud storage (Timeweb)
+- 🐂 **Queue System** - Bull/Redis for async job processing
+- 🗃️ **Database** - PostgreSQL with TypeORM
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## System Requirements
 
-## Project setup
+### For Development
+- Node.js 20+
+- PostgreSQL 16+
+- Redis 7+
 
-```bash
-$ npm install
-```
+### For Video Rendering
+The application uses **Remotion** from the `/video` directory which requires:
 
-## Compile and run the project
+- ✅ **Chromium/Chrome** - headless browser for rendering
+- ✅ **ffmpeg** - video encoding
+- ✅ **2GB+ RAM** - for video rendering processes
+- ✅ **Built Remotion bundle** - run `npm run build` in `/video` directory
 
-```bash
-# development
-$ npm run start
+**Important**: Backend requires access to `/video/remotion-build` directory for rendering.
 
-# watch mode
-$ npm run start:dev
+**See [docs/deployment.md](../docs/deployment.md) for detailed setup instructions.**
 
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+## Project Setup
 
 ```bash
-# unit tests
-$ npm run test
+# 1. Install backend dependencies
+npm install
 
-# e2e tests
-$ npm run test:e2e
+# 2. Build Remotion templates (required!)
+cd ../video
+npm install
+npm run build  # Creates remotion-build directory
+cd ../backend
 
-# test coverage
-$ npm run test:cov
+# 3. Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# 4. Run database migrations
+npm run migration:run
 ```
 
-## Deployment
+## Environment Variables
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Required variables (see `.env.example` for full list):
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+```env
+# Database
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USER=admin
+DATABASE_PASSWORD=root
+DATABASE_NAME=market_rolik
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# JWT
+JWT_SECRET=your-secret-key
+
+# S3 Storage
+S3_ENDPOINT=s3.timeweb.cloud
+S3_BUCKET=market-rolik
+S3_ACCESS_KEY=your-key
+S3_SECRET_KEY=your-secret
+
+# AI Services
+OPENAI_API_KEY=your-key
+KLING_API_KEY=your-key
+PHOTOROOM_API_KEY=your-key
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-id
+GOOGLE_CLIENT_SECRET=your-secret
+GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/callback
+
+# Remotion (optional, defaults provided)
+REMOTION_BUNDLE_PATH=../video/remotion-build
+REMOTION_OUTPUT_DIR=./output
+REMOTION_COMPOSITION_ID=WbClassic
+```
+
+## Run the Application
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Development with hot-reload
+npm run start:dev
+
+# Production mode
+npm run build
+npm run start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Docker Deployment
 
-## Resources
+**For Development** - runs only infrastructure:
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+# Start Postgres and Redis
+docker-compose up -d
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Run backend locally (for hot-reload)
+npm run start:dev
+```
 
-## Support
+**For Production** - see [docs/deployment.md](../docs/deployment.md) for:
+- Single server setup with PM2
+- Custom Docker image with Remotion
+- Kubernetes deployment options
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## API Endpoints
 
-## Stay in touch
+### Authentication
+- `GET /auth/google` - Initiate Google OAuth
+- `GET /auth/google/callback` - OAuth callback
+- `GET /auth/me` - Get current user
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Projects
+- `GET /projects` - List user projects
+- `POST /projects` - Create new project
+- `GET /projects/:id` - Get project details
+- `DELETE /projects/:id` - Delete project
+
+### Video Generation
+- `POST /test-video` - Test video generation (authenticated)
+- `POST /test-render` - Test Remotion rendering (authenticated)
+
+### Health
+- `GET /health` - Health check endpoint
+
+## Development
+
+```bash
+# Run tests
+npm run test
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
+
+# Lint
+npm run lint
+
+# Format code
+npm run format
+```
+
+## Video Rendering Stack
+
+- **@remotion/renderer** - Server-side video composition
+- **puppeteer-core** - Headless browser control
+- **ffmpeg** - Video encoding (via Remotion)
+
+## Queue Processing
+
+Bull queues are used for async operations:
+
+- `video-generation` - Kling AI video generation
+- `image-processing` - Photoroom background removal
+
+## Troubleshooting
+
+### "Cannot find module remotion-build"
+
+Ensure you've built the Remotion bundle:
+
+```bash
+cd ../video
+npm run build
+```
+
+The backend looks for `/video/remotion-build` directory relative to project root.
+
+### Video rendering fails
+
+Ensure:
+1. Chromium/Chrome is installed on your system
+2. ffmpeg is available in PATH
+3. `/video` directory is built (`npm run build` in video folder)
+4. Sufficient memory allocated (4GB recommended)
+
+See [docs/deployment.md](../docs/deployment.md) for detailed troubleshooting.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+UNLICENSED - Private project

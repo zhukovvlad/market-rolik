@@ -7,7 +7,9 @@ import { StorageService } from '../../storage/storage.service';
 import { ProjectsService } from '../../projects/projects.service';
 import { AssetType } from '../../projects/asset.entity';
 import { ProxyService } from '../../common/proxy.service';
-import { RenderService } from '../../common/render.service'; // <--- Импортируем Рендер
+import { RenderService } from '../../common/render.service';
+import { ProjectStatus } from '../../projects/project.entity';
+import { VideoCompositionInput } from '../../common/interfaces/video-composition.interface';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
@@ -61,22 +63,33 @@ export class VideoProcessor {
     formData.append('size', 'auto');
     formData.append('format', 'png');
 
-    const response = await this.proxyService.post<Buffer>(
-      'https://sdk.photoroom.com/v1/segment',
-      formData,
-      {
-        headers: { 'x-api-key': apiKey, ...formData.getHeaders() },
-        responseType: 'arraybuffer',
-      },
-    );
-    return Buffer.from(response);
+    try {
+      const response = await this.proxyService.post<Buffer>(
+        'https://sdk.photoroom.com/v1/segment',
+        formData,
+        {
+          headers: { 'x-api-key': apiKey, ...formData.getHeaders() },
+          responseType: 'arraybuffer',
+        },
+      );
+      return Buffer.from(response);
+    } catch (error) {
+      this.logger.warn(`⚠️ Photoroom API failed: ${error instanceof Error ? error.message : String(error)}. Using original image.`);
+      return inputBuffer;
+    }
   }
 
   // --- ГЛАВНЫЙ ПРОЦЕСС ---
   @Process('generate-kling')
   async handleGenerateKling(job: Job<{ projectId: string }>) {
     const { projectId } = job.data;
-    this.logger.log(`🎬 Start Pipeline for Project ${projectId}`);
+    const pipelineStartTime = Date.now();
+    
+    if (!projectId) {
+      throw new Error('projectId is required for video generation pipeline');
+    }
+    
+    this.logger.log(`🎬 Start Pipeline for Project ${projectId} (Job ID: ${job.id})`);
 
     try {
       // 1. Получаем данные проекта из БД
@@ -88,16 +101,19 @@ export class VideoProcessor {
 
       // 2. Параллельный запуск: Генерация видео + Удаление фона
       this.logger.log('⚡ Starting parallel tasks: Kling AI + Photoroom');
+      const parallelStartTime = Date.now();
 
       const [klingVideoUrl, cutoutBuffer] = await Promise.all([
         this.generateKlingVideo(
           imageUrl,
-          // 👇 Если промпта нет, ставим дефолтный "красивый"
           settings.prompt ||
             'Cinematic product shot, high quality, 4k, slow motion',
         ),
         this.removeBackground(imageUrl),
       ]);
+      
+      const parallelDuration = ((Date.now() - parallelStartTime) / 1000).toFixed(1);
+      this.logger.log(`⚡ Parallel tasks completed in ${parallelDuration}s`);
 
       // 3. Сохраняем вырезанное фото в S3 (для рендера)
       const cutoutUrl = await this.storageService.uploadFile(
@@ -108,15 +124,9 @@ export class VideoProcessor {
       this.logger.log(`✅ Cutout saved: ${cutoutUrl}`);
 
       // 4. Подготовка данных для Рендера
-      const inputProps = {
+      const inputProps: VideoCompositionInput = {
         title: settings.productName || project.title || 'Новинка',
-        // ВАЖНО: Передаем в шаблон и оригинал (для фона), и вырезанный (для переднего плана)
-        // Но пока наш шаблон WbClassic поддерживает только mainImage.
-        // Давай передадим cutoutUrl как mainImage, чтобы товар был на прозрачном фоне?
-        // Или лучше обновим шаблон.
-        // ДЛЯ СЕЙЧАС: Передаем cutoutUrl как mainImage, так будет красивее на размытом фоне.
         mainImage: cutoutUrl,
-
         usps:
           settings.usps && settings.usps.length > 0
             ? settings.usps
@@ -126,9 +136,11 @@ export class VideoProcessor {
 
       // 5. ЗАПУСК РЕНДЕРА
       this.logger.log('🔥 Rendering final video with Remotion...');
+      const renderStartTime = Date.now();
       const outputFilePath = await this.renderService.renderVideo(inputProps);
+      const renderDuration = ((Date.now() - renderStartTime) / 1000).toFixed(1);
 
-      this.logger.log(`✅ Render finished: ${outputFilePath}`);
+      this.logger.log(`✅ Render finished in ${renderDuration}s: ${outputFilePath}`);
 
       // 6. Загрузка готового MP4 в S3
       const fileBuffer = fs.readFileSync(outputFilePath);
@@ -140,17 +152,42 @@ export class VideoProcessor {
       this.logger.log(`☁️ Uploaded to S3: ${s3Url}`);
 
       // 7. Очистка
-      fs.unlinkSync(outputFilePath);
+      try {
+        fs.unlinkSync(outputFilePath);
+        this.logger.debug(`🗑️ Cleaned up local file: ${outputFilePath}`);
+      } catch (err) {
+        this.logger.warn(`Failed to delete local render ${outputFilePath}: ${err instanceof Error ? err.message : String(err)}`);
+      }
 
       // 8. Финал: Обновляем проект
-      project.status = 'COMPLETED' as any;
+      project.status = ProjectStatus.COMPLETED;
       project.resultVideoUrl = s3Url;
-      await this.projectsService.save(project); // Убедись, что метод save есть в сервисе
+      await this.projectsService.save(project);
+      
+      const totalDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(1);
+      this.logger.log(
+        `🎉 Pipeline COMPLETED for Project ${projectId} in ${totalDuration}s (Parallel: ${parallelDuration}s, Render: ${renderDuration}s)`,
+      );
 
       return { result: s3Url };
     } catch (error) {
-      this.logger.error(`Pipeline Failed: ${error.message}`, error.stack);
-      // TODO: Поставить статус FAILED в БД
+      const failedDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(1);
+      this.logger.error(
+        `❌ Pipeline FAILED for Project ${projectId} after ${failedDuration}s: ${error.message}`,
+        error.stack,
+      );
+      
+      // Update project status to FAILED
+      try {
+        const project = await this.projectsService.findOne(projectId);
+        project.status = ProjectStatus.FAILED;
+        await this.projectsService.save(project);
+      } catch (updateError) {
+        this.logger.error(
+          `Failed to update project status to FAILED: ${updateError.message}`,
+        );
+      }
+      
       throw error;
     }
   }
@@ -160,40 +197,79 @@ export class VideoProcessor {
     imageUrl: string,
     prompt: string,
   ): Promise<string> {
+    const startTime = Date.now();
+    
     // 1. Запуск задачи
     const taskId = await this.aiVideoService.generateKlingVideo(
       imageUrl,
       prompt,
     );
-    this.logger.log(`Kling Task ID: ${taskId}`);
+    this.logger.log(`🎬 Kling Task ID: ${taskId} - Starting polling...`);
 
-    // 2. Поллинг
+    // 2. Поллинг с улучшенным логированием
     let videoUrl: string | undefined;
+    let lastStatus = 'pending';
+    
     for (let i = 0; i < this.maxPollAttempts; i++) {
       await delay(this.pollDelayMs);
       const result = await this.aiVideoService.checkTaskStatus(taskId);
+      
+      // Логируем изменение статуса
+      if (result.status !== lastStatus) {
+        this.logger.log(
+          `📊 Kling Task ${taskId}: ${lastStatus} → ${result.status} (attempt ${i + 1}/${this.maxPollAttempts})`,
+        );
+        lastStatus = result.status;
+      }
 
       if (result.status === 'completed') {
+        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+        this.logger.log(
+          `✅ Kling Task ${taskId} completed in ${duration}s after ${i + 1} attempts`,
+        );
         videoUrl = result.videoUrl;
         break;
       }
-      if (result.status === 'failed')
-        throw new Error('Kling generation failed');
+      
+      if (result.status === 'failed') {
+        this.logger.error(
+          `❌ Kling Task ${taskId} failed after ${i + 1} attempts`,
+        );
+        throw new Error(`Kling generation failed: ${result.status}`);
+      }
+      
+      // Периодическое логирование для длительных задач
+      if ((i + 1) % 5 === 0) {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        this.logger.debug(
+          `⏳ Kling Task ${taskId} still ${lastStatus} - ${elapsed}s elapsed (${i + 1}/${this.maxPollAttempts} attempts)`,
+        );
+      }
     }
 
-    if (!videoUrl) throw new Error('Kling Timeout');
+    if (!videoUrl) {
+      const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+      this.logger.error(
+        `⏱️ Kling Task ${taskId} TIMEOUT after ${this.maxPollAttempts} attempts (${totalTime}s). Last status: ${lastStatus}`,
+      );
+      throw new Error(
+        `Kling Timeout: Task ${taskId} did not complete after ${this.maxPollAttempts} attempts (${totalTime}s)`,
+      );
+    }
 
     // 3. Скачивание и сохранение "сырого" видео (для истории)
-    // Можно пропустить этот шаг для скорости, если нам нужен только финал,
-    // но лучше сохранить ассет.
+    this.logger.log(`📥 Downloading Kling video from: ${videoUrl}`);
     const videoData = await this.proxyService.get<Buffer>(videoUrl, {
       responseType: 'arraybuffer',
     });
+    
     const s3Url = await this.storageService.uploadFile(
       Buffer.from(videoData),
       'video/mp4',
       'videos',
     );
+    
+    this.logger.log(`☁️ Kling raw video archived to S3: ${s3Url}`);
 
     return s3Url;
   }

@@ -15,6 +15,7 @@ import { Request } from 'express';
 import { AiTextService } from './common/ai-text.service';
 import { AnalyzeImageDto } from './dto/analyze-image.dto';
 import { RenderService } from './common/render.service';
+import { VideoCompositionInput } from './common/interfaces/video-composition.interface';
 
 interface IpifyResponse {
   ip: string;
@@ -209,13 +210,16 @@ export class AppController {
   }
 
   @Post('test-render')
+  @UseGuards(AuthGuard('jwt'))
   async testRender() {
-    const videoPath = await this.renderService.renderVideo({
+    const inputProps: VideoCompositionInput = {
       title: "Тестовый Рендер",
       mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000",
       usps: ["Работает на сервере", "Без браузера", "MP4 готов"],
-      primaryColor: "#ef4444" // Красный
-    });
+      primaryColor: "#ef4444"
+    };
+    
+    const videoPath = await this.renderService.renderVideo(inputProps);
     
     return { status: 'success', path: videoPath };
   }
