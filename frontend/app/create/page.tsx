@@ -14,8 +14,11 @@ export default function CreatePage() {
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [productData, setProductData] = useState<ProductData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Состояние для редактируемого заголовка (оно живет здесь, в родителе)
   const [projectTitle, setProjectTitle] = useState("Untitled Project");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+  
   const router = useRouter();
 
   // Шаг 1: Данные собраны
@@ -23,7 +26,7 @@ export default function CreatePage() {
     setUploadedUrl(data.imageUrl);
     setProductData(data.productData);
     
-    // Auto-update project title from product title if still default
+    // Если название проекта все еще дефолтное, а у товара появилось название — обновляем заголовок проекта
     if (projectTitle === "Untitled Project" && data.productData.title) {
       setProjectTitle(data.productData.title);
     }
@@ -53,7 +56,15 @@ export default function CreatePage() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          title: projectTitle
+          title: projectTitle, // Отправляем актуальный заголовок
+          settings: { // Сохраняем все данные в JSON
+             productName: productData.title,
+             description: productData.description,
+             usps: productData.usps,
+             mainImage: uploadedUrl,
+             prompt: settings.prompt,
+             aspectRatio: settings.aspectRatio
+          }
         })
       });
 
@@ -90,14 +101,14 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <main className="container mx-auto px-4 py-8 flex flex-col items-center justify-center">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2 font-heading">
+      <main className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
+        <div className="mb-8 text-center space-y-2">
+          <h1 className="text-3xl font-bold text-slate-900 font-heading">
             {step === 1 ? "Шаг 1: Данные товара" : "Шаг 2: Настройки видео"}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-slate-500">
             {step === 1 ? "Загрузите фото и заполните информацию" : "Выберите формат и стиль анимации"}
           </p>
         </div>
@@ -106,6 +117,7 @@ export default function CreatePage() {
           {step === 1 && (
             <ProductDataStep 
               onNext={handleProductDataNext}
+              // 👇 ВОТ ЭТИ ПРОПСЫ МЫ ДОБАВИЛИ, ЧТОБЫ ИСПРАВИТЬ ОШИБКУ
               projectTitle={projectTitle}
               setProjectTitle={setProjectTitle}
               isEditingTitle={isEditingTitle}

@@ -73,6 +73,7 @@ export class ProjectsController {
     return this.projectsService.createProject(
       req.user.id,
       createProjectDto.title,
+      createProjectDto.settings
     );
   }
 

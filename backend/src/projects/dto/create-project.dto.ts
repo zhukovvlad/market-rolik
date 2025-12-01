@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, Length } from 'class-validator';
+import { IsString, IsNotEmpty, Length, IsObject, IsOptional } from 'class-validator';
 
 export class CreateProjectDto {
   // userId удаляем отсюда, он придет из JWT токена
@@ -7,4 +7,8 @@ export class CreateProjectDto {
   @IsNotEmpty()
   @Length(3, 100)
   title: string;
+
+  @IsOptional()
+  @IsObject()
+  settings?: Record<string, any>;
 }

@@ -17,7 +17,7 @@ export class ProjectsService {
   ) { }
 
   // Create a project
-  async createProject(userId: string, title: string) {
+  async createProject(userId: string, title: string, settings: Record<string, any> = {}) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
@@ -28,7 +28,7 @@ export class ProjectsService {
       userId, // User ID column
       user, // Use full user object
       status: ProjectStatus.DRAFT, // <--- Use your Enum
-      settings: {},
+      settings: settings,
     });
     return await this.projectsRepository.save(project);
   }
