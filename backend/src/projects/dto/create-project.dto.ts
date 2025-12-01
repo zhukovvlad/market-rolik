@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty, Length, IsOptional, ValidateNested, IsArray, MaxLength, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ASPECT_RATIOS } from '../constants';
+import { ASPECT_RATIOS, AspectRatio } from '../constants';
 
 class ProjectSettingsDto {
   @IsOptional()
@@ -32,7 +32,7 @@ class ProjectSettingsDto {
   @IsOptional()
   @IsString()
   @IsIn(ASPECT_RATIOS)
-  aspectRatio?: string;
+  aspectRatio?: AspectRatio;
 }
 
 export class CreateProjectDto {
