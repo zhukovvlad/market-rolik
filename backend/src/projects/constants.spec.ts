@@ -8,10 +8,10 @@ describe('Constants Sync', () => {
     // We are in /home/zhukovvlad/Projects/market-rolik/backend/src/projects/constants.spec.ts
     // We want /home/zhukovvlad/Projects/market-rolik/frontend/types/project.ts
     // So: ../../../frontend/types/project.ts
-    const frontendPath = path.resolve(process.cwd(), '../frontend/types/project.ts');
+    const frontendPath = path.resolve(__dirname, '../../../frontend/types/project.ts');
+    
     if (!fs.existsSync(frontendPath)) {
-      console.warn('Frontend file not found, skipping sync test');
-      return;
+      throw new Error(`Frontend file not found at: ${frontendPath}`);
     }
 
     const frontendContent = fs.readFileSync(frontendPath, 'utf-8');
