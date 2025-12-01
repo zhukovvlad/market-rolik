@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Asset } from './asset.entity';
+import { ProjectSettings } from './interfaces/project-settings.interface';
 
 export enum ProjectStatus {
   DRAFT = 'DRAFT',
@@ -42,7 +43,7 @@ export class Project {
 
   // Настройки генерации (Вайб, формат, музыка)
   @Column('jsonb', { default: {} })
-  settings: Record<string, any>;
+  settings: ProjectSettings;
 
   // Сценарий от LLM
   @Column('jsonb', { nullable: true })
