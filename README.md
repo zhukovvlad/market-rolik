@@ -1,6 +1,6 @@
 # 🚀 Маркет-Ролик (MVP)
 
-**Статус:** 🚧 Phase 3: Frontend & Wizard Complete
+**Статус:** 🚧 Phase 4: Video Generation & Remotion Integration
 **Прогресс:** [Посмотреть Roadmap](roadmap.html)
 
 **Маркет-Ролик** (AviAI) — это SaaS-платформа для автоматической генерации **видео-обложек** для маркетплейсов (**Wildberries**, **Ozon**) с помощью:
@@ -9,7 +9,7 @@
 * программного рендеринга (Remotion)
 * микросервисной архитектуры (NestJS + Next.js)
 
-Проект построен как двухсервисная система с общей локальной инфраструктурой.
+Проект построен как трехсервисная система с общей локальной инфраструктурой.
 
 ---
 
@@ -32,13 +32,19 @@
 ### Frontend
 *   **UI Framework**: Next.js 16 (App Router) + React 19 + Tailwind CSS v4 + Shadcn UI.
 *   **Theme**: Принудительная темная тема (Dark Mode) с возможностью расширения.
-*   **Landing Page**: Адаптивная главная страница с Hero, Features, How It Works секциями.
+*   **Landing Page**: Полностью переработанный лендинг (Hero, Features, How It Works, Pricing, Testimonials).
 *   **Auth**: Интеграция с Google OAuth, обработка JWT токенов, защищенные маршруты.
 *   **Dashboard**: Список проектов пользователя с отслеживанием статуса.
 *   **Wizard Flow**:
     *   **Step 1**: Загрузка файлов (Drag & Drop) + **Magic Fill** (авто-генерация данных через AI).
     *   **Step 2**: Настройки генерации (Промпт, Соотношение сторон 9:16/3:4).
 *   **Logging**: Кастомный логгер с фильтрацией чувствительных данных (токенов).
+
+### Video (Remotion)
+*   **Framework**: Remotion + React.
+*   **Composition**: Базовый шаблон видео (9:16) с поддержкой динамических данных (изображения, текст, цвета).
+*   **Styling**: Tailwind CSS интеграция внутри видео-компонентов.
+*   **Rendering**: Подготовка к серверному рендерингу через Lambda или Docker.
 
 ---
 
@@ -49,7 +55,8 @@ market-rolik-root/
 ├── docker-compose.yml      # Локальная БД (Postgres) и Очереди (Redis)
 ├── README.md               # Этот файл
 ├── backend/                # NestJS (API, Workers, DB)
-└── frontend/               # Next.js (UI, Dashboard, Wizard)
+├── frontend/               # Next.js (UI, Dashboard, Wizard)
+└── video/                  # Remotion (Video Templates & Rendering Logic)
 ```
 
 ---
@@ -236,10 +243,9 @@ docker-compose logs -f postgres
 
 * [x] **Phase 1:** Foundation & Infrastructure
 * [x] **Phase 2:** Backend Core & AI Pipeline
-* [x] **Phase 3 (Partial):** Frontend Landing Page & Upload Integration
-* [ ] **Phase 3 (Next):** Wizard Multi-Step Form & Project Management UI
+* [x] **Phase 3:** Frontend Landing Page, Auth & Wizard UI
 * [ ] **Phase 2.5:** Audio & Text Engines (Mubert, Yandex SpeechKit, LLM)
-* [ ] **Phase 4:** Advanced Video Logic (Remotion, Lambda Rendering)
+* [ ] **Phase 4:** Advanced Video Logic (Remotion Integration, Rendering)
 * [ ] **Phase 5:** Launch & Monetization
 
 ---
