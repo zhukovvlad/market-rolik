@@ -16,12 +16,12 @@ import { Project } from "@/lib/types";
 import axios from "axios";
 
 const statusColors: Record<Project['status'], string> = {
-    DRAFT: "bg-gray-500",
-    QUEUED: "bg-yellow-500",
-    PROCESSING: "bg-blue-500",
-    RENDERING: "bg-purple-500",
-    COMPLETED: "bg-green-500",
-    FAILED: "bg-red-500",
+    DRAFT: "bg-muted text-muted-foreground",
+    QUEUED: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400",
+    PROCESSING: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+    RENDERING: "bg-primary/10 text-primary",
+    COMPLETED: "bg-green-500/10 text-green-700 dark:text-green-400",
+    FAILED: "bg-destructive/10 text-destructive",
 };
 
 const statusLabels: Record<Project['status'], string> = {
@@ -150,13 +150,13 @@ export default function ProjectDetailsPage() {
                     <div className="flex gap-3">
                         <Button
                             variant="outline"
-                            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 border-red-200"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
                             onClick={handleDelete}
                         >
                             <Trash2 className="w-4 h-4 mr-2" /> Удалить
                         </Button>
                         {project.status === 'COMPLETED' && project.resultVideoUrl && (
-                            <Button onClick={handleDownload} className="bg-primary hover:bg-primary/90 shadow-md">
+                            <Button onClick={handleDownload} className="bg-primary hover:bg-primary/90 shadow-md text-white">
                                 <Download className="w-4 h-4 mr-2" /> Скачать MP4
                             </Button>
                         )}
@@ -167,7 +167,7 @@ export default function ProjectDetailsPage() {
                     {/* ЛЕВАЯ КОЛОНКА: Плеер / Превью */}
                     <div className="lg:col-span-1">
                         <Card className="overflow-hidden border-border shadow-sm">
-                            <CardContent className="p-0 bg-black flex items-center justify-center aspect-9/16 relative group">
+                            <CardContent className="p-0 bg-black flex items-center justify-center aspect-ratio-9-16 relative group">
                                 {project.status === 'COMPLETED' && project.resultVideoUrl ? (
                                     <video
                                         src={project.resultVideoUrl}
