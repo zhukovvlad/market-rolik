@@ -15,8 +15,8 @@ export default function HowItWorks() {
           <div className="relative">
             <div className="text-center">
               <div className="relative inline-block mb-6">
-                <div className="w-20 h-20 bg-linear-to-br from-primary to-primary rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary/30">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-upload w-10 h-10 text-black" aria-hidden="true">
+                <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary/30">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-upload w-10 h-10 text-primary-foreground" aria-hidden="true">
                     <path d="M12 3v12"></path>
                     <path d="m17 8-5-5-5 5"></path>
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -32,8 +32,8 @@ export default function HowItWorks() {
           <div className="relative">
             <div className="text-center">
               <div className="relative inline-block mb-6">
-                <div className="w-20 h-20 bg-linear-to-br from-primary to-primary rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary/30">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wand-sparkles w-10 h-10 text-black" aria-hidden="true">
+                <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary/30">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wand-sparkles w-10 h-10 text-primary-foreground" aria-hidden="true">
                     <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"></path>
                     <path d="m14 7 3 3"></path>
                     <path d="M5 6v4"></path>
@@ -54,8 +54,8 @@ export default function HowItWorks() {
           <div className="relative">
             <div className="text-center">
               <div className="relative inline-block mb-6">
-                <div className="w-20 h-20 bg-linear-to-br from-primary to-primary rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary/30">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-check-big w-10 h-10 text-black" aria-hidden="true">
+                <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary/30">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-check-big w-10 h-10 text-primary-foreground" aria-hidden="true">
                     <path d="M21.801 10A10 10 0 1 1 17 3.335"></path>
                     <path d="m9 11 3 3L22 4"></path>
                   </svg>
@@ -70,8 +70,8 @@ export default function HowItWorks() {
           <div className="relative">
             <div className="text-center">
               <div className="relative inline-block mb-6">
-                <div className="w-20 h-20 bg-linear-to-br from-primary to-primary rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary/30">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download w-10 h-10 text-black" aria-hidden="true">
+                <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-primary/30">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download w-10 h-10 text-primary-foreground" aria-hidden="true">
                     <path d="M12 15V3"></path>
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <path d="m7 10 5 5 5-5"></path>
@@ -85,7 +85,7 @@ export default function HowItWorks() {
           </div>
         </div>
         <div className="mt-12 text-center">
-          <button className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-foreground rounded-lg hover:shadow-xl hover:shadow-primary/50 transition-all border border-primary/20">Start Assembling Now</button>
+          <button className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-lg hover:shadow-xl hover:shadow-primary/50 transition-all border border-primary/20 font-semibold">Start Assembling Now</button>
         </div>
       </div>
     </section>
