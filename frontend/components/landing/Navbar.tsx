@@ -107,6 +107,8 @@ export default function Navbar() {
                         
                         <div className="h-px bg-border my-2"></div>
                         
+                        <ThemeToggle />
+                        
                         {user ? (
                             <>
                                 <div className="flex items-center gap-2 py-2">
