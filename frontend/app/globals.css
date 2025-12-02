@@ -30,6 +30,7 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -47,68 +48,150 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Custom aspect ratios */
+  --aspect-ratio-3-4: 3 / 4;
+  --aspect-ratio-9-16: 9 / 16;
 }
 
 :root {
-  /* AviAI Brand Colors - Dark Mode Only */
-  --background: #09090B; /* Deep Void */
-  --foreground: #FAFAFA; /* Cold White */
-  
-  --card: #18181B; /* Surface */
-  --card-foreground: #FAFAFA;
-  
-  --popover: #18181B;
-  --popover-foreground: #FAFAFA;
-  
-  --primary: #8B5CF6; /* Electric Violet */
-  --primary-foreground: #FFFFFF;
-  
-  --secondary: #CCFF00; /* Acid Lime */
-  --secondary-foreground: #000000;
-  
-  --muted: #27272A;
-  --muted-foreground: #A1A1AA;
-  
-  --accent: #27272A;
-  --accent-foreground: #FAFAFA;
-  
-  --destructive: #EF4444;
-  --destructive-foreground: #FAFAFA;
-  
-  --border: #27272A;
-  --input: #27272A;
-  --ring: #8B5CF6; /* Violet Ring */
-  
-  --radius: 0.5rem;
+  /* Light Theme - Indigo & Slate */
+  /* Фон: Чистый белый */
+  --background: hsl(0 0% 100%);
+  /* Текст: Глубокий темно-синий */
+  --foreground: hsl(222.2 84% 4.9%);
 
-  /* Charts - Keeping defaults or adjusting to brand if needed */
-  --chart-1: #8B5CF6;
-  --chart-2: #CCFF00;
-  --chart-3: #22C55E;
-  --chart-4: #A1A1AA;
-  --chart-5: #FAFAFA;
+  /* Карточки: Белые */
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222.2 84% 4.9%);
 
-  /* Sidebar - Dark */
-  --sidebar: #09090B;
-  --sidebar-foreground: #FAFAFA;
-  --sidebar-primary: #8B5CF6;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #18181B;
-  --sidebar-accent-foreground: #FAFAFA;
-  --sidebar-border: #27272A;
-  --sidebar-ring: #8B5CF6;
+  /* Поповеры */
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222.2 84% 4.9%);
+
+  /* PRIMARY: Яркий Индиго-Фиолетовый */
+  --primary: hsl(262.1 83.3% 57.8%);
+  --primary-foreground: hsl(0 0% 100%);
+
+  /* SECONDARY: Светло-серый */
+  --secondary: hsl(210 40% 96.1%);
+  --secondary-foreground: hsl(222.2 47.4% 11.2%);
+
+  /* MUTED: Приглушенный */
+  --muted: hsl(210 40% 96.1%);
+  --muted-foreground: hsl(215.4 16.3% 46.9%);
+
+  /* ACCENT: Для ховеров */
+  --accent: hsl(210 40% 96.1%);
+  --accent-foreground: hsl(222.2 47.4% 11.2%);
+
+  /* DESTRUCTIVE: Ошибки */
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  /* Границы и инпуты */
+  --border: hsl(214.3 31.8% 91.4%);
+  --input: hsl(214.3 31.8% 91.4%);
+  
+  /* Кольцо фокуса */
+  --ring: hsl(262.1 83.3% 57.8%);
+
+  /* Скругления */
+  --radius: 0.75rem;
+
+  /* Charts */
+  --chart-1: hsl(262.1 83.3% 57.8%);
+  --chart-2: hsl(210 40% 96.1%);
+  --chart-3: hsl(142.1 76.2% 36.3%);
+  --chart-4: hsl(215.4 16.3% 46.9%);
+  --chart-5: hsl(222.2 84% 4.9%);
+
+  /* Sidebar */
+  --sidebar: hsl(0 0% 100%);
+  --sidebar-foreground: hsl(222.2 84% 4.9%);
+  --sidebar-primary: hsl(262.1 83.3% 57.8%);
+  --sidebar-primary-foreground: hsl(210 40% 98%);
+  --sidebar-accent: hsl(210 40% 96.1%);
+  --sidebar-accent-foreground: hsl(222.2 84% 4.9%);
+  --sidebar-border: hsl(214.3 31.8% 91.4%);
+  --sidebar-ring: hsl(262.1 83.3% 57.8%);
 }
 
-/* Dark mode only - all variables defined in :root */
+.dark {
+  /* Dark Theme - Темно-синяя элегантная тема */
+  --background: hsl(222.2 84% 4.9%);
+  --foreground: hsl(210 40% 98%);
+  
+  --card: hsl(217.2 32.6% 17.5%);
+  --card-foreground: hsl(210 40% 98%);
+  
+  --popover: hsl(222.2 84% 4.9%);
+  --popover-foreground: hsl(210 40% 98%);
+  
+  --primary: hsl(263.4 70% 50.4%);
+  --primary-foreground: hsl(210 40% 98%);
+  
+  --secondary: hsl(217.2 32.6% 17.5%);
+  --secondary-foreground: hsl(210 40% 98%);
+  
+  --muted: hsl(217.2 32.6% 17.5%);
+  --muted-foreground: hsl(215 20.2% 65.1%);
+  
+  --accent: hsl(217.2 32.6% 17.5%);
+  --accent-foreground: hsl(210 40% 98%);
+  
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(210 40% 98%);
+  
+  --border: hsl(217.2 32.6% 17.5%);
+  --input: hsl(217.2 32.6% 17.5%);
+  --ring: hsl(263.4 70% 50.4%);
+  
+  --chart-1: hsl(263.4 70% 50.4%);
+  --chart-2: hsl(217.2 32.6% 17.5%);
+  --chart-3: hsl(142.1 70.6% 45.3%);
+  --chart-4: hsl(215 20.2% 65.1%);
+  --chart-5: hsl(210 40% 98%);
+
+  --sidebar: hsl(222.2 84% 4.9%);
+  --sidebar-foreground: hsl(210 40% 98%);
+  --sidebar-primary: hsl(263.4 70% 50.4%);
+  --sidebar-primary-foreground: hsl(210 40% 98%);
+  --sidebar-accent: hsl(217.2 32.6% 17.5%);
+  --sidebar-accent-foreground: hsl(210 40% 98%);
+  --sidebar-border: hsl(217.2 32.6% 17.5%);
+  --sidebar-ring: hsl(263.4 70% 50.4%);
+}
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: hsl(var(--border));
+    outline-color: hsl(var(--ring) / 0.5);
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  /* Делаем заголовки более стильными */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+    @apply font-heading tracking-tight;
   }
+}
+
+/* Анимации для "Вау-эффекта" на лендинге */
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+.animate-blob {
+  animation: blob 7s infinite;
+}
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+.animation-delay-4000 {
+  animation-delay: 4s;
 }

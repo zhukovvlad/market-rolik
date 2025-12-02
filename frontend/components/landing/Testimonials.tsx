@@ -2,24 +2,24 @@ import React from 'react';
 
 export default function Testimonials() {
   return (
-    <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-linear-to-b from-gray-900 via-black to-black relative">
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-purple-500 to-transparent"></div>
+    <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-linear-to-b from-card via-muted to-background relative">
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary to-transparent"></div>
       <div className="max-w-7xl mx-auto relative">
         <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl text-white mb-4">Proven Results</h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">Marketplace sellers worldwide trust The Assembler for their rich content needs.</p>
+          <h2 className="text-4xl lg:text-5xl text-foreground mb-4">Proven Results</h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Marketplace sellers worldwide trust The Assembler for their rich content needs.</p>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="bg-linear-to-b from-gray-900 to-black p-8 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all relative">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-quote absolute top-6 right-6 w-8 h-8 text-purple-500/20" aria-hidden="true">
+          <div className="bg-linear-to-b from-card to-background p-8 rounded-2xl border border-primary/20 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 transition-all relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-quote absolute top-6 right-6 w-8 h-8 text-primary500/20" aria-hidden="true">
               <path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path>
               <path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path>
             </svg>
             <div className="flex items-center gap-4 mb-6">
-              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&amp;h=150&amp;fit=crop" alt="Sarah Johnson" className="w-16 h-16 rounded-full object-cover border-2 border-purple-500/30" />
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&amp;h=150&amp;fit=crop" alt="Sarah Johnson" className="w-16 h-16 rounded-full object-cover border-2 border-primary/30" />
               <div>
-                <div className="text-white mb-1">Sarah Johnson</div>
-                <div className="text-sm text-gray-400">Amazon Seller</div>
+                <div className="text-foreground mb-1">Sarah Johnson</div>
+                <div className="text-sm text-muted-foreground">Amazon Seller</div>
               </div>
             </div>
             <div className="flex gap-1 mb-4">
@@ -29,18 +29,18 @@ export default function Testimonials() {
                 </svg>
               ))}
             </div>
-            <p className="text-gray-300 leading-relaxed">VideoCard AI has transformed my product listings. My conversion rate increased by 250% in just two weeks. The AI does an amazing job understanding my products.</p>
+            <p className="text-card-foreground leading-relaxed">VideoCard AI has transformed my product listings. My conversion rate increased by 250% in just two weeks. The AI does an amazing job understanding my products.</p>
           </div>
-          <div className="bg-linear-to-b from-gray-900 to-black p-8 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all relative">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-quote absolute top-6 right-6 w-8 h-8 text-purple-500/20" aria-hidden="true">
+          <div className="bg-linear-to-b from-card to-background p-8 rounded-2xl border border-primary/20 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 transition-all relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-quote absolute top-6 right-6 w-8 h-8 text-primary500/20" aria-hidden="true">
               <path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path>
               <path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path>
             </svg>
             <div className="flex items-center gap-4 mb-6">
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&amp;h=150&amp;fit=crop" alt="Michael Chen" className="w-16 h-16 rounded-full object-cover border-2 border-purple-500/30" />
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&amp;h=150&amp;fit=crop" alt="Michael Chen" className="w-16 h-16 rounded-full object-cover border-2 border-primary/30" />
               <div>
-                <div className="text-white mb-1">Michael Chen</div>
-                <div className="text-sm text-gray-400">eBay Power Seller</div>
+                <div className="text-foreground mb-1">Michael Chen</div>
+                <div className="text-sm text-muted-foreground">eBay Power Seller</div>
               </div>
             </div>
             <div className="flex gap-1 mb-4">
@@ -50,18 +50,18 @@ export default function Testimonials() {
                 </svg>
               ))}
             </div>
-            <p className="text-gray-300 leading-relaxed">I was skeptical at first, but this tool pays for itself many times over. The time I save alone is worth it, not to mention the boost in sales.</p>
+            <p className="text-card-foreground leading-relaxed">I was skeptical at first, but this tool pays for itself many times over. The time I save alone is worth it, not to mention the boost in sales.</p>
           </div>
-          <div className="bg-linear-to-b from-gray-900 to-black p-8 rounded-2xl border border-purple-500/20 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all relative">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-quote absolute top-6 right-6 w-8 h-8 text-purple-500/20" aria-hidden="true">
+          <div className="bg-linear-to-b from-card to-background p-8 rounded-2xl border border-primary/20 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 transition-all relative">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-quote absolute top-6 right-6 w-8 h-8 text-primary500/20" aria-hidden="true">
               <path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path>
               <path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path>
             </svg>
             <div className="flex items-center gap-4 mb-6">
-              <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&amp;h=150&amp;fit=crop" alt="Emma Rodriguez" className="w-16 h-16 rounded-full object-cover border-2 border-purple-500/30" />
+              <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&amp;h=150&amp;fit=crop" alt="Emma Rodriguez" className="w-16 h-16 rounded-full object-cover border-2 border-primary/30" />
               <div>
-                <div className="text-white mb-1">Emma Rodriguez</div>
-                <div className="text-sm text-gray-400">Etsy Shop Owner</div>
+                <div className="text-foreground mb-1">Emma Rodriguez</div>
+                <div className="text-sm text-muted-foreground">Etsy Shop Owner</div>
               </div>
             </div>
             <div className="flex gap-1 mb-4">
@@ -71,17 +71,17 @@ export default function Testimonials() {
                 </svg>
               ))}
             </div>
-            <p className="text-gray-300 leading-relaxed">As a small business owner, I don't have time for video editing. VideoCard AI makes it so easy to create professional videos that match my brand perfectly.</p>
+            <p className="text-card-foreground leading-relaxed">As a small business owner, I don't have time for video editing. VideoCard AI makes it so easy to create professional videos that match my brand perfectly.</p>
           </div>
         </div>
         <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-gray-900 to-black border border-purple-500/30 rounded-full">
+          <div className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-card to-background border border-primary/30 rounded-full">
             <div className="flex -space-x-2">
-              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&amp;h=40&amp;fit=crop" alt="User" className="w-8 h-8 rounded-full border-2 border-purple-500" />
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&amp;h=40&amp;fit=crop" alt="User" className="w-8 h-8 rounded-full border-2 border-purple-500" />
-              <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&amp;h=40&amp;fit=crop" alt="User" className="w-8 h-8 rounded-full border-2 border-purple-500" />
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&amp;h=40&amp;fit=crop" alt="User" className="w-8 h-8 rounded-full border-2 border-primary" />
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&amp;h=40&amp;fit=crop" alt="User" className="w-8 h-8 rounded-full border-2 border-primary" />
+              <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&amp;h=40&amp;fit=crop" alt="User" className="w-8 h-8 rounded-full border-2 border-primary" />
             </div>
-            <span className="text-gray-300">Join 10,000+ happy sellers</span>
+            <span className="text-card-foreground">Join 10,000+ happy sellers</span>
           </div>
         </div>
       </div>

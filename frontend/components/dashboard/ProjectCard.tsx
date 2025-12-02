@@ -26,12 +26,12 @@ interface ProjectCardProps {
 }
 
 const statusColors: Record<Project['status'], string> = {
-    DRAFT: "bg-gray-100 text-gray-800",
-    QUEUED: "bg-yellow-100 text-yellow-800",
-    PROCESSING: "bg-blue-100 text-blue-800",
-    RENDERING: "bg-purple-100 text-purple-800",
-    COMPLETED: "bg-green-100 text-green-800",
-    FAILED: "bg-red-100 text-red-800",
+    DRAFT: "bg-muted text-muted-foreground",
+    QUEUED: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400",
+    PROCESSING: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+    RENDERING: "bg-primary/10 text-primary",
+    COMPLETED: "bg-green-500/10 text-green-700 dark:text-green-400",
+    FAILED: "bg-destructive/10 text-destructive",
 };
 
 const statusLabels: Record<Project['status'], string> = {
@@ -121,7 +121,7 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
                             <AlertDialogCancel>Отмена</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={() => onDelete(project.id)}
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                             >
                                 Удалить
                             </AlertDialogAction>

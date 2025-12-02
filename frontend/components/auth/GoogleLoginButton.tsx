@@ -19,7 +19,7 @@ export function GoogleLoginButton({
   return (
     <Button 
       onClick={handleGoogleLogin}
-      className={`w-full bg-white text-black hover:bg-gray-200 transition-colors flex items-center gap-2 justify-center ${className}`}
+      className={`w-full bg-background text-foreground border border-border hover:bg-muted transition-colors flex items-center gap-2 justify-center ${className}`}
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24">
         <path
