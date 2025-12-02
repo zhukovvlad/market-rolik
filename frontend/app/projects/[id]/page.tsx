@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Download, ArrowLeft, Clock, FileVideo, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { API_URL } from "@/lib/utils";
+import { API_URL, cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Project } from "@/lib/types";
 import { statusColors, statusLabels } from "@/lib/projectStatusUi";
@@ -121,8 +121,13 @@ export default function ProjectDetailsPage() {
                     <div>
                         <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
                             {project.title}
-                            <Badge className={statusColors[project.status]}>
-                                {statusLabels[project.status]}
+                            <Badge
+                                className={cn(
+                                    statusColors[project.status] || "bg-muted text-muted-foreground",
+                                    "transition-colors"
+                                )}
+                            >
+                                {statusLabels[project.status] || project.status}
                             </Badge>
                         </h1>
                         <p className="text-muted-foreground text-sm mt-1 flex items-center gap-2">
