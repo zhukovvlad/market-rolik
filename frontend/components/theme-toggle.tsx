@@ -7,7 +7,7 @@ import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
   // Avoid hydration mismatch
@@ -19,18 +19,21 @@ export function ThemeToggle() {
     return (
       <Button variant="ghost" size="icon" className="w-9 h-9">
         <Sun className="h-4 w-4" />
+        <span className="sr-only">Toggle theme</span>
       </Button>
     )
   }
+
+  const current = resolvedTheme === "dark" ? "dark" : "light"
 
   return (
     <Button
       variant="outline"
       size="icon"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      onClick={() => setTheme(current === "light" ? "dark" : "light")}
       className="w-9 h-9 border-2"
     >
-      {theme === "light" ? (
+      {current === "light" ? (
         <Moon className="h-5 w-5 transition-all" />
       ) : (
         <Sun className="h-5 w-5 transition-all" />
