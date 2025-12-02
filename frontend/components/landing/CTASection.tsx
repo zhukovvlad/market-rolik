@@ -12,7 +12,7 @@ export default function CTASection() {
             <div className="absolute inset-0 bg-linear-to-br from-primary/20 via-transparent to-primary/20"></div>
           </div>
           <div className="relative px-8 py-16 sm:px-16 sm:py-24 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-background/50 border border-yellow-400/30 backdrop-blur-sm rounded-full mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-background/80 border border-yellow-400/30 rounded-full mb-6">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-zap w-4 h-4 text-primary" aria-hidden="true">
                 <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
               </svg>

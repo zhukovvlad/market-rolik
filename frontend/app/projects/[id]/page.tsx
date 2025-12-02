@@ -13,25 +13,8 @@ import { toast } from "sonner";
 import { API_URL } from "@/lib/utils";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Project } from "@/lib/types";
+import { statusColors, statusLabels } from "@/lib/projectStatusUi";
 import axios from "axios";
-
-const statusColors: Record<Project['status'], string> = {
-    DRAFT: "bg-muted text-muted-foreground",
-    QUEUED: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400",
-    PROCESSING: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
-    RENDERING: "bg-primary/10 text-primary",
-    COMPLETED: "bg-green-500/10 text-green-700 dark:text-green-400",
-    FAILED: "bg-destructive/10 text-destructive",
-};
-
-const statusLabels: Record<Project['status'], string> = {
-    DRAFT: "Черновик",
-    QUEUED: "В очереди",
-    PROCESSING: "Обработка",
-    RENDERING: "Рендеринг",
-    COMPLETED: "Готово",
-    FAILED: "Ошибка",
-};
 
 export default function ProjectDetailsPage() {
     const { id } = useParams<{ id: string }>();
