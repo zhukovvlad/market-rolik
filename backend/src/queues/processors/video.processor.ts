@@ -107,7 +107,8 @@ export class VideoProcessor {
 
       // Подготовка текста для озвучки (Если не задан явно - читаем название и преимущества)
       const textToSay = settings.ttsText || `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
-      const hasValidTtsText = textToSay.trim().length > 1; // More than just punctuation
+      // Check for actual content (not just whitespace/punctuation)
+      const hasValidTtsText = /[^\s.,!?;:–—-]/.test(textToSay);
 
       const [klingVideoUrl, cutoutBuffer, ttsResult] = await Promise.all([
         this.generateKlingVideo(
