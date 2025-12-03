@@ -46,7 +46,7 @@ export default function CreatePage() {
   };
 
   // Шаг 2: Запуск генерации
-  const handleGenerate = async (settings: Required<Pick<ProjectSettings, 'prompt' | 'aspectRatio'>>) => {
+  const handleGenerate = async (settings: Required<Pick<ProjectSettings, 'prompt' | 'aspectRatio'>> & Pick<ProjectSettings, 'musicTheme' | 'ttsEnabled' | 'ttsText' | 'ttsVoice'>) => {
     if (!uploadedUrl || !productData) return;
 
     // 1. Берем токен
@@ -74,7 +74,11 @@ export default function CreatePage() {
          usps: productData.usps,
          mainImage: uploadedUrl,
          prompt: settings.prompt,
-         aspectRatio: settings.aspectRatio
+         aspectRatio: settings.aspectRatio,
+         musicTheme: settings.musicTheme,
+         ttsEnabled: settings.ttsEnabled,
+         ttsText: settings.ttsText,
+         ttsVoice: settings.ttsVoice
       };
 
       const requestBody: CreateProjectRequest = {

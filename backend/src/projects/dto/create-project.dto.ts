@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, Length, IsOptional, ValidateNested, IsArray, MaxLength, IsIn } from 'class-validator';
+import { IsString, IsNotEmpty, Length, IsOptional, ValidateNested, IsArray, MaxLength, IsIn, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ASPECT_RATIOS, AspectRatio } from '../constants';
 
@@ -32,6 +32,23 @@ class ProjectSettingsDto {
   @IsOptional()
   @IsIn(ASPECT_RATIOS)
   aspectRatio?: AspectRatio;
+
+  @IsOptional()
+  @IsIn(['energetic', 'calm', 'lofi'])
+  musicTheme?: 'energetic' | 'calm' | 'lofi';
+
+  @IsOptional()
+  @IsBoolean()
+  ttsEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  ttsText?: string;
+
+  @IsOptional()
+  @IsIn(['ermil', 'zahar', 'jane', 'alena', 'omazh'])
+  ttsVoice?: 'ermil' | 'zahar' | 'jane' | 'alena' | 'omazh';
 }
 
 export class CreateProjectDto {
