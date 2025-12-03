@@ -43,6 +43,9 @@ export const MyComposition: React.FC<z.infer<typeof myCompSchema>> = ({
 
   // Для обложки важно, чтобы ТОВАР был главным.
 
+  // Динамический расчет задержки для TTS (0.5 секунды независимо от fps)
+  const ttsDelayFrames = Math.round(fps * 0.5);
+
   return (
     <AbsoluteFill className="bg-white">
 
@@ -59,9 +62,9 @@ export const MyComposition: React.FC<z.infer<typeof myCompSchema>> = ({
       )}
 
       {/* 2. Голос диктора (TTS) */}
-      {/* Sequence from={15} — задержка 0.5 сек, чтобы видео успело начаться */}
+      {/* Задержка 0.5 сек (динамически рассчитывается по fps) */}
       {audioUrl && (
-        <Sequence from={15}>
+        <Sequence from={ttsDelayFrames}>
           <Html5Audio src={audioUrl} volume={1.0} />
         </Sequence>
       )}

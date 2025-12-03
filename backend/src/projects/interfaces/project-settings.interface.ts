@@ -10,6 +10,6 @@ export interface ProjectSettings {
   musicTheme?: 'energetic' | 'calm' | 'lofi';
   ttsEnabled?: boolean;
   ttsText?: string;
-  ttsVoice?: 'ermil' | 'zahar' | 'jane' | 'oksana' | 'omazh';
+  ttsVoice?: 'ermil' | 'zahar' | 'jane' | 'alena' | 'omazh';
   [key: string]: unknown;
 }

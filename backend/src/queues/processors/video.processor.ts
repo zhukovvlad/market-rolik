@@ -14,7 +14,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
 import FormData from 'form-data';
-import { TtsService } from 'src/common/tts.service';
+import { TtsService } from '../../common/tts.service';
 
 // Функция паузы (sleep)
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -107,16 +107,20 @@ export class VideoProcessor {
 
       // Подготовка текста для озвучки (Если не задан явно - читаем название и преимущества)
       const textToSay = settings.ttsText || `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
+      const hasValidTtsText = textToSay.trim().length > 1; // More than just punctuation
 
-      const [klingVideoUrl, cutoutBuffer, ttsBuffer] = await Promise.all([
+      const [klingVideoUrl, cutoutBuffer, ttsResult] = await Promise.all([
         this.generateKlingVideo(
           imageUrl,
           settings.prompt ||
           'Cinematic product shot, high quality, 4k, slow motion',
         ),
         this.removeBackground(imageUrl),
-        settings.ttsEnabled
-          ? this.ttsService.generateSpeech(textToSay, settings.ttsVoice)
+        settings.ttsEnabled && hasValidTtsText
+          ? this.ttsService.generateSpeech(textToSay, settings.ttsVoice).catch((err) => {
+              this.logger.warn(`⚠️ TTS generation failed: ${err instanceof Error ? err.message : String(err)}. Continuing without audio.`);
+              return null;
+            })
           : Promise.resolve(null)
       ]);
 
@@ -132,9 +136,9 @@ export class VideoProcessor {
       this.logger.log(`✅ Cutout saved: ${cutoutUrl}`);
 
       let ttsUrl: string | null = null;
-      if (ttsBuffer) {
-        ttsUrl = await this.storageService.uploadFile(ttsBuffer, 'audio/mpeg', 'audio');
-        this.logger.log(`🎙️ TTS Audio saved: ${ttsUrl}`);
+      if (ttsResult) {
+        ttsUrl = await this.storageService.uploadFile(ttsResult.buffer, ttsResult.mimeType, 'audio');
+        this.logger.log(`🎙️ TTS Audio saved (${ttsResult.format}): ${ttsUrl}`);
       }
 
       const musicUrl = this.ttsService.getBackgroundMusicUrl(settings.musicTheme);
