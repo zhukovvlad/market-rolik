@@ -88,14 +88,19 @@ export class TtsService {
     /**
      * Generates a minimal silent MP3 file for mock/test mode.
      * 
-     * NOTE: This is a simplified implementation using hardcoded MP3 frame bytes.
+     * NOTE: This is a simplified, non-standard implementation using hardcoded MP3 frame bytes.
      * For production or if compatibility issues arise, consider:
      * - Bundling a small pre-generated silent.mp3 asset
      * - Using an audio library for programmatic generation
      * 
-     * Current implementation: ID3v2 header + repeated silent MP3 frames
-     * Format: MPEG-1 Layer III, 44.1kHz, mono, 32kbps
+     * Current implementation: ID3v2 header + repeated minimal silent frames
+     * Format: MPEG-1 Layer III, 44.1kHz, mono
+     * Frame size: 20 bytes (much shorter than standard frames, but works for mocking)
      * Frame duration: ~26ms per frame
+     * 
+     * WARNING: This is NOT a fully compliant MP3 file. It works for testing purposes
+     * where the audio pipeline is tolerant of malformed frames, but may fail with
+     * strict decoders. Verified to work with Remotion/FFmpeg in our pipeline.
      */
     private generateSilentMp3(durationSeconds: number): Buffer {
         // ID3v2.4 header (10 bytes, no tags)
@@ -106,10 +111,12 @@ export class TtsService {
             0x00, 0x00, 0x00, 0x00  // Size (0 = no tags)
         ]);
         
-        // Single silent MP3 frame (20 bytes)
-        // Sync word (0xFFxFB) + header bits for 44.1kHz mono 32kbps + silence data
+        // Minimal silent frame (20 bytes) - simplified for mock purposes
+        // Sync word (0xFFFB) + minimal header + silence data
+        // Note: 0x90 in byte 3 typically indicates 128kbps, but this is a non-standard
+        // minimal frame that's just enough to be recognized as MP3 by tolerant parsers
         const silentFrame = Buffer.from([
-            0xFF, 0xFB, 0x90, 0x00, // Header
+            0xFF, 0xFB, 0x90, 0x00, // MP3 sync word (0xFFFB) + header bytes
             0x00, 0x00, 0x00, 0x00, // Silent data
             0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00,
