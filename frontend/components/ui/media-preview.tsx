@@ -33,6 +33,22 @@ export function MediaPreview({ src, alt, type, className }: MediaPreviewProps) {
     const isVideo = type === 'VIDEO_FRAGMENT' || src.endsWith('.mp4') || src.endsWith('.webm');
 
     if (isVideo) {
+        const handleMouseOver = (e: React.MouseEvent<HTMLVideoElement>) => {
+            const video = e.currentTarget;
+            video.currentTime = 0;
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    // Игнорируем ошибки воспроизведения (например, если пользователь быстро убрал мышь)
+                });
+            }
+        };
+
+        const handleMouseOut = (e: React.MouseEvent<HTMLVideoElement>) => {
+            const video = e.currentTarget;
+            video.pause();
+        };
+
         return (
             <video
                 src={`${src}#t=0.001`} // Хак: Media Fragments URI заставляет браузер показать первый кадр
@@ -41,8 +57,8 @@ export function MediaPreview({ src, alt, type, className }: MediaPreviewProps) {
                 loop
                 playsInline
                 preload="metadata"
-                onMouseOver={e => { e.currentTarget.currentTime = 0; e.currentTarget.play(); }} // Сброс в начало при наведении
-                onMouseOut={e => e.currentTarget.pause()}
+                onMouseOver={handleMouseOver}
+                onMouseOut={handleMouseOut}
                 onError={() => setError(true)}
             />
         );

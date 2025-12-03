@@ -10,7 +10,7 @@ export class RenderService {
   private readonly logger = new Logger(RenderService.name);
   private lastLoggedProgress = 0;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   async renderVideo(data: VideoCompositionInput): Promise<string> {
     this.lastLoggedProgress = 0;
@@ -19,7 +19,7 @@ export class RenderService {
     // Configuration from environment
     const bundleLocation = this.configService.get<string>(
       'REMOTION_BUNDLE_PATH',
-      path.join(process.cwd(), '..', 'video', 'remotion-build'),
+      path.join(process.cwd(), 'remotion-build'),
     );
     const outputDir = this.configService.get<string>(
       'REMOTION_OUTPUT_DIR',
