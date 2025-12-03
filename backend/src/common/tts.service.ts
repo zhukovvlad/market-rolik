@@ -86,31 +86,43 @@ export class TtsService {
     }
 
     /**
-     * Generates a minimal silent MP3 file for mock mode
-     * Returns a valid MP3 file structure with silence
+     * Generates a minimal silent MP3 file for mock/test mode.
+     * 
+     * NOTE: This is a simplified implementation using hardcoded MP3 frame bytes.
+     * For production or if compatibility issues arise, consider:
+     * - Bundling a small pre-generated silent.mp3 asset
+     * - Using an audio library for programmatic generation
+     * 
+     * Current implementation: ID3v2 header + repeated silent MP3 frames
+     * Format: MPEG-1 Layer III, 44.1kHz, mono, 32kbps
+     * Frame duration: ~26ms per frame
      */
     private generateSilentMp3(durationSeconds: number): Buffer {
-        // Minimal valid MP3 file with ID3v2 header + one silent frame
-        // This is a simplified MP3 with minimal overhead for testing
+        // ID3v2.4 header (10 bytes, no tags)
         const id3Header = Buffer.from([
-            0x49, 0x44, 0x33, 0x04, 0x00, 0x00, // ID3v2.4 header
-            0x00, 0x00, 0x00, 0x00              // Size = 0 (no tags)
+            0x49, 0x44, 0x33,       // "ID3"
+            0x04, 0x00,             // Version 2.4.0
+            0x00,                   // Flags
+            0x00, 0x00, 0x00, 0x00  // Size (0 = no tags)
         ]);
         
-        // MP3 frame header for silence (Layer III, 44.1kHz, mono, 32kbps)
-        const mp3Frame = Buffer.from([
-            0xFF, 0xFB, 0x90, 0x00, // MP3 sync word + header
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        // Single silent MP3 frame (20 bytes)
+        // Sync word (0xFFxFB) + header bits for 44.1kHz mono 32kbps + silence data
+        const silentFrame = Buffer.from([
+            0xFF, 0xFB, 0x90, 0x00, // Header
+            0x00, 0x00, 0x00, 0x00, // Silent data
+            0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00
         ]);
         
-        // Calculate how many frames needed for duration (rough estimate)
-        // At 44.1kHz, each frame is ~26ms, so ~38 frames per second
+        // Calculate frames needed (~38 frames/second at 26ms per frame)
         const framesNeeded = Math.ceil(durationSeconds * 38);
         
-        const frames = Buffer.alloc(mp3Frame.length * framesNeeded);
+        // Replicate the silent frame
+        const frames = Buffer.alloc(silentFrame.length * framesNeeded);
         for (let i = 0; i < framesNeeded; i++) {
-            mp3Frame.copy(frames, i * mp3Frame.length);
+            silentFrame.copy(frames, i * silentFrame.length);
         }
         
         return Buffer.concat([id3Header, frames]);
