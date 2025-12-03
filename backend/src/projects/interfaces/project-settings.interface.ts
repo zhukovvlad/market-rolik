@@ -7,5 +7,9 @@ export interface ProjectSettings {
   mainImage?: string;
   prompt?: string;
   aspectRatio?: AspectRatio;
+  musicTheme?: 'energetic' | 'calm' | 'lofi';
+  ttsEnabled?: boolean;
+  ttsText?: string;
+  ttsVoice?: 'ermil' | 'zahar' | 'jane' | 'oksana' | 'omazh';
   [key: string]: unknown;
 }

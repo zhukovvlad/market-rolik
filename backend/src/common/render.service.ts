@@ -30,6 +30,14 @@ export class RenderService {
       'WbClassic',
     );
 
+    // Sanity check for bundle existence
+    if (!fs.existsSync(bundleLocation)) {
+      throw new Error(
+        `❌ Remotion bundle not found at: ${bundleLocation}. ` +
+        `Please run "npm run build:remotion" or check REMOTION_BUNDLE_PATH.`,
+      );
+    }
+
     // Select composition
     const composition = await selectComposition({
       serveUrl: bundleLocation,

@@ -14,6 +14,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
 import FormData from 'form-data';
+import { TtsService } from 'src/common/tts.service';
 
 // Функция паузы (sleep)
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -30,7 +31,8 @@ export class VideoProcessor {
     private readonly projectsService: ProjectsService,
     private readonly proxyService: ProxyService,
     private readonly configService: ConfigService,
-    private readonly renderService: RenderService, // <--- Внедряем сервис рендера
+    private readonly renderService: RenderService,
+    private readonly ttsService: TtsService,
   ) {
     this.pollDelayMs =
       this.configService.get<number>('VIDEO_POLL_DELAY_MS') || 10000;
@@ -84,11 +86,11 @@ export class VideoProcessor {
   async handleGenerateKling(job: Job<{ projectId: string }>) {
     const { projectId } = job.data;
     const pipelineStartTime = Date.now();
-    
+
     if (!projectId) {
       throw new Error('projectId is required for video generation pipeline');
     }
-    
+
     this.logger.log(`🎬 Start Pipeline for Project ${projectId} (Job ID: ${job.id})`);
 
     try {
@@ -100,18 +102,24 @@ export class VideoProcessor {
       if (!imageUrl) throw new Error('No main image found in project');
 
       // 2. Параллельный запуск: Генерация видео + Удаление фона
-      this.logger.log('⚡ Starting parallel tasks: Kling AI + Photoroom');
+      this.logger.log('⚡ Starting parallel tasks: Kling AI + Photoroom + TTS');
       const parallelStartTime = Date.now();
 
-      const [klingVideoUrl, cutoutBuffer] = await Promise.all([
+      // Подготовка текста для озвучки (Если не задан явно - читаем название и преимущества)
+      const textToSay = settings.ttsText || `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
+
+      const [klingVideoUrl, cutoutBuffer, ttsBuffer] = await Promise.all([
         this.generateKlingVideo(
           imageUrl,
           settings.prompt ||
-            'Cinematic product shot, high quality, 4k, slow motion',
+          'Cinematic product shot, high quality, 4k, slow motion',
         ),
         this.removeBackground(imageUrl),
+        settings.ttsEnabled
+          ? this.ttsService.generateSpeech(textToSay, settings.ttsVoice)
+          : Promise.resolve(null)
       ]);
-      
+
       const parallelDuration = ((Date.now() - parallelStartTime) / 1000).toFixed(1);
       this.logger.log(`⚡ Parallel tasks completed in ${parallelDuration}s`);
 
@@ -123,6 +131,14 @@ export class VideoProcessor {
       );
       this.logger.log(`✅ Cutout saved: ${cutoutUrl}`);
 
+      let ttsUrl: string | null = null;
+      if (ttsBuffer) {
+        ttsUrl = await this.storageService.uploadFile(ttsBuffer, 'audio/mpeg', 'audio');
+        this.logger.log(`🎙️ TTS Audio saved: ${ttsUrl}`);
+      }
+
+      const musicUrl = this.ttsService.getBackgroundMusicUrl(settings.musicTheme);
+
       // 4. Подготовка данных для Рендера
       const inputProps: VideoCompositionInput = {
         title: settings.productName || project.title || 'Новинка',
@@ -132,6 +148,8 @@ export class VideoProcessor {
             ? settings.usps
             : ['Быстрая доставка', 'Отличное качество', 'Хит продаж'],
         primaryColor: '#4f46e5',
+        audioUrl: ttsUrl,
+        backgroundMusicUrl: musicUrl,
       };
 
       // 5. ЗАПУСК РЕНДЕРА
@@ -163,7 +181,7 @@ export class VideoProcessor {
       project.status = ProjectStatus.COMPLETED;
       project.resultVideoUrl = s3Url;
       await this.projectsService.save(project);
-      
+
       const totalDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(1);
       this.logger.log(
         `🎉 Pipeline COMPLETED for Project ${projectId} in ${totalDuration}s (Parallel: ${parallelDuration}s, Render: ${renderDuration}s)`,
@@ -178,7 +196,7 @@ export class VideoProcessor {
         `❌ Pipeline FAILED for Project ${projectId} after ${failedDuration}s: ${errorMessage}`,
         errorStack,
       );
-      
+
       // Update project status to FAILED
       try {
         const project = await this.projectsService.findOne(projectId);
@@ -190,7 +208,7 @@ export class VideoProcessor {
           `Failed to update project status to FAILED: ${updateErrorMessage}`,
         );
       }
-      
+
       throw error;
     }
   }
@@ -201,7 +219,7 @@ export class VideoProcessor {
     prompt: string,
   ): Promise<string> {
     const startTime = Date.now();
-    
+
     // 1. Запуск задачи
     const taskId = await this.aiVideoService.generateKlingVideo(
       imageUrl,
@@ -212,11 +230,11 @@ export class VideoProcessor {
     // 2. Поллинг с улучшенным логированием
     let videoUrl: string | undefined;
     let lastStatus = 'pending';
-    
+
     for (let i = 0; i < this.maxPollAttempts; i++) {
       await delay(this.pollDelayMs);
       const result = await this.aiVideoService.checkTaskStatus(taskId);
-      
+
       // Логируем изменение статуса
       if (result.status !== lastStatus) {
         this.logger.log(
@@ -233,14 +251,14 @@ export class VideoProcessor {
         videoUrl = result.videoUrl;
         break;
       }
-      
+
       if (result.status === 'failed') {
         this.logger.error(
           `❌ Kling Task ${taskId} failed after ${i + 1} attempts`,
         );
         throw new Error(`Kling generation failed: ${result.status}`);
       }
-      
+
       // Периодическое логирование для длительных задач
       if ((i + 1) % 5 === 0) {
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -265,13 +283,13 @@ export class VideoProcessor {
     const videoData = await this.proxyService.get<Buffer>(videoUrl, {
       responseType: 'arraybuffer',
     });
-    
+
     const s3Url = await this.storageService.uploadFile(
       Buffer.from(videoData),
       'video/mp4',
       'videos',
     );
-    
+
     this.logger.log(`☁️ Kling raw video archived to S3: ${s3Url}`);
 
     return s3Url;

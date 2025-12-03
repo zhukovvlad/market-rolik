@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { ImageOff, Video, FileVideo } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +33,7 @@ export function MediaPreview({ src, alt, type, className }: MediaPreviewProps) {
     const isVideo = type === 'VIDEO_FRAGMENT' || src.endsWith('.mp4') || src.endsWith('.webm');
 
     if (isVideo) {
-        const handleMouseOver = (e: React.MouseEvent<HTMLVideoElement>) => {
+        const handleMouseOver = (e: MouseEvent<HTMLVideoElement>) => {
             const video = e.currentTarget;
             video.currentTime = 0;
             const playPromise = video.play();
@@ -44,7 +44,7 @@ export function MediaPreview({ src, alt, type, className }: MediaPreviewProps) {
             }
         };
 
-        const handleMouseOut = (e: React.MouseEvent<HTMLVideoElement>) => {
+        const handleMouseOut = (e: MouseEvent<HTMLVideoElement>) => {
             const video = e.currentTarget;
             video.pause();
         };
