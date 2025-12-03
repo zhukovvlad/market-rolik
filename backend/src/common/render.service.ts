@@ -38,8 +38,14 @@ export class RenderService {
       );
     }
 
-    // Log input props for debugging
-    this.logger.log(`🎬 Remotion Input Props: ${JSON.stringify(data, null, 2)}`);
+    // Log essential input props for debugging (avoid logging full prompt/text)
+    this.logger.debug(`🎬 Remotion Input Props: ${JSON.stringify({
+      title: data.title?.slice(0, 30),
+      uspsCount: data.usps?.length || 0,
+      hasAudio: !!data.audioUrl,
+      hasMusic: !!data.backgroundMusicUrl,
+      primaryColor: data.primaryColor
+    })}`);
 
     // Select composition
     const composition = await selectComposition({

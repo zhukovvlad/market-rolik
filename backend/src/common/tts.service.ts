@@ -23,8 +23,13 @@ export class TtsService {
         // 1. MOCK MODE (Если ключа нет или он 'mock')
         if (!apiKey || apiKey === 'mock') {
             this.logger.warn(`⚠️ TTS Mock: Downloading test audio for "${text.slice(0, 10)}..."`);
-            // This URL is guaranteed to work - it's a free test MP3 from file.io
-            const testAudioUrl = 'https://www.computerhope.com/jargon/m/example.mp3';
+            
+            // Use configurable test audio URL or fallback to default
+            const testAudioUrl = this.configService.get<string>(
+                'TTS_MOCK_AUDIO_URL',
+                'https://www.computerhope.com/jargon/m/example.mp3'
+            );
+            
             try {
                 const response = await axios.get(testAudioUrl, { 
                     responseType: 'arraybuffer', 
@@ -36,6 +41,19 @@ export class TtsService {
                         'Referer': 'https://www.computerhope.com/'
                     }
                 });
+                
+                // Validate HTTP response
+                if (response.status !== 200) {
+                    this.logger.error(`Mock audio request returned status ${response.status}`);
+                    return null;
+                }
+                
+                const contentType = response.headers['content-type'] || '';
+                if (!contentType.startsWith('audio/')) {
+                    this.logger.error(`Mock audio returned invalid content-type: ${contentType}`);
+                    return null;
+                }
+                
                 this.logger.log(`✅ Downloaded test audio (${Buffer.from(response.data).length} bytes)`);
                 return {
                     buffer: Buffer.from(response.data),
@@ -102,55 +120,5 @@ export class TtsService {
             lofi: 'https://github.com/remotion-dev/remotion/raw/main/packages/core/src/test/resources/sound.mp3',
         };
         return defaults[theme] || defaults['energetic'];
-    }
-
-    /**
-     * Generates a minimal silent MP3 file for mock/test mode.
-     * 
-     * NOTE: This is a simplified, non-standard implementation using hardcoded MP3 frame bytes.
-     * For production or if compatibility issues arise, consider:
-     * - Bundling a small pre-generated silent.mp3 asset
-     * - Using an audio library for programmatic generation
-     * 
-     * Current implementation: ID3v2 header + repeated minimal silent frames
-     * Format: MPEG-1 Layer III, 44.1kHz, mono
-     * Frame size: 20 bytes (much shorter than standard frames, but works for mocking)
-     * Frame duration: ~26ms per frame
-     * 
-     * WARNING: This is NOT a fully compliant MP3 file. It works for testing purposes
-     * where the audio pipeline is tolerant of malformed frames, but may fail with
-     * strict decoders. Verified to work with Remotion/FFmpeg in our pipeline.
-     */
-    private generateSilentMp3(durationSeconds: number): Buffer {
-        // ID3v2.4 header (10 bytes, no tags)
-        const id3Header = Buffer.from([
-            0x49, 0x44, 0x33,       // "ID3"
-            0x04, 0x00,             // Version 2.4.0
-            0x00,                   // Flags
-            0x00, 0x00, 0x00, 0x00  // Size (0 = no tags)
-        ]);
-        
-        // Minimal silent frame (20 bytes) - simplified for mock purposes
-        // Sync word (0xFFFB) + minimal header + silence data
-        // Note: 0x90 in byte 3 typically indicates 128kbps, but this is a non-standard
-        // minimal frame that's just enough to be recognized as MP3 by tolerant parsers
-        const silentFrame = Buffer.from([
-            0xFF, 0xFB, 0x90, 0x00, // MP3 sync word (0xFFFB) + header bytes
-            0x00, 0x00, 0x00, 0x00, // Silent data
-            0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00
-        ]);
-        
-        // Calculate frames needed (~38 frames/second at 26ms per frame)
-        const framesNeeded = Math.ceil(durationSeconds * 38);
-        
-        // Replicate the silent frame
-        const frames = Buffer.alloc(silentFrame.length * framesNeeded);
-        for (let i = 0; i < framesNeeded; i++) {
-            silentFrame.copy(frames, i * silentFrame.length);
-        }
-        
-        return Buffer.concat([id3Header, frames]);
     }
 }

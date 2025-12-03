@@ -6,11 +6,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Smartphone, Monitor, Square, RectangleVertical, Music, Mic } from "lucide-react";
-import { ProjectSettings, AspectRatio, ASPECT_RATIOS } from "@/types/project";
+import { GenerateSettings, AspectRatio, ASPECT_RATIOS, MusicTheme, TtsVoice, TTS_VOICES } from "@/types/project";
 
 interface SettingsStepProps {
     imageUrl: string;
-    onGenerate: (settings: Required<Pick<ProjectSettings, 'prompt' | 'aspectRatio'>> & Pick<ProjectSettings, 'musicTheme' | 'ttsEnabled' | 'ttsText' | 'ttsVoice'>) => void;
+    onGenerate: (settings: GenerateSettings) => void;
     isGenerating: boolean;
 }
 
@@ -27,10 +27,10 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
     const [imageError, setImageError] = useState(false);
     
     // Audio settings
-    const [musicTheme, setMusicTheme] = useState<'energetic' | 'calm' | 'lofi'>('energetic');
+    const [musicTheme, setMusicTheme] = useState<MusicTheme>('energetic');
     const [ttsEnabled, setTtsEnabled] = useState(true);
     const [ttsText, setTtsText] = useState("");
-    const [ttsVoice, setTtsVoice] = useState<'ermil' | 'zahar' | 'jane' | 'alena' | 'omazh'>('ermil');
+    const [ttsVoice, setTtsVoice] = useState<TtsVoice>('ermil');
 
     // Reset error state when imageUrl changes
     useEffect(() => {
@@ -163,16 +163,14 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
                             <>
                                 <div className="space-y-2">
                                     <Label htmlFor="tts-voice" className="text-sm">Голос диктора</Label>
-                                    <Select value={ttsVoice} onValueChange={(v) => setTtsVoice(v as typeof ttsVoice)}>
+                                    <Select value={ttsVoice} onValueChange={(v) => setTtsVoice(v as TtsVoice)}>
                                         <SelectTrigger id="tts-voice">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="ermil">Эрмиль (мужской)</SelectItem>
-                                            <SelectItem value="zahar">Захар (мужской)</SelectItem>
-                                            <SelectItem value="jane">Джейн (женский)</SelectItem>
-                                            <SelectItem value="alena">Алёна (женский)</SelectItem>
-                                            <SelectItem value="omazh">Омаж (женский)</SelectItem>
+                                            {TTS_VOICES.map(({ value, label }) => (
+                                                <SelectItem key={value} value={value}>{label}</SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -184,7 +182,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
                                         placeholder="Оставьте пустым — будет озвучено название и преимущества товара"
                                         value={ttsText}
                                         onChange={(e) => setTtsText(e.target.value)}
-                                        className="min-h-[80px] resize-none"
+                                        className="min-h-20 resize-none"
                                     />
                                     <p className="text-xs text-muted-foreground">
                                         По умолчанию озвучим название и УТП товара
