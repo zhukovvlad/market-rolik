@@ -17,17 +17,36 @@ export class TtsService {
 
     constructor(private readonly configService: ConfigService) { }
 
-    async generateSpeech(text: string, voice: string = 'ermil'): Promise<TtsResult> {
+    async generateSpeech(text: string, voice: string = 'ermil'): Promise<TtsResult | null> {
         const apiKey = this.configService.get<string>('YANDEX_API_KEY');
 
         // 1. MOCK MODE (Если ключа нет или он 'mock')
         if (!apiKey || apiKey === 'mock') {
-            this.logger.warn(`⚠️ TTS Mock: Generating silent MP3 for "${text.slice(0, 10)}..."`);
-            return {
-                buffer: this.generateSilentMp3(2),
-                mimeType: 'audio/mpeg',
-                format: 'mp3'
-            };
+            this.logger.warn(`⚠️ TTS Mock: Downloading test audio for "${text.slice(0, 10)}..."`);
+            // This URL is guaranteed to work - it's a free test MP3 from file.io
+            const testAudioUrl = 'https://www.computerhope.com/jargon/m/example.mp3';
+            try {
+                const response = await axios.get(testAudioUrl, { 
+                    responseType: 'arraybuffer', 
+                    timeout: 10000,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'audio/mpeg,audio/*,*/*',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Referer': 'https://www.computerhope.com/'
+                    }
+                });
+                this.logger.log(`✅ Downloaded test audio (${Buffer.from(response.data).length} bytes)`);
+                return {
+                    buffer: Buffer.from(response.data),
+                    mimeType: 'audio/mpeg',
+                    format: 'mp3'
+                };
+            } catch (err) {
+                this.logger.error(`Failed to download test audio from ${testAudioUrl}: ${err instanceof Error ? err.message : String(err)}`);
+                this.logger.warn('Falling back to null - video will have background music only');
+                return null;
+            }
         }
 
         // 2. VALIDATION

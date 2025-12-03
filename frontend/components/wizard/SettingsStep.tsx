@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, Smartphone, Monitor, Square, RectangleVertical } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Smartphone, Monitor, Square, RectangleVertical, Music, Mic } from "lucide-react";
 import { ProjectSettings, AspectRatio, ASPECT_RATIOS } from "@/types/project";
 
 interface SettingsStepProps {
     imageUrl: string;
-    onGenerate: (settings: Required<Pick<ProjectSettings, 'prompt' | 'aspectRatio'>>) => void;
+    onGenerate: (settings: Required<Pick<ProjectSettings, 'prompt' | 'aspectRatio'>> & Pick<ProjectSettings, 'musicTheme' | 'ttsEnabled' | 'ttsText' | 'ttsVoice'>) => void;
     isGenerating: boolean;
 }
 
@@ -23,6 +25,12 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
     const [prompt, setPrompt] = useState("");
     const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
     const [imageError, setImageError] = useState(false);
+    
+    // Audio settings
+    const [musicTheme, setMusicTheme] = useState<'energetic' | 'calm' | 'lofi'>('energetic');
+    const [ttsEnabled, setTtsEnabled] = useState(true);
+    const [ttsText, setTtsText] = useState("");
+    const [ttsVoice, setTtsVoice] = useState<'ermil' | 'zahar' | 'jane' | 'alena' | 'omazh'>('ermil');
 
     // Reset error state when imageUrl changes
     useEffect(() => {
@@ -30,7 +38,14 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
     }, [imageUrl]);
 
     const handleGenerate = () => {
-        onGenerate({ prompt, aspectRatio });
+        onGenerate({ 
+            prompt, 
+            aspectRatio,
+            musicTheme,
+            ttsEnabled,
+            ttsText: ttsText.trim() || undefined,
+            ttsVoice
+        });
     };
 
     const getPreviewStyle = (ratio: AspectRatio) => {
@@ -110,6 +125,73 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
                         <p className="text-xs text-muted-foreground">
                             Оставьте пустым, чтобы AI сам придумал сценарий.
                         </p>
+                    </div>
+
+                    {/* Music Theme */}
+                    <div className="space-y-3">
+                        <Label className="text-base flex items-center gap-2">
+                            <Music className="h-4 w-4" />
+                            Фоновая музыка
+                        </Label>
+                        <Select value={musicTheme} onValueChange={(v) => setMusicTheme(v as typeof musicTheme)}>
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="energetic">🔥 Энергичная</SelectItem>
+                                <SelectItem value="calm">🌊 Спокойная</SelectItem>
+                                <SelectItem value="lofi">🎧 Lo-Fi</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* TTS Settings */}
+                    <div className="space-y-3 border-t pt-4">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="tts-enabled" className="text-base flex items-center gap-2">
+                                <Mic className="h-4 w-4" />
+                                Озвучка (TTS)
+                            </Label>
+                            <Switch
+                                id="tts-enabled"
+                                checked={ttsEnabled}
+                                onCheckedChange={setTtsEnabled}
+                            />
+                        </div>
+                        
+                        {ttsEnabled && (
+                            <>
+                                <div className="space-y-2">
+                                    <Label htmlFor="tts-voice" className="text-sm">Голос диктора</Label>
+                                    <Select value={ttsVoice} onValueChange={(v) => setTtsVoice(v as typeof ttsVoice)}>
+                                        <SelectTrigger id="tts-voice">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="ermil">Эрмиль (мужской)</SelectItem>
+                                            <SelectItem value="zahar">Захар (мужской)</SelectItem>
+                                            <SelectItem value="jane">Джейн (женский)</SelectItem>
+                                            <SelectItem value="alena">Алёна (женский)</SelectItem>
+                                            <SelectItem value="omazh">Омаж (женский)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <Label htmlFor="tts-text" className="text-sm">Текст озвучки</Label>
+                                    <Textarea
+                                        id="tts-text"
+                                        placeholder="Оставьте пустым — будет озвучено название и преимущества товара"
+                                        value={ttsText}
+                                        onChange={(e) => setTtsText(e.target.value)}
+                                        className="min-h-[80px] resize-none"
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        По умолчанию озвучим название и УТП товара
+                                    </p>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
 

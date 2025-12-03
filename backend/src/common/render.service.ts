@@ -38,6 +38,9 @@ export class RenderService {
       );
     }
 
+    // Log input props for debugging
+    this.logger.log(`🎬 Remotion Input Props: ${JSON.stringify(data, null, 2)}`);
+
     // Select composition
     const composition = await selectComposition({
       serveUrl: bundleLocation,
@@ -60,6 +63,7 @@ export class RenderService {
       codec: 'h264',
       outputLocation: outputFile,
       inputProps: data,
+      muted: false, // CRITICAL: Enable audio in rendered video
       chromiumOptions: {
         enableMultiProcessOnLinux: true,
         headless: true,
