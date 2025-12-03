@@ -5,19 +5,29 @@ import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { URLSearchParams } from 'url';
 
+export interface TtsResult {
+    buffer: Buffer;
+    mimeType: string;
+    format: 'mp3' | 'wav';
+}
+
 @Injectable()
 export class TtsService {
     private readonly logger = new Logger(TtsService.name);
 
     constructor(private readonly configService: ConfigService) { }
 
-    async generateSpeech(text: string, voice: string = 'ermil'): Promise<Buffer> {
+    async generateSpeech(text: string, voice: string = 'ermil'): Promise<TtsResult> {
         const apiKey = this.configService.get<string>('YANDEX_API_KEY');
 
         // 1. MOCK MODE (Если ключа нет или он 'mock')
         if (!apiKey || apiKey === 'mock') {
-            this.logger.warn(`⚠️ TTS Mock: Generating silent audio for "${text.slice(0, 10)}..."`);
-            return this.generateSilentWav(2); // 2 seconds of silence
+            this.logger.warn(`⚠️ TTS Mock: Generating silent MP3 for "${text.slice(0, 10)}..."`);
+            return {
+                buffer: this.generateSilentMp3(2),
+                mimeType: 'audio/mpeg',
+                format: 'mp3'
+            };
         }
 
         // 2. VALIDATION
@@ -46,7 +56,11 @@ export class TtsService {
                     timeout: 15000, // 15 seconds timeout
                 }
             );
-            return Buffer.from(response.data);
+            return {
+                buffer: Buffer.from(response.data),
+                mimeType: 'audio/mpeg',
+                format: 'mp3'
+            };
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
             this.logger.error(`❌ TTS Generation failed: ${msg}`);
@@ -71,38 +85,34 @@ export class TtsService {
         return defaults[theme] || defaults['energetic'];
     }
 
-    private generateSilentWav(durationSeconds: number): Buffer {
-        const sampleRate = 44100;
-        const numChannels = 1;
-        const bitsPerSample = 16;
-        const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
-        const blockAlign = (numChannels * bitsPerSample) / 8;
-        const subChunk2Size = durationSeconds * byteRate;
-        const chunkSize = 36 + subChunk2Size;
-
-        const buffer = Buffer.alloc(44 + subChunk2Size);
-
-        // RIFF chunk descriptor
-        buffer.write('RIFF', 0);
-        buffer.writeUInt32LE(chunkSize, 4);
-        buffer.write('WAVE', 8);
-
-        // fmt sub-chunk
-        buffer.write('fmt ', 12);
-        buffer.writeUInt32LE(16, 16); // SubChunk1Size (16 for PCM)
-        buffer.writeUInt16LE(1, 20); // AudioFormat (1 for PCM)
-        buffer.writeUInt16LE(numChannels, 22);
-        buffer.writeUInt32LE(sampleRate, 24);
-        buffer.writeUInt32LE(byteRate, 28);
-        buffer.writeUInt16LE(blockAlign, 32);
-        buffer.writeUInt16LE(bitsPerSample, 34);
-
-        // data sub-chunk
-        buffer.write('data', 36);
-        buffer.writeUInt32LE(subChunk2Size, 40);
-
-        // Data is already 0 (silence) by default in Buffer.alloc
-
-        return buffer;
+    /**
+     * Generates a minimal silent MP3 file for mock mode
+     * Returns a valid MP3 file structure with silence
+     */
+    private generateSilentMp3(durationSeconds: number): Buffer {
+        // Minimal valid MP3 file with ID3v2 header + one silent frame
+        // This is a simplified MP3 with minimal overhead for testing
+        const id3Header = Buffer.from([
+            0x49, 0x44, 0x33, 0x04, 0x00, 0x00, // ID3v2.4 header
+            0x00, 0x00, 0x00, 0x00              // Size = 0 (no tags)
+        ]);
+        
+        // MP3 frame header for silence (Layer III, 44.1kHz, mono, 32kbps)
+        const mp3Frame = Buffer.from([
+            0xFF, 0xFB, 0x90, 0x00, // MP3 sync word + header
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        ]);
+        
+        // Calculate how many frames needed for duration (rough estimate)
+        // At 44.1kHz, each frame is ~26ms, so ~38 frames per second
+        const framesNeeded = Math.ceil(durationSeconds * 38);
+        
+        const frames = Buffer.alloc(mp3Frame.length * framesNeeded);
+        for (let i = 0; i < framesNeeded; i++) {
+            mp3Frame.copy(frames, i * mp3Frame.length);
+        }
+        
+        return Buffer.concat([id3Header, frames]);
     }
 }
