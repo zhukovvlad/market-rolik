@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig, spring, interpolate, Html5Audio, Sequence, Video } from 'remotion';
+import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig, spring, interpolate, Html5Audio, Sequence, Html5Video } from 'remotion';
 import { z } from 'zod';
 
 // Схема данных с валидацией URL и hex-цветов
@@ -75,10 +75,10 @@ export const MyComposition: React.FC<z.infer<typeof myCompSchema>> = ({
       <AbsoluteFill>
         {bgVideoUrl ? (
           // ВАРИАНТ А: Если есть видео от Kling — играем его
-          <Video
+          <Html5Video
             src={bgVideoUrl}
             className="w-full h-full object-cover opacity-80" // opacity чтобы текст читался
-            // loop // можно добавить, если видео короткое
+            loop // включаем зацикливание для коротких видео
             muted // звук у нас идет отдельным слоем (Audio)
           />
         ) : (
