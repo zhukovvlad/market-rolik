@@ -76,7 +76,9 @@ export class VideoProcessor {
       );
       return Buffer.from(response);
     } catch (error) {
-      this.logger.warn(`⚠️ Photoroom API failed: ${error instanceof Error ? error.message : String(error)}. Using original image.`);
+      this.logger.warn(
+        `⚠️ Photoroom API failed: ${error instanceof Error ? error.message : String(error)}. Using original image.`,
+      );
       return inputBuffer;
     }
   }
@@ -91,7 +93,9 @@ export class VideoProcessor {
       throw new Error('projectId is required for video generation pipeline');
     }
 
-    this.logger.log(`🎬 Start Pipeline for Project ${projectId} (Job ID: ${job.id})`);
+    this.logger.log(
+      `🎬 Start Pipeline for Project ${projectId} (Job ID: ${job.id})`,
+    );
 
     try {
       // 1. Получаем данные проекта из БД
@@ -106,26 +110,38 @@ export class VideoProcessor {
       const parallelStartTime = Date.now();
 
       // Подготовка текста для озвучки (Если не задан явно - читаем название и преимущества)
-      const textToSay = settings.ttsText || `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
+      const textToSay =
+        settings.ttsText ||
+        `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
       // Check for actual content (not just whitespace/punctuation)
       const hasValidTtsText = /[^\s.,!?;:–—-]/.test(textToSay);
+
+      const shouldGenerateAudio =
+        (settings.ttsEnabled === true || settings.ttsEnabled === undefined) &&
+        hasValidTtsText;
 
       const [klingVideoUrl, cutoutBuffer, ttsResult] = await Promise.all([
         this.generateKlingVideo(
           imageUrl,
           settings.prompt ||
-          'Cinematic product shot, high quality, 4k, slow motion',
+            'Cinematic product shot, high quality, 4k, slow motion',
         ),
         this.removeBackground(imageUrl),
-        settings.ttsEnabled && hasValidTtsText
-          ? this.ttsService.generateSpeech(textToSay, settings.ttsVoice).catch((err) => {
-              this.logger.warn(`⚠️ TTS generation failed: ${err instanceof Error ? err.message : String(err)}. Continuing without audio.`);
-              return null;
-            })
-          : Promise.resolve(null)
+
+        shouldGenerateAudio
+          ? this.ttsService
+              .generateSpeech(textToSay, settings.ttsVoice)
+              .catch((err) => {
+                this.logger.warn(`⚠️ TTS failed: ${err}. Continuing silent.`);
+                return null;
+              })
+          : Promise.resolve(null),
       ]);
 
-      const parallelDuration = ((Date.now() - parallelStartTime) / 1000).toFixed(1);
+      const parallelDuration = (
+        (Date.now() - parallelStartTime) /
+        1000
+      ).toFixed(1);
       this.logger.log(`⚡ Parallel tasks completed in ${parallelDuration}s`);
 
       // 3. Сохраняем вырезанное фото в S3 (для рендера)
@@ -138,11 +154,17 @@ export class VideoProcessor {
 
       let ttsUrl: string | null = null;
       if (ttsResult) {
-        ttsUrl = await this.storageService.uploadFile(ttsResult.buffer, ttsResult.mimeType, 'audio');
+        ttsUrl = await this.storageService.uploadFile(
+          ttsResult.buffer,
+          ttsResult.mimeType,
+          'audio',
+        );
         this.logger.log(`🎙️ TTS Audio saved (${ttsResult.format}): ${ttsUrl}`);
       }
 
-      const musicUrl = this.ttsService.getBackgroundMusicUrl(settings.musicTheme);
+      const musicUrl = this.ttsService.getBackgroundMusicUrl(
+        settings.musicTheme,
+      );
 
       // 4. Подготовка данных для Рендера
       const inputProps: VideoCompositionInput = {
@@ -163,7 +185,9 @@ export class VideoProcessor {
       const outputFilePath = await this.renderService.renderVideo(inputProps);
       const renderDuration = ((Date.now() - renderStartTime) / 1000).toFixed(1);
 
-      this.logger.log(`✅ Render finished in ${renderDuration}s: ${outputFilePath}`);
+      this.logger.log(
+        `✅ Render finished in ${renderDuration}s: ${outputFilePath}`,
+      );
 
       // 6. Загрузка готового MP4 в S3
       const fileBuffer = fs.readFileSync(outputFilePath);
@@ -179,7 +203,9 @@ export class VideoProcessor {
         fs.unlinkSync(outputFilePath);
         this.logger.debug(`🗑️ Cleaned up local file: ${outputFilePath}`);
       } catch (err) {
-        this.logger.warn(`Failed to delete local render ${outputFilePath}: ${err instanceof Error ? err.message : String(err)}`);
+        this.logger.warn(
+          `Failed to delete local render ${outputFilePath}: ${err instanceof Error ? err.message : String(err)}`,
+        );
       }
 
       // 8. Финал: Обновляем проект
@@ -187,15 +213,20 @@ export class VideoProcessor {
       project.resultVideoUrl = s3Url;
       await this.projectsService.save(project);
 
-      const totalDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(1);
+      const totalDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(
+        1,
+      );
       this.logger.log(
         `🎉 Pipeline COMPLETED for Project ${projectId} in ${totalDuration}s (Parallel: ${parallelDuration}s, Render: ${renderDuration}s)`,
       );
 
       return { result: s3Url };
     } catch (error) {
-      const failedDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(1);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const failedDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(
+        1,
+      );
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `❌ Pipeline FAILED for Project ${projectId} after ${failedDuration}s: ${errorMessage}`,
@@ -208,7 +239,10 @@ export class VideoProcessor {
         project.status = ProjectStatus.FAILED;
         await this.projectsService.save(project);
       } catch (updateError) {
-        const updateErrorMessage = updateError instanceof Error ? updateError.message : String(updateError);
+        const updateErrorMessage =
+          updateError instanceof Error
+            ? updateError.message
+            : String(updateError);
         this.logger.error(
           `Failed to update project status to FAILED: ${updateErrorMessage}`,
         );
