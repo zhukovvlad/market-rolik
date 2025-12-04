@@ -2,6 +2,9 @@ import { Controller, Post, Body, Get, Param, Delete, UseInterceptors, UploadedFi
 import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import { Throttle } from '@nestjs/throttler';
 import { StorageService } from '../storage/storage.service';
 import { CleanupService } from '../storage/cleanup.service';
 import { ProjectsService } from './projects.service';
@@ -19,6 +22,7 @@ export class ProjectsController {
     private readonly projectsService: ProjectsService,
     private readonly storageService: StorageService,
     private readonly cleanupService: CleanupService,
+    @InjectQueue('video-generation') private readonly videoQueue: Queue,
   ) { }
 
   @Get()
@@ -71,12 +75,21 @@ export class ProjectsController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // Max 10 projects per minute
   async create(@Body() createProjectDto: CreateProjectDto, @Req() req: AuthenticatedRequest) {
-    return this.projectsService.createProject(
+    const project = await this.projectsService.createProject(
       req.user.id,
       createProjectDto.title,
       createProjectDto.settings as ProjectSettings
     );
+
+    // Security: Pass userId to queue for ownership verification
+    await this.videoQueue.add('generate-kling', {
+      projectId: project.id,
+      userId: req.user.id, // Critical: for security check in processor
+    });
+
+    return project;
   }
 
   @Get(':id')

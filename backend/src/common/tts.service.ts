@@ -115,9 +115,9 @@ export class TtsService {
 
         // 2. Fallback to defaults
         const defaults: Record<string, string> = {
-            energetic: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3',
-            calm: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3',
-            lofi: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3',
+            energetic: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3',   //Placeholder URL
+            calm: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3',    //Placeholder URL
+            lofi: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3',    //Placeholder URL
         };
         return defaults[theme] || defaults['energetic'];
     }
