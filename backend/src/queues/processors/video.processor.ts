@@ -85,12 +85,16 @@ export class VideoProcessor {
 
   // --- ГЛАВНЫЙ ПРОЦЕСС (ПОСЛЕДОВАТЕЛЬНЫЙ) ---
   @Process('generate-kling')
-  async handleGenerateKling(job: Job<{ projectId: string; userId?: string }>) {
+  async handleGenerateKling(job: Job<{ projectId: string; userId: string }>) {
     const { projectId, userId } = job.data;
     const pipelineStartTime = Date.now();
 
     if (!projectId) {
       throw new Error('projectId is required for video generation pipeline');
+    }
+
+    if (!userId) {
+      throw new Error('userId is required for ownership verification');
     }
 
     this.logger.log(
@@ -101,7 +105,7 @@ export class VideoProcessor {
       const project = await this.projectsService.findOne(projectId);
       
       // Security: Verify project ownership
-      if (userId && project.userId !== userId) {
+      if (project.userId !== userId) {
         const errorMsg = `Unauthorized: Project ${projectId} does not belong to user ${userId}`;
         this.logger.error(errorMsg);
         throw new Error(errorMsg);
@@ -137,7 +141,10 @@ export class VideoProcessor {
       const parallelStartTime = Date.now();
 
       // Логика аудио
-      const textToSay = settings.ttsText || `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
+      const textToSay = settings.ttsText || [
+        settings.productName,
+        ...(settings.usps || [])
+      ].filter(Boolean).join('. ');
       const hasValidTtsText = /[^\s.,!?;:–—-]/.test(textToSay);
       const shouldGenerateAudio = (settings.ttsEnabled === true || settings.ttsEnabled === undefined) && hasValidTtsText;
 
