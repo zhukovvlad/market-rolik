@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig, spring, interpolate, Html5Audio, Sequence } from 'remotion';
+import { AbsoluteFill, Img, useCurrentFrame, useVideoConfig, spring, interpolate, Html5Audio, Sequence, Video } from 'remotion';
 import { z } from 'zod';
 
 // Схема данных с валидацией URL и hex-цветов
@@ -11,6 +11,7 @@ export const myCompSchema = z.object({
 
   audioUrl: z.string().nullable().optional(),       // Ссылка на TTS
   backgroundMusicUrl: z.string().nullable().optional(), // Ссылка на музыку
+  bgVideoUrl: z.string().nullable().optional(), // Ссылка на видео-фон (Kling)
 });
 
 export const MyComposition: React.FC<z.infer<typeof myCompSchema>> = ({
@@ -20,6 +21,7 @@ export const MyComposition: React.FC<z.infer<typeof myCompSchema>> = ({
   primaryColor,
   audioUrl,
   backgroundMusicUrl,
+  bgVideoUrl,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -69,13 +71,26 @@ export const MyComposition: React.FC<z.infer<typeof myCompSchema>> = ({
         </Sequence>
       )}
 
-      {/* СЛОЙ 1: ФОН (Виден сразу!) */}
+      {/* СЛОЙ 1: ФОН (ДИНАМИЧЕСКИЙ) */}
       <AbsoluteFill>
-        <Img
-          src={mainImage}
-          className="w-full h-full object-cover blur-2xl opacity-60 scale-110"
-        />
-        <div className="absolute inset-0 bg-black/20" />
+        {bgVideoUrl ? (
+          // ВАРИАНТ А: Если есть видео от Kling — играем его
+          <Video
+            src={bgVideoUrl}
+            className="w-full h-full object-cover opacity-80" // opacity чтобы текст читался
+            // loop // можно добавить, если видео короткое
+            muted // звук у нас идет отдельным слоем (Audio)
+          />
+        ) : (
+          // ВАРИАНТ Б: Видео нет — показываем размытое фото (как раньше)
+          <>
+            <Img
+              src={mainImage}
+              className="w-full h-full object-cover blur-2xl opacity-60 scale-110"
+            />
+            <div className="absolute inset-0 bg-black/20" />
+          </>
+        )}
       </AbsoluteFill>
 
       {/* СЛОЙ 2: ТОВАР (Виден сразу!) */}

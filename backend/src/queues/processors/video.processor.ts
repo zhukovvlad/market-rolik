@@ -83,10 +83,10 @@ export class VideoProcessor {
     }
   }
 
-  // --- ГЛАВНЫЙ ПРОЦЕСС ---
+  // --- ГЛАВНЫЙ ПРОЦЕСС (ПОСЛЕДОВАТЕЛЬНЫЙ) ---
   @Process('generate-kling')
-  async handleGenerateKling(job: Job<{ projectId: string }>) {
-    const { projectId } = job.data;
+  async handleGenerateKling(job: Job<{ projectId: string; userId?: string }>) {
+    const { projectId, userId } = job.data;
     const pipelineStartTime = Date.now();
 
     if (!projectId) {
@@ -94,57 +94,34 @@ export class VideoProcessor {
     }
 
     this.logger.log(
-      `🎬 Start Pipeline for Project ${projectId} (Job ID: ${job.id})`,
+      `🎬 Start Sequential Pipeline for Project ${projectId} (Job ID: ${job.id})`,
     );
 
     try {
-      // 1. Получаем данные проекта из БД
       const project = await this.projectsService.findOne(projectId);
+      
+      // Security: Verify project ownership
+      if (userId && project.userId !== userId) {
+        const errorMsg = `Unauthorized: Project ${projectId} does not belong to user ${userId}`;
+        this.logger.error(errorMsg);
+        throw new Error(errorMsg);
+      }
       const settings = project.settings || {};
-      const imageUrl = settings.mainImage;
+      const originalImageUrl = settings.mainImage; // Исходник
 
-      if (!imageUrl) throw new Error('No main image found in project');
+      if (!originalImageUrl) throw new Error('No main image found');
 
-      // 2. Параллельный запуск: Генерация видео + Удаление фона
-      this.logger.log('⚡ Starting parallel tasks: Kling AI + Photoroom + TTS');
-      const parallelStartTime = Date.now();
-
-      // Подготовка текста для озвучки (Если не задан явно - читаем название и преимущества)
-      const textToSay =
-        settings.ttsText ||
-        `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
-      // Check for actual content (not just whitespace/punctuation)
-      const hasValidTtsText = /[^\s.,!?;:–—-]/.test(textToSay);
-
-      const shouldGenerateAudio =
-        (settings.ttsEnabled === true || settings.ttsEnabled === undefined) &&
-        hasValidTtsText;
-
-      const [klingVideoUrl, cutoutBuffer, ttsResult] = await Promise.all([
-        this.generateKlingVideo(
-          imageUrl,
-          settings.prompt ||
-            'Cinematic product shot, high quality, 4k, slow motion',
-        ),
-        this.removeBackground(imageUrl),
-
-        shouldGenerateAudio
-          ? this.ttsService
-              .generateSpeech(textToSay, settings.ttsVoice)
-              .catch((err) => {
-                this.logger.warn(`⚠️ TTS failed: ${err}. Continuing silent.`);
-                return null;
-              })
-          : Promise.resolve(null),
-      ]);
-
-      const parallelDuration = (
-        (Date.now() - parallelStartTime) /
-        1000
-      ).toFixed(1);
-      this.logger.log(`⚡ Parallel tasks completed in ${parallelDuration}s`);
-
-      // 3. Сохраняем вырезанное фото в S3 (для рендера)
+      // =================================================================
+      // ЭТАП 1: Подготовка визуалов (Photoroom -> S3 -> Kling)
+      // =================================================================
+      
+      // 1. Сначала удаляем фон (Блокирующая операция)
+      // Мы обязаны это сделать ДО генерации видео, чтобы Kling получил чистый товар
+      this.logger.log('Step 1/4: Removing background (Photoroom)...');
+      const cutoutBuffer = await this.removeBackground(originalImageUrl);
+      
+      // 2. Сохраняем вырезанное фото (Cutout) в S3
+      // Kling'у нужна публичная ссылка, поэтому сначала грузим
       const cutoutUrl = await this.storageService.uploadFile(
         cutoutBuffer,
         'image/png',
@@ -152,53 +129,106 @@ export class VideoProcessor {
       );
       this.logger.log(`✅ Cutout saved: ${cutoutUrl}`);
 
+      // =================================================================
+      // ЭТАП 2: Генерация контента (Kling + TTS)
+      // Теперь Kling использует cutoutUrl, а не originalImageUrl!
+      // =================================================================
+      this.logger.log('Step 2/4: Generating Video (Kling) & Audio (TTS)...');
+      const parallelStartTime = Date.now();
+
+      // Логика аудио
+      const textToSay = settings.ttsText || `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
+      const hasValidTtsText = /[^\s.,!?;:–—-]/.test(textToSay);
+      const shouldGenerateAudio = (settings.ttsEnabled === true || settings.ttsEnabled === undefined) && hasValidTtsText;
+
+      // Инициализируем переменную для видео (может быть null если Kling не сработает)
+      let s3VideoUrl: string | null = null;
+
+      // Запускаем Kling и TTS параллельно (друг друга они не ждут)
+      const [klingResult, ttsResult] = await Promise.all([
+        
+        // KLING: Передаем cutoutUrl (товар без фона)!
+        // Промпт теперь критически важен, он создаст окружение.
+        this.generateKlingVideo(
+          cutoutUrl, 
+          settings.prompt || 'Professional cinematic product shot, soft lighting, 4k'
+        ).catch(err => {
+          this.logger.error(`❌ Kling generation failed: ${err}. Video will use static image only.`);
+          return null; // Если Kling упал - продолжаем без видео
+        }),
+
+        // TTS
+        shouldGenerateAudio
+          ? this.ttsService.generateSpeech(textToSay, settings.ttsVoice).catch(err => {
+              this.logger.warn(`⚠️ TTS failed: ${err}. Continuing silent.`);
+              return null;
+            })
+          : Promise.resolve(null),
+      ]);
+
+      // Сохраняем результат Kling если он есть
+      s3VideoUrl = klingResult;
+
+      const parallelDuration = ((Date.now() - parallelStartTime) / 1000).toFixed(1);
+      this.logger.log(`⚡ Parallel tasks completed in ${parallelDuration}s`);
+
+      // =================================================================
+      // ЭТАП 3: Сохранение результатов
+      // =================================================================
       let ttsUrl: string | null = null;
       if (ttsResult) {
-        ttsUrl = await this.storageService.uploadFile(
-          ttsResult.buffer,
-          ttsResult.mimeType,
-          'audio',
+         // Исправленная работа с буфером
+         ttsUrl = await this.storageService.uploadFile(
+          ttsResult.buffer, 
+          ttsResult.mimeType, 
+          'audio'
         );
         this.logger.log(`🎙️ TTS Audio saved (${ttsResult.format}): ${ttsUrl}`);
       }
+      
+      const musicUrl = this.ttsService.getBackgroundMusicUrl(settings.musicTheme);
 
-      const musicUrl = this.ttsService.getBackgroundMusicUrl(
-        settings.musicTheme,
-      );
-
-      // 4. Подготовка данных для Рендера
+      // =================================================================
+      // ЭТАП 4: Финальный Рендер (Remotion)
+      // =================================================================
+      this.logger.log('Step 4/4: Rendering final composition...');
+      
       const inputProps: VideoCompositionInput = {
         title: settings.productName || project.title || 'Новинка',
-        mainImage: cutoutUrl,
-        usps:
-          settings.usps && settings.usps.length > 0
-            ? settings.usps
-            : ['Быстрая доставка', 'Отличное качество', 'Хит продаж'],
+        
+        // mainImage всегда передаем (это либо cutout, либо оригинал)
+        // Он нужен для превью и если видео не сгенерировалось
+        mainImage: cutoutUrl || originalImageUrl,
+        
+        usps: settings.usps && settings.usps.length > 0
+          ? settings.usps
+          : ['Быстрая доставка', 'Отличное качество', 'Хит продаж'],
         primaryColor: '#4f46e5',
         audioUrl: ttsUrl,
         backgroundMusicUrl: musicUrl,
+        
+        // 👇 ГЛАВНАЯ ЛОГИКА РАЗВИЛКИ
+        // Если s3VideoUrl существует (Kling отработал) — передаем его
+        // Если нет — передаем null, Remotion будет использовать статичное mainImage
+        bgVideoUrl: s3VideoUrl,
       };
-
-      // 5. ЗАПУСК РЕНДЕРА
-      this.logger.log('🔥 Rendering final video with Remotion...');
+      
       const renderStartTime = Date.now();
       const outputFilePath = await this.renderService.renderVideo(inputProps);
       const renderDuration = ((Date.now() - renderStartTime) / 1000).toFixed(1);
-
-      this.logger.log(
-        `✅ Render finished in ${renderDuration}s: ${outputFilePath}`,
-      );
-
-      // 6. Загрузка готового MP4 в S3
+      
+      this.logger.log(`✅ Render finished in ${renderDuration}s: ${outputFilePath}`);
+      
+      // 5. Загрузка готового MP4 в S3
       const fileBuffer = fs.readFileSync(outputFilePath);
-      const s3Url = await this.storageService.uploadFile(
+      const finalS3Url = await this.storageService.uploadFile(
         fileBuffer,
         'video/mp4',
         'renders',
       );
-      this.logger.log(`☁️ Uploaded to S3: ${s3Url}`);
+      this.logger.log(`☁️ Uploaded to S3: ${finalS3Url}`);
 
-      // 7. Очистка
+      // 6. Очистка
       try {
         fs.unlinkSync(outputFilePath);
         this.logger.debug(`🗑️ Cleaned up local file: ${outputFilePath}`);
@@ -208,25 +238,21 @@ export class VideoProcessor {
         );
       }
 
-      // 8. Финал: Обновляем проект
+      // 7. Финал: Обновляем проект
       project.status = ProjectStatus.COMPLETED;
-      project.resultVideoUrl = s3Url;
+      project.resultVideoUrl = finalS3Url;
       await this.projectsService.save(project);
 
-      const totalDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(
-        1,
-      );
+      const totalDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(1);
       this.logger.log(
         `🎉 Pipeline COMPLETED for Project ${projectId} in ${totalDuration}s (Parallel: ${parallelDuration}s, Render: ${renderDuration}s)`,
       );
 
-      return { result: s3Url };
+      return { result: finalS3Url };
+      
     } catch (error) {
-      const failedDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(
-        1,
-      );
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const failedDuration = ((Date.now() - pipelineStartTime) / 1000).toFixed(1);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `❌ Pipeline FAILED for Project ${projectId} after ${failedDuration}s: ${errorMessage}`,

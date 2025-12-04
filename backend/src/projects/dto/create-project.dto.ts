@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, Length, IsOptional, ValidateNested, IsArray, MaxLength, IsIn, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, Length, IsOptional, ValidateNested, IsArray, MaxLength, IsIn, IsBoolean, IsUrl } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ASPECT_RATIOS, AspectRatio } from '../constants';
 
@@ -20,13 +20,13 @@ class ProjectSettingsDto {
   usps?: string[];
 
   @IsOptional()
-  @IsString()
+  @IsUrl({ require_protocol: true }, { message: 'mainImage must be a valid URL' })
   @MaxLength(2048)
   mainImage?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(1000)
+  @MaxLength(500, { message: 'Prompt must not exceed 500 characters' })
   prompt?: string;
 
   @IsOptional()
@@ -43,7 +43,7 @@ class ProjectSettingsDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(1000)
+  @MaxLength(500, { message: 'TTS text must not exceed 500 characters' })
   ttsText?: string;
 
   @IsOptional()
