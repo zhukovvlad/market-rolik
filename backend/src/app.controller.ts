@@ -197,6 +197,7 @@ export class AppController {
 
     const job = await this.videoQueue.add('generate-kling', {
       projectId: body.projectId,
+      userId: req.user.id,
       imageUrl: url,
       prompt: 'Cinematic slow motion, floating in the air, 4k advertising shot',
     });
