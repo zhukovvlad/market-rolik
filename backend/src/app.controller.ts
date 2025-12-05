@@ -160,55 +160,8 @@ export class AppController {
     return this.aiTextService.generateProductData(dto.imageUrl);
   }
 
-  // Тест генерации Видео (Kling)
-  @Post('test-video')
-  @UseGuards(AuthGuard('jwt'))
-  async testVideo(@Body() body: TestVideoDto, @Req() req: Request & { user: { id: string } }) {
-    // Verify project ownership
-    if (body.projectId) {
-      await this.projectsService.findOne(body.projectId, req.user.id);
-      // Let ProjectsService throw its own HttpException for not-found/forbidden cases.
-    }
-
-    // Если картинки нет, берем дефолтную (но лучше передавать реальную из S3)
-    const url =
-      body.imageUrl ||
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop';
-
-    // Save the uploaded image as an asset (if not already saved)
-    if (body.projectId && body.imageUrl) {
-      try {
-        await this.projectsService.addAsset(
-          body.projectId,
-          body.imageUrl,
-          AssetType.IMAGE_CLEAN,
-          's3',
-          {
-            uploadedAt: new Date().toISOString(),
-            source: 'user_upload',
-          }
-        );
-        this.logger.log(`Image saved as asset for project ${body.projectId}`);
-      } catch (error) {
-        // If asset already exists or other error, log but continue
-        this.logger.warn('Could not save image asset:', error instanceof Error ? error.message : String(error));
-      }
-    }
-
-    const job = await this.videoQueue.add('generate-kling', {
-      projectId: body.projectId,
-      userId: req.user.id,
-      imageUrl: url,
-      prompt: 'Cinematic slow motion, floating in the air, 4k advertising shot',
-    });
-
-    return {
-      status: 'queued',
-      jobId: job.id,
-      message:
-        'Видео генерируется. Это займет время (в Mock-режиме 10 сек). Проверяй консоль.',
-    };
-  }
+  // Note: /test-video endpoint removed - video generation is now automatically
+  // triggered when creating a project via POST /projects
 
   @Post('test-render')
   @UseGuards(AuthGuard('jwt'))

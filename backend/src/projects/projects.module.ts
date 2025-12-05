@@ -7,11 +7,13 @@ import { Asset } from './asset.entity';
 import { User } from '../users/user.entity';
 
 import { StorageModule } from '../storage/storage.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Project, Asset, User]),
     StorageModule,
+    BullModule.registerQueue({ name: 'video-generation' }),
   ],
   providers: [ProjectsService],
   controllers: [ProjectsController],
