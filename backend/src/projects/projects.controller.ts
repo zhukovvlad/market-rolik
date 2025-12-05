@@ -100,7 +100,11 @@ export class ProjectsController {
         );
       } catch (error) {
         // If asset already exists or other error, log but continue
-        this.logger.warn(`Could not save mainImage as asset: ${error instanceof Error ? error.message : String(error)}`);
+        this.logger.warn('Could not save mainImage as asset', {
+          projectId: project.id,
+          mainImage: createProjectDto.settings.mainImage,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 
