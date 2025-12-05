@@ -31,16 +31,6 @@ class TestPhotoroomDto {
   projectId?: string;
 }
 
-class TestVideoDto {
-  @IsOptional()
-  @IsUUID()
-  projectId?: string;
-
-  @IsOptional()
-  @IsUrl()
-  imageUrl?: string;
-}
-
 @Controller()
 export class AppController {
   private readonly logger = new Logger(AppController.name);
