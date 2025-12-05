@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Delete, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Delete, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards, Req, ForbiddenException, Logger } from '@nestjs/common';
 import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
@@ -18,6 +18,8 @@ type AuthenticatedRequest = Request & { user: { id: string; role: UserRole } };
 
 @Controller('projects')
 export class ProjectsController {
+  private readonly logger = new Logger(ProjectsController.name);
+
   constructor(
     private readonly projectsService: ProjectsService,
     private readonly storageService: StorageService,
@@ -98,7 +100,7 @@ export class ProjectsController {
         );
       } catch (error) {
         // If asset already exists or other error, log but continue
-        console.warn('Could not save mainImage as asset:', error instanceof Error ? error.message : String(error));
+        this.logger.warn(`Could not save mainImage as asset: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
