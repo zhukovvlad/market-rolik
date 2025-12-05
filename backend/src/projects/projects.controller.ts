@@ -83,10 +83,38 @@ export class ProjectsController {
       createProjectDto.settings as ProjectSettings
     );
 
+    // Save mainImage as asset if provided
+    if (createProjectDto.settings?.mainImage) {
+      try {
+        await this.projectsService.addAsset(
+          project.id,
+          createProjectDto.settings.mainImage,
+          AssetType.IMAGE_CLEAN,
+          's3',
+          {
+            uploadedAt: new Date().toISOString(),
+            source: 'user_upload',
+          }
+        );
+      } catch (error) {
+        // If asset already exists or other error, log but continue
+        console.warn('Could not save mainImage as asset:', error instanceof Error ? error.message : String(error));
+      }
+    }
+
     // Security: Pass userId to queue for ownership verification
     await this.videoQueue.add('generate-kling', {
       projectId: project.id,
       userId: req.user.id, // Critical: for security check in processor
+    }, {
+      // 👇 ДОБАВЬ ЭТИ НАСТРОЙКИ
+      attempts: 3,         // Пытаться 3 раза
+      backoff: {
+        type: 'exponential',
+        delay: 5000,       // Пауза 5 сек -> 10 сек -> 20 сек
+      },
+      removeOnComplete: true, 
+      removeOnFail: false,
     });
 
     return project;

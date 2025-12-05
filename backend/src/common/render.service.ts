@@ -70,6 +70,7 @@ export class RenderService {
       outputLocation: outputFile,
       inputProps: data,
       muted: false, // CRITICAL: Enable audio in rendered video
+      timeoutInMilliseconds: 120000,
       chromiumOptions: {
         enableMultiProcessOnLinux: true,
         headless: true,

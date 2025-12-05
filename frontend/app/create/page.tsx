@@ -99,23 +99,7 @@ export default function CreatePage() {
       if (!projectRes.ok) throw new Error('Ошибка создания проекта');
       const project = await projectRes.json();
 
-      // 3. Запускаем генерацию видео (POST /test-video)
-      const genRes = await fetch(`${API_URL}/test-video`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          projectId: project.id,
-          imageUrl: uploadedUrl,
-          prompt: settings.prompt
-        }),
-        signal
-      });
-
-      if (!genRes.ok) throw new Error('Ошибка запуска генерации');
-
+      // Video generation is now automatically triggered by POST /projects
       toast.success("Магия запущена! 🚀");
 
       // 4. Перенаправляем в Дашборд
