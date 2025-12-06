@@ -60,6 +60,7 @@
     "puppeteer-core": "^24.31.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sharp": "^0.34.5",
     "typeorm": "^0.3.27",
     "undici": "^7.16.0",
     "uuid": "^13.0.0",
