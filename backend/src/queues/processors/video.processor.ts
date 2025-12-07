@@ -66,7 +66,10 @@ export class VideoProcessor {
     const apiKey = this.configService.get<string>('PHOTOROOM_API_KEY');
     
     // Скачиваем оригинал
-    const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+    const imageResponse = await axios.get(imageUrl, { 
+      responseType: 'arraybuffer',
+      timeout: 30000, // 30 seconds
+    });
     const inputBuffer = Buffer.from(imageResponse.data);
 
     if (!apiKey || apiKey === 'mock') {
@@ -170,7 +173,10 @@ export class VideoProcessor {
       // --- ЭТАП 1: ВИЗУАЛ (Последовательно) ---
       
       // 1.1 Генерируем сцену (Photoroom)
-      const bgPrompt = "professional product photography, on a wooden podium, cinematic lighting, high quality, 4k";
+      const bgPrompt = (settings.scenePrompt as string) || this.configService.get<string>(
+        'DEFAULT_SCENE_PROMPT',
+        'professional product photography, on a wooden podium, cinematic lighting, high quality, 4k'
+      );
       let visualBuffer = await this.generateAiScene(originalImageUrl, bgPrompt, width, height);
 
       // 1.2 Апскейл (Stability Fast) - 2 кредита
@@ -239,10 +245,14 @@ export class VideoProcessor {
 
     } catch (error) {
       this.logger.error(`Pipeline Failed: ${error}`);
-      const project = await this.projectsService.findOne(projectId);
-      if (project) {
+      try {
+        const project = await this.projectsService.findOne(projectId);
+        if (project) {
           project.status = ProjectStatus.FAILED;
           await this.projectsService.save(project);
+        }
+      } catch (dbError) {
+        this.logger.error(`Failed to update project status: ${dbError}`);
       }
       throw error;
     }
@@ -250,7 +260,6 @@ export class VideoProcessor {
 
   // Внутренний метод для Kling (с поллингом)
   private async generateKlingVideoInternal(imageUrl: string, prompt: string): Promise<string> {
-    const startTime = Date.now();
     const taskId = await this.aiVideoService.generateKlingVideo(imageUrl, prompt);
     this.logger.log(`🎬 Kling Task ID: ${taskId}`);
 
@@ -262,7 +271,10 @@ export class VideoProcessor {
         this.logger.log(`✅ Kling Success!`);
         if (!result.videoUrl) throw new Error('Kling completed but no videoUrl provided');
         // Скачиваем и пересохраняем в S3
-        const videoData = await this.proxyService.get<Buffer>(result.videoUrl, { responseType: 'arraybuffer' });
+        const videoData = await this.proxyService.get<Buffer>(result.videoUrl, { 
+          responseType: 'arraybuffer',
+          timeout: 120000, // 2 minutes for video download
+        });
         return await this.storageService.uploadFile(Buffer.from(videoData), 'video/mp4', 'videos');
       }
       if (result.status === 'failed') throw new Error(`Kling status: failed`);
