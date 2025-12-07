@@ -64,11 +64,12 @@ export class VideoProcessor {
   ): Promise<Buffer> {
     this.logger.log(`🎨 Step 1: Generating Scene via Photoroom ("${prompt}") at ${width}x${height}...`);
     const apiKey = this.configService.get<string>('PHOTOROOM_API_KEY');
+    const imageDownloadTimeout = this.configService.get<number>('IMAGE_DOWNLOAD_TIMEOUT_MS', 30000);
     
     // Скачиваем оригинал
     const imageResponse = await axios.get(imageUrl, { 
       responseType: 'arraybuffer',
-      timeout: 30000, // 30 seconds
+      timeout: imageDownloadTimeout,
     });
     const inputBuffer = Buffer.from(imageResponse.data);
 
@@ -173,7 +174,7 @@ export class VideoProcessor {
       // --- ЭТАП 1: ВИЗУАЛ (Последовательно) ---
       
       // 1.1 Генерируем сцену (Photoroom)
-      const bgPrompt = (settings.scenePrompt as string) || this.configService.get<string>(
+      const bgPrompt = (settings.scenePrompt as string) ?? this.configService.get<string>(
         'DEFAULT_SCENE_PROMPT',
         'professional product photography, on a wooden podium, cinematic lighting, high quality, 4k'
       );
@@ -244,7 +245,7 @@ export class VideoProcessor {
       return { result: finalS3Url };
 
     } catch (error) {
-      this.logger.error(`Pipeline Failed: ${error}`);
+      this.logger.error('Pipeline Failed', error as Error);
       try {
         const project = await this.projectsService.findOne(projectId);
         if (project) {
@@ -252,7 +253,7 @@ export class VideoProcessor {
           await this.projectsService.save(project);
         }
       } catch (dbError) {
-        this.logger.error(`Failed to update project status: ${dbError}`);
+        this.logger.error('Failed to update project status', dbError as Error);
       }
       throw error;
     }
@@ -271,9 +272,10 @@ export class VideoProcessor {
         this.logger.log(`✅ Kling Success!`);
         if (!result.videoUrl) throw new Error('Kling completed but no videoUrl provided');
         // Скачиваем и пересохраняем в S3
+        const videoDownloadTimeout = this.configService.get<number>('VIDEO_DOWNLOAD_TIMEOUT_MS', 120000);
         const videoData = await this.proxyService.get<Buffer>(result.videoUrl, { 
           responseType: 'arraybuffer',
-          timeout: 120000, // 2 minutes for video download
+          timeout: videoDownloadTimeout,
         });
         return await this.storageService.uploadFile(Buffer.from(videoData), 'video/mp4', 'videos');
       }
