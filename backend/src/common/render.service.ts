@@ -62,12 +62,18 @@ export class RenderService {
     const fileName = `video-${Date.now()}.mp4`;
     const outputFile = path.join(outputDir, fileName);
 
+    // Validate and clamp dimensions to sane bounds
+    const MAX_DIMENSION = 4096;
+    const MIN_DIMENSION = 128;
+    const safeWidth = Math.max(MIN_DIMENSION, Math.min(MAX_DIMENSION, data.width ?? composition.width));
+    const safeHeight = Math.max(MIN_DIMENSION, Math.min(MAX_DIMENSION, data.height ?? composition.height));
+
     // Render video with properly typed chromiumOptions
     await renderMedia({
       composition: {
         ...composition,
-        width: data.width ?? composition.width,
-        height: data.height ?? composition.height,
+        width: safeWidth,
+        height: safeHeight,
       },
       serveUrl: bundleLocation,
       codec: 'h264',
