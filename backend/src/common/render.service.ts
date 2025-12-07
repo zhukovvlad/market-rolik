@@ -70,6 +70,11 @@ export class RenderService {
     const safeWidth = Math.max(this.MIN_DIMENSION, Math.min(this.MAX_DIMENSION, inputWidth));
     const safeHeight = Math.max(this.MIN_DIMENSION, Math.min(this.MAX_DIMENSION, inputHeight));
 
+    // Log when dimensions are adjusted for debugging
+    if (inputWidth !== safeWidth || inputHeight !== safeHeight) {
+      this.logger.warn(`⚠️ Dimensions adjusted: ${inputWidth}x${inputHeight} → ${safeWidth}x${safeHeight}`);
+    }
+
     // Render video with properly typed chromiumOptions
     await renderMedia({
       composition: {

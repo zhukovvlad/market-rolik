@@ -72,7 +72,6 @@ function getDimensions(ratio: string = '9:16'): { width: number; height: number 
  * создания маркетингового видеоролика от исходного изображения до финального MP4.
  * 
  * @class VideoProcessor
- * @implements {OnModuleInit}
  * 
  * @description
  * Основной пайплайн включает:
@@ -152,7 +151,7 @@ export class VideoProcessor {
    * @param {number} height - Желаемая высота выходного изображения в пикселях
    * @returns {Promise<Buffer>} Buffer с обработанным изображением в формате PNG
    * 
-   * @throws {Error} Логирует ошибку, но возвращает оригинальное изображение как fallback
+   * @throws {Error} Ошибки скачивания изображения пробрасываются выше. Ошибки Photoroom API логируются, но возвращается оригинал как fallback.
    * 
    * @example
    * const scene = await this.generateAiScene(
@@ -233,7 +232,7 @@ export class VideoProcessor {
    * @param {Buffer} imageBuffer - Buffer с изображением для upscaling
    * @returns {Promise<Buffer>} Buffer с upscaled изображением или оригиналом при ошибке
    * 
-   * @throws {Error} Логирует ошибку, но возвращает оригинальное изображение как fallback
+   * @throws {Error} Ошибки обработки изображения (sharp) пробрасываются выше. Ошибки Stability API логируются, но возвращается оригинал как fallback.
    * 
    * @example
    * const upscaledImage = await this.upscaleImageFast(sceneBuffer);
@@ -408,8 +407,9 @@ export class VideoProcessor {
       
       // 1.1 Генерируем сцену (Photoroom)
       const scenePromptValue = (settings.scenePrompt as string) ?? '';
-      const bgPrompt = scenePromptValue.trim() 
-        ? scenePromptValue 
+      const scenePromptTrimmed = scenePromptValue.trim();
+      const bgPrompt = scenePromptTrimmed
+        ? scenePromptTrimmed
         : this.configService.get<string>(
             'DEFAULT_SCENE_PROMPT',
             'professional product photography, on a wooden podium, cinematic lighting, high quality, 4k'
@@ -428,7 +428,7 @@ export class VideoProcessor {
       this.logger.log('⚡ Starting Parallel Generation: Kling + TTS...');
       
       const textToSay = settings.ttsText || `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
-      const shouldGenerateAudio = (settings.ttsEnabled !== false);
+      const shouldGenerateAudio = (settings.ttsEnabled !== false) && textToSay.trim().length > 0;
 
       // Динамический промпт (пока хардкод, позже подключим Gemini)
       let klingPrompt = settings.prompt || "slow cinematic camera zoom in, floating dust particles, high quality, 4k";
@@ -482,7 +482,7 @@ export class VideoProcessor {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.stack || error.message : String(error);
-      this.logger.error('Pipeline Failed', errorMessage);
+      this.logger.error(`❌ Pipeline FAILED for Project ${projectId} (User: ${userId || 'N/A'})`, errorMessage);
       try {
         const project = await this.projectsService.findOne(projectId);
         if (project) {
@@ -491,7 +491,7 @@ export class VideoProcessor {
         }
       } catch (dbError) {
         const dbErrorMessage = dbError instanceof Error ? dbError.stack || dbError.message : String(dbError);
-        this.logger.error('Failed to update project status', dbErrorMessage);
+        this.logger.error(`❌ Failed to update project status to FAILED for Project ${projectId}`, dbErrorMessage);
       }
       throw error;
     }
