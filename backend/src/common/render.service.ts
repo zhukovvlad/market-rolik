@@ -9,6 +9,8 @@ import * as fs from 'fs';
 export class RenderService {
   private readonly logger = new Logger(RenderService.name);
   private lastLoggedProgress = 0;
+  private readonly MAX_DIMENSION = 4096;
+  private readonly MIN_DIMENSION = 128;
 
   constructor(private readonly configService: ConfigService) { }
 
@@ -62,11 +64,11 @@ export class RenderService {
     const fileName = `video-${Date.now()}.mp4`;
     const outputFile = path.join(outputDir, fileName);
 
-    // Validate and clamp dimensions to sane bounds
-    const MAX_DIMENSION = 4096;
-    const MIN_DIMENSION = 128;
-    const safeWidth = Math.max(MIN_DIMENSION, Math.min(MAX_DIMENSION, data.width ?? composition.width));
-    const safeHeight = Math.max(MIN_DIMENSION, Math.min(MAX_DIMENSION, data.height ?? composition.height));
+    // Validate and clamp dimensions to sane bounds, handle NaN/invalid inputs
+    const inputWidth = typeof data.width === 'number' && isFinite(data.width) ? data.width : composition.width;
+    const inputHeight = typeof data.height === 'number' && isFinite(data.height) ? data.height : composition.height;
+    const safeWidth = Math.max(this.MIN_DIMENSION, Math.min(this.MAX_DIMENSION, inputWidth));
+    const safeHeight = Math.max(this.MIN_DIMENSION, Math.min(this.MAX_DIMENSION, inputHeight));
 
     // Render video with properly typed chromiumOptions
     await renderMedia({
