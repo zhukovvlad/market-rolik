@@ -65,9 +65,10 @@ export class RenderService {
     // Render video with properly typed chromiumOptions
     await renderMedia({
       composition: {
-        width: data.width || 1080,
-        height: data.height || 1920,
-      } as any,
+        ...composition,
+        width: data.width ?? composition.width,
+        height: data.height ?? composition.height,
+      },
       serveUrl: bundleLocation,
       codec: 'h264',
       outputLocation: outputFile,
