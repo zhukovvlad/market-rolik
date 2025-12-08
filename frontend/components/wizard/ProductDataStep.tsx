@@ -148,8 +148,9 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
         setIsAnalyzing(true);
         try {
             const payload: { imageUrl: string; uspCount?: number } = { imageUrl: uploadedUrl };
-            if (productData.usps.length > 0) {
-                payload.uspCount = productData.usps.length;
+            const filledUspsCount = productData.usps.filter(usp => usp.trim().length > 0).length;
+            if (filledUspsCount > 0) {
+                payload.uspCount = filledUspsCount;
             }
             
             const res = await axios.post(
