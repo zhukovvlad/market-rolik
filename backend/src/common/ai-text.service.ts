@@ -2,172 +2,185 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
 
-export interface ProductData {
-  title: string;
+export interface ProductAnalysis {
+  productName: string;
   description: string;
   usps: string[];
+  scenePrompt: string; // EN для генерации фона
+  category: string;
 }
 
 @Injectable()
 export class AiTextService {
   private readonly logger = new Logger(AiTextService.name);
   private genAI: GoogleGenAI;
-  private readonly allowedHosts: string[] = [];
+  private readonly modelName: string;
   private static readonly MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-
-  private static get MAX_IMAGE_SIZE_MB(): number {
-    return AiTextService.MAX_IMAGE_SIZE / 1024 / 1024;
-  }
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+    this.modelName = this.configService.get<string>('GEMINI_MODEL_TEXT_SERVICE', 'gemini-2.5-flash');
+
     if (!apiKey) {
       this.logger.warn('GEMINI_API_KEY is not set. AI features will not work.');
     }
     this.genAI = new GoogleGenAI({ apiKey: apiKey || '' });
-
-    // Initialize allowed hosts from S3 config
-    const s3Endpoint = this.configService.get<string>('S3_ENDPOINT');
-    if (s3Endpoint) {
-      try {
-        const url = new URL(s3Endpoint);
-        this.allowedHosts.push(url.hostname);
-      } catch (e) {
-        this.logger.warn(`Invalid S3_ENDPOINT: ${s3Endpoint}`);
-      }
-    }
   }
 
-  private validateImageUrl(url: string): void {
-    let parsedUrl: URL;
+  /**
+   * ВАРИАНТ 1: Анализ файла из памяти (для uploadFile контроллера)
+   */
+  async analyzeImageBuffer(buffer: Buffer, mimeType: string, uspCount: number = 3): Promise<ProductAnalysis | null> {
     try {
-      parsedUrl = new URL(url);
-    } catch (e) {
-      throw new BadRequestException('Invalid URL format');
-    }
-
-    if (parsedUrl.protocol !== 'https:') {
-      throw new BadRequestException('Only HTTPS URLs are allowed');
-    }
-
-    if (this.allowedHosts.length > 0 && !this.allowedHosts.includes(parsedUrl.hostname)) {
-      throw new BadRequestException(`Domain ${parsedUrl.hostname} is not allowed. Allowed domains: ${this.allowedHosts.join(', ')}`);
+      const base64Image = buffer.toString('base64');
+      return await this.callGemini(base64Image, mimeType, uspCount);
+    } catch (error) {
+      this.logger.error(`Buffer analysis failed: ${error instanceof Error ? error.message : error}`);
+      return null;
     }
   }
 
-  async generateProductData(imageUrl: string): Promise<ProductData> {
+  /**
+   * ВАРИАНТ 2: Анализ по URL (для импорта по ссылке)
+   */
+  async generateProductData(imageUrl: string, uspCount: number = 3): Promise<ProductAnalysis> {
     this.validateImageUrl(imageUrl);
 
     try {
-      this.logger.log(`Analyzing image with Gemini 2.5 Flash: ${imageUrl}`);
-
-      // Fetch image with timeout and size limits
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
-
-      let imageResp: Response;
-      try {
-        imageResp = await fetch(imageUrl, { signal: controller.signal });
-      } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') {
-          throw new BadRequestException('Image fetch timed out');
-        }
-        throw err;
-      } finally {
-        clearTimeout(timeoutId);
-      }
-
-      if (!imageResp.ok) {
-        throw new BadRequestException(`Failed to fetch image: ${imageResp.statusText}`);
-      }
-
-      const contentLength = imageResp.headers.get('content-length');
-      if (contentLength && parseInt(contentLength, 10) > AiTextService.MAX_IMAGE_SIZE) {
-        throw new BadRequestException(`Image is too large (max ${AiTextService.MAX_IMAGE_SIZE_MB}MB)`);
-      }
-
-      const imageBuffer = await imageResp.arrayBuffer();
-
-      if (imageBuffer.byteLength > AiTextService.MAX_IMAGE_SIZE) {
-        throw new BadRequestException(`Image is too large (max ${AiTextService.MAX_IMAGE_SIZE_MB}MB)`);
-      }
-
-      const base64Image = Buffer.from(imageBuffer).toString('base64');
-      const mimeType = imageResp.headers.get('content-type') || 'image/jpeg';
-
-      this.logger.log(`Image fetched successfully. Size: ${imageBuffer.byteLength} bytes, MIME: ${mimeType}`);
-
-      const prompt = `
-        Analyze this product image and generate a JSON response with the following fields:
-        1. "title": A short, catchy product name (in Russian).
-        2. "description": A selling description (2-3 sentences, in Russian).
-        3. "usps": An array of 3 unique selling points (short phrases, in Russian).
-        
-        Return ONLY valid JSON. Do not use markdown code blocks.
-      `;
-
-      this.logger.log('Calling Gemini API...');
-      
-      const response = await this.genAI.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: [
-          { text: prompt },
-          {
-            inlineData: {
-              data: base64Image,
-              mimeType: mimeType,
-            },
-          },
-        ],
-        config: {
-          responseMimeType: 'application/json',
-        }
-      });
-
-      this.logger.log('Gemini API call completed');
-
-      const text = response.text;
-
-      // Clean up markdown if present (though responseMimeType: 'application/json' should handle it)
-      const cleanText = text ? text.replace(/```json/g, '').replace(/```/g, '').trim() : '{}';
-
-      this.logger.log('Gemini response: ' + cleanText);
-
-      const parsed = JSON.parse(cleanText);
-      if (!parsed.title || !parsed.description || !Array.isArray(parsed.usps)) {
-        this.logger.error('Invalid response structure. Parsed:', parsed);
-        throw new Error('Invalid response structure from AI');
-      }
-      return parsed as ProductData;
+      const { buffer, mimeType } = await this.downloadImage(imageUrl);
+      const base64Image = buffer.toString('base64');
+      return await this.callGemini(base64Image, mimeType, uspCount);
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      
-      // Enhanced error logging
-      this.logger.error('Failed to generate product data');
-      this.logger.error(`Error type: ${error?.constructor?.name}`);
-      this.logger.error(`Error message: ${error instanceof Error ? error.message : String(error)}`);
-      
-      if (error instanceof Error) {
-        this.logger.error(`Error stack: ${error.stack}`);
-      }
-      
-      // Log the actual error object
-      if (error && typeof error === 'object') {
-        try {
-          this.logger.error(`Error details: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`);
-        } catch (e) {
-          this.logger.error('Could not stringify error object');
-        }
-      }
-      
-      // Fallback data
-      return {
-        title: 'Новый товар',
+       this.logger.error(`URL analysis failed: ${error instanceof Error ? error.message : error}`);
+       return {
+        productName: 'Новый товар',
         description: 'Описание товара будет сгенерировано позже.',
         usps: ['Быстрая доставка', 'Высокое качество', 'Лучшая цена'],
+        scenePrompt: 'professional product photography, studio lighting, 4k',
+        category: 'other'
       };
+    }
+  }
+
+  /**
+   * Общая приватная логика общения с Gemini
+   */
+  private async callGemini(base64Image: string, mimeType: string, uspCount: number = 3): Promise<ProductAnalysis> {
+    this.logger.log(`🤖 Sending request to Gemini (${this.modelName}) for ${uspCount} USPs...`);
+    
+    const prompt = `
+      You are a world-class creative director, marketer, and product photographer.
+      Analyze the provided IMAGE and generate structured data for a high-end commercial video.
+
+      This prompt is SELF-ADAPTING:
+      - First, identify what the product is.
+      - Next, determine its implicit category (cosmetics, electronics, food, clothing, industrial, toys, tools, jewelry, others).
+      - Then adapt the writing style, depth, tone, and background aesthetics to match the visual product type.
+      - If category is ambiguous, choose the most visually and commercially appropriate interpretation based on the image.
+
+      OUTPUT ONLY VALID JSON with the following fields:
+
+      1. "productName": 
+         - STRICTLY the actual product name (Brand + Product Type) as seen on the package or inferred.
+         - DO NOT add marketing adjectives (e.g. avoid "Amazing", "Luxury", "Best" unless part of the official brand name).
+         - Keep it factual, precise, and short (in Russian).
+
+      2. "description": 
+         - 1-2 sentences (in Russian).
+         - Selling, emotional, vivid.
+         - Tone adapts automatically: 
+            * luxury → elegant and soft
+            * tech → innovative and confident
+            * organic → warm and natural
+            * industrial → strong and functional
+            * kids/toys → playful
+
+      3. "usps": 
+         - Array of EXACTLY ${uspCount} short unique selling points.
+         - Base them on visual clues (text on package) OR standard benefits for this product type if text is unreadable.
+         - Each USP should be concise (3-7 words).
+         - Adapt the persuasion angle to the product's inferred customer segment. (in Russian).
+
+      4. "scenePrompt": 
+         - A high-end text-to-image background prompt written in ENGLISH.
+         - Describe ONLY the environment, lighting, mood, textures, atmosphere. 
+           NEVER mention or describe the product itself.
+         - Must include the quality tags: 
+             "cinematic lighting", "depth of field", "photorealistic", "8k", "masterpiece".
+         - Auto-select visual style based on inferred category:
+             * cosmetics/luxury → marble, silk, water ripples, pastel lighting  
+             * electronics/tech → concrete, neon accents, sleek dark studio, futuristic ambience  
+             * food/organic → wooden textures, warm sunlight, leaves, fruits, natural bokeh  
+             * industrial/tools → metal, workshop blur, dramatic hard light  
+             * jewelry → velvet, gold reflections, elegant soft shadows  
+             * kids/toys → bright playful textures, soft glowing light  
+         - If category doesn't match any rule, choose the *artistically best* commercial background.
+
+      5. "category":
+         - One-word inferred category ("cosmetics", "electronics", "food", "clothing", etc.).
+         - If ambiguous, choose the closest commercially relevant category.
+
+      Ensure JSON is valid and contains no comments, explanations, or extra text. Do not use markdown code blocks.
+    `;
+
+    try {
+      const response = await this.genAI.models.generateContent({
+        model: this.modelName,
+        contents: [
+          { text: prompt },
+          { inlineData: { data: base64Image, mimeType: mimeType } },
+        ],
+        config: { responseMimeType: 'application/json' }
+      });
+
+      // ИСПРАВЛЕНИЕ: обращаемся как к свойству, без скобок
+      const text = response.text;
+      this.logger.log(`📝 Gemini Raw Response: ${text}`);
+      
+      const cleanText = text ? text.replace(/```json/g, '').replace(/```/g, '').trim() : '{}';
+      
+      const parsed = JSON.parse(cleanText);
+      this.logger.log(`✅ Parsed JSON: ${JSON.stringify(parsed, null, 2)}`);
+
+      return {
+        productName: parsed.productName || 'Новый товар',
+        description: parsed.description || '',
+        usps: Array.isArray(parsed.usps) ? parsed.usps.slice(0, 7) : [],
+        scenePrompt: parsed.scenePrompt || 'professional product photography, studio lighting, 4k',
+        category: parsed.category || 'other'
+      };
+    } catch (e) {
+      throw new Error(`AI Analysis Failed: ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
+  // Вспомогательные методы
+  private validateImageUrl(url: string): void {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== 'https:') throw new BadRequestException('Only HTTPS allowed');
+    } catch {
+      throw new BadRequestException('Invalid URL');
+    }
+  }
+
+  private async downloadImage(url: string): Promise<{ buffer: Buffer; mimeType: string }> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) throw new Error(`Fetch failed: ${res.statusText}`);
+      
+      const buffer = Buffer.from(await res.arrayBuffer());
+      if (buffer.byteLength > AiTextService.MAX_IMAGE_SIZE) throw new Error('Image too large');
+      
+      return { 
+        buffer, 
+        mimeType: res.headers.get('content-type') || 'image/jpeg' 
+      };
+    } finally {
+      clearTimeout(timeout);
     }
   }
 }

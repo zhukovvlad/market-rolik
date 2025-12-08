@@ -428,7 +428,7 @@ export class VideoProcessor {
       this.logger.log('⚡ Starting Parallel Generation: Kling + TTS...');
       
       const textToSay = settings.ttsText || `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
-      const shouldGenerateAudio = (settings.ttsEnabled !== false) && textToSay.replace(/[^\w\s]/g, '').trim().length > 0;
+      const shouldGenerateAudio = (settings.ttsEnabled !== false) && textToSay.trim().length > 0;
 
       // Динамический промпт (пока хардкод, позже подключим Gemini)
       let klingPrompt = settings.prompt || "slow cinematic camera zoom in, floating dust particles, high quality, 4k";

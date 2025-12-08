@@ -147,7 +147,16 @@ export class AppController {
   @Post('ai/analyze-image')
   @UseGuards(AuthGuard('jwt'))
   async analyzeImage(@Body() dto: AnalyzeImageDto) {
-    return this.aiTextService.generateProductData(dto.imageUrl);
+    const result = await this.aiTextService.generateProductData(dto.imageUrl, dto.uspCount);
+    
+    // Map backend field names to frontend expectations
+    return {
+      title: result.productName,
+      description: result.description,
+      usps: result.usps,
+      scenePrompt: result.scenePrompt,
+      category: result.category,
+    };
   }
 
   // Note: /test-video endpoint removed - video generation is now automatically

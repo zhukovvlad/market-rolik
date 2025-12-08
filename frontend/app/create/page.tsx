@@ -143,6 +143,8 @@ export default function CreatePage() {
               setProjectTitle={setProjectTitle}
               isEditingTitle={isEditingTitle}
               setIsEditingTitle={setIsEditingTitle}
+              initialImageUrl={uploadedUrl}
+              initialProductData={productData}
             />
           )}
 
@@ -151,6 +153,7 @@ export default function CreatePage() {
               imageUrl={uploadedUrl}
               onGenerate={handleGenerate}
               isGenerating={isGenerating}
+              onBack={() => setStep(1)}
             />
           )}
         </div>
