@@ -156,11 +156,14 @@ export class AiTextService {
 
   // Вспомогательные методы
   private validateImageUrl(url: string): void {
+    let parsed: URL;
     try {
-      const parsed = new URL(url);
-      if (parsed.protocol !== 'https:') throw new BadRequestException('Only HTTPS allowed');
-    } catch {
-      throw new BadRequestException('Invalid URL');
+      parsed = new URL(url);
+    } catch (e) {
+      throw new BadRequestException('Invalid URL format');
+    }
+    if (parsed.protocol !== 'https:') {
+      throw new BadRequestException('Only HTTPS URLs are allowed');
     }
   }
 
@@ -171,6 +174,11 @@ export class AiTextService {
     try {
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`Fetch failed: ${res.statusText}`);
+      
+      const contentLength = res.headers.get('content-length');
+      if (contentLength && parseInt(contentLength, 10) > AiTextService.MAX_IMAGE_SIZE) {
+        throw new Error('Image too large');
+      }
       
       const buffer = Buffer.from(await res.arrayBuffer());
       if (buffer.byteLength > AiTextService.MAX_IMAGE_SIZE) throw new Error('Image too large');
