@@ -15,21 +15,25 @@ interface ProductDataStepProps {
     setProjectTitle: (title: string) => void;
     isEditingTitle: boolean;
     setIsEditingTitle: (editing: boolean) => void;
+    initialImageUrl?: string | null;
+    initialProductData?: ProductData | null;
 }
 
-export default function ProductDataStep({ onNext, projectTitle, setProjectTitle, isEditingTitle, setIsEditingTitle }: ProductDataStepProps) {
+export default function ProductDataStep({ onNext, projectTitle, setProjectTitle, isEditingTitle, setIsEditingTitle, initialImageUrl, initialProductData }: ProductDataStepProps) {
     const [file, setFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(initialImageUrl || null);
+    const [uploadedUrl, setUploadedUrl] = useState<string | null>(initialImageUrl || null);
     const [isUploading, setIsUploading] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
 
-    const [productData, setProductData] = useState<ProductData>({
-        title: "",
-        description: "",
-        usps: ["", "", ""],
-    });
+    const [productData, setProductData] = useState<ProductData>(
+        initialProductData || {
+            title: "",
+            description: "",
+            usps: ["", "", ""],
+        }
+    );
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -145,7 +149,7 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
         try {
             const res = await axios.post(
                 `${API_URL}/ai/analyze-image`,
-                { imageUrl: uploadedUrl },
+                { imageUrl: uploadedUrl, uspCount: productData.usps.length },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
@@ -154,7 +158,7 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
             setProductData({
                 title: title || "",
                 description: description || "",
-                usps: Array.isArray(usps) ? usps.slice(0, 3) : ["", "", ""],
+                usps: Array.isArray(usps) ? usps.slice(0, 7) : ["", "", ""],
             });
             toast.success("Данные заполнены магией AI! ✨");
         } catch (error) {
@@ -169,6 +173,19 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
         const newUsps = [...productData.usps];
         newUsps[index] = value;
         setProductData({ ...productData, usps: newUsps });
+    };
+
+    const handleAddUsp = () => {
+        if (productData.usps.length < 7) {
+            setProductData({ ...productData, usps: [...productData.usps, ""] });
+        }
+    };
+
+    const handleRemoveUsp = (index: number) => {
+        if (productData.usps.length > 1) {
+            const newUsps = productData.usps.filter((_, i) => i !== index);
+            setProductData({ ...productData, usps: newUsps });
+        }
     };
 
     const handleNext = () => {
@@ -353,7 +370,10 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
                     </div>
 
                     <div className="space-y-3">
-                        <Label className="text-base font-semibold">Преимущества товара (УТП)*</Label>
+                        <div className="flex items-center justify-between">
+                            <Label className="text-base font-semibold">Преимущества товара (УТП)*</Label>
+                            <span className="text-xs text-muted-foreground">{productData.usps.length}/7</span>
+                        </div>
                         <div className="space-y-3">
                             {productData.usps.map((usp, index) => (
                                 <div key={index} className="flex items-center gap-3">
@@ -363,9 +383,31 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
                                         value={usp}
                                         onChange={(e) => handleUspChange(index, e.target.value)}
                                     />
+                                    {productData.usps.length > 1 && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleRemoveUsp(index)}
+                                            className="shrink-0"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                 </div>
                             ))}
                         </div>
+                        {productData.usps.length < 7 && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleAddUsp}
+                                className="w-full"
+                            >
+                                + Добавить УТП
+                            </Button>
+                        )}
                     </div>
                 </div>
 

@@ -12,6 +12,7 @@ interface SettingsStepProps {
     imageUrl: string;
     onGenerate: (settings: GenerateSettings) => void;
     isGenerating: boolean;
+    onBack?: () => void;
 }
 
 const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: React.ElementType }> = {
@@ -21,7 +22,7 @@ const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: React.Elem
     "3:4": { label: "Post (3:4)", Icon: RectangleVertical },
 };
 
-export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: SettingsStepProps) {
+export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBack }: SettingsStepProps) {
     const [prompt, setPrompt] = useState("");
     const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
     const [imageError, setImageError] = useState(false);
@@ -193,20 +194,33 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating }: Set
                     </div>
                 </div>
 
-                <Button
-                    size="lg"
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    className="w-full text-lg h-14 shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-shadow"
-                >
-                    {isGenerating ? (
-                        <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Создаем магию...
-                        </>
-                    ) : (
-                        "Создать проект 🚀"
+                <div className="flex gap-4">
+                    {onBack && (
+                        <Button
+                            size="lg"
+                            variant="outline"
+                            onClick={onBack}
+                            disabled={isGenerating}
+                            className="text-lg h-14"
+                        >
+                            ‹ Назад
+                        </Button>
                     )}
-                </Button>
+                    <Button
+                        size="lg"
+                        onClick={handleGenerate}
+                        disabled={isGenerating}
+                        className="flex-1 text-lg h-14 shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-shadow"
+                    >
+                        {isGenerating ? (
+                            <>
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Создаем магию...
+                            </>
+                        ) : (
+                            "Создать проект 🚀"
+                        )}
+                    </Button>
+                </div>
             </div>
         </div>
     );
