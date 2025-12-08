@@ -147,9 +147,14 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
 
         setIsAnalyzing(true);
         try {
+            const payload: { imageUrl: string; uspCount?: number } = { imageUrl: uploadedUrl };
+            if (productData.usps.length > 0) {
+                payload.uspCount = productData.usps.length;
+            }
+            
             const res = await axios.post(
                 `${API_URL}/ai/analyze-image`,
-                { imageUrl: uploadedUrl, uspCount: productData.usps.length },
+                payload,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
