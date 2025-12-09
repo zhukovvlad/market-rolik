@@ -35,9 +35,7 @@ class ProjectSettingsDto {
   scenePrompt?: string;
 
   @IsOptional()
-  @IsString()
-  @IsUUID()
-  @MaxLength(100)
+  @IsUUID('4')
   activeSceneAssetId?: string;
 
   @IsOptional()
