@@ -121,31 +121,34 @@ export const MyComposition: React.FC<z.infer<typeof myCompSchema>> = ({
       </AbsoluteFill>
 
       {/* СЛОЙ 4: УТП (Вылетают позже, не мешают обложке) */}
-      <AbsoluteFill className="items-center justify-end pb-40 px-8">
-        <div className="flex flex-col gap-4 w-full">
-          {usps.map((usp, index) => {
-            const delay = 20 + (index * 10); // Чуть ускорили появление
-            const slide = spring({ frame: frame - delay, fps });
-            const slideX = interpolate(slide, [0, 1], [-500, 0]);
-            const opacity = interpolate(slide, [0, 1], [0, 1]);
+      {/* Рендерим только если есть УТП — для clean aesthetic видео */}
+      {usps && usps.length > 0 && (
+        <AbsoluteFill className="items-center justify-end pb-40 px-8">
+          <div className="flex flex-col gap-4 w-full">
+            {usps.map((usp, index) => {
+              const delay = 20 + (index * 10); // Чуть ускорили появление
+              const slide = spring({ frame: frame - delay, fps });
+              const slideX = interpolate(slide, [0, 1], [-500, 0]);
+              const opacity = interpolate(slide, [0, 1], [0, 1]);
 
-            return (
-              <div
-                key={index}
-                style={{
-                  transform: `translateX(${slideX}px)`,
-                  opacity,
-                  borderLeftColor: primaryColor
-                }}
-                className="bg-white/90 px-6 py-4 rounded-xl shadow-lg border-l-[12px] flex items-center gap-4"
-              >
-                <div className="h-4 w-4 rounded-full bg-slate-800" />
-                <span className="text-3xl font-bold text-slate-800">{usp}</span>
-              </div>
-            );
-          })}
-        </div>
-      </AbsoluteFill>
+              return (
+                <div
+                  key={index}
+                  style={{
+                    transform: `translateX(${slideX}px)`,
+                    opacity,
+                    borderLeftColor: primaryColor
+                  }}
+                  className="bg-white/90 px-6 py-4 rounded-xl shadow-lg border-l-[12px] flex items-center gap-4"
+                >
+                  <div className="h-4 w-4 rounded-full bg-slate-800" />
+                  <span className="text-3xl font-bold text-slate-800">{usp}</span>
+                </div>
+              );
+            })}
+          </div>
+        </AbsoluteFill>
+      )}
 
     </AbsoluteFill>
   );

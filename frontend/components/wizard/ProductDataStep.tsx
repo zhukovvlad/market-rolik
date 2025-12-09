@@ -166,6 +166,12 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
                 description: description || "",
                 usps: Array.isArray(usps) ? usps.slice(0, 7) : ["", "", ""],
             });
+            
+            // Auto-fill project title: "Проект - Product Name"
+            if (title) {
+                setProjectTitle(`Проект - ${title}`);
+            }
+            
             toast.success("Данные заполнены магией AI! ✨");
         } catch (error) {
             console.error("AI analysis failed", error);
@@ -188,10 +194,8 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
     };
 
     const handleRemoveUsp = (index: number) => {
-        if (productData.usps.length > 1) {
-            const newUsps = productData.usps.filter((_, i) => i !== index);
-            setProductData({ ...productData, usps: newUsps });
-        }
+        const newUsps = productData.usps.filter((_, i) => i !== index);
+        setProductData({ ...productData, usps: newUsps });
     };
 
     const handleNext = () => {
@@ -201,12 +205,6 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
         }
         if (!productData.title) {
             toast.error("Введите название товара");
-            return;
-        }
-        
-        const hasValidUsp = productData.usps.some(usp => usp.trim().length > 0);
-        if (!hasValidUsp) {
-            toast.error("Введите хотя бы одно преимущество товара");
             return;
         }
 
@@ -389,17 +387,15 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
                                         value={usp}
                                         onChange={(e) => handleUspChange(index, e.target.value)}
                                     />
-                                    {productData.usps.length > 1 && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleRemoveUsp(index)}
-                                            className="shrink-0"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </Button>
-                                    )}
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleRemoveUsp(index)}
+                                        className="shrink-0"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </Button>
                                 </div>
                             ))}
                         </div>

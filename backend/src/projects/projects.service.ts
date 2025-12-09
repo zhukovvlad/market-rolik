@@ -108,4 +108,32 @@ export class ProjectsService {
   async save(project: Project) {
     return this.projectsRepository.save(project);
   }
+
+  /**
+   * Устанавливает выбранную сцену как активную для анимации
+   * Позволяет пользователю переключаться между разными вариантами фона
+   */
+  async setActiveScene(projectId: string, assetId: string, userId: string) {
+    const project = await this.findOne(projectId, userId);
+    
+    // Проверяем, что этот ассет реально принадлежит этому проекту
+    const asset = project.assets.find(a => a.id === assetId);
+    if (!asset || asset.type !== AssetType.IMAGE_SCENE) {
+      throw new BadRequestException('Invalid asset for scene');
+    }
+
+    // Обновляем настройки
+    project.settings = {
+      ...project.settings,
+      activeSceneAssetId: asset.id,
+    };
+    
+    // Если у ассета в метаданных есть промпт, восстанавливаем его в настройки,
+    // чтобы пользователь видел тот промпт, который создал эту картинку
+    if (asset.meta?.prompt) {
+      project.settings.scenePrompt = asset.meta.prompt;
+    }
+
+    return await this.projectsRepository.save(project);
+  }
 }

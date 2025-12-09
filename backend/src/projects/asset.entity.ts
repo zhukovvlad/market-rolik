@@ -9,7 +9,10 @@ import { Project } from './project.entity';
 
 export enum AssetType {
   IMAGE_CLEAN = 'IMAGE_CLEAN', // Фото без фона
+  IMAGE_SCENE = 'IMAGE_SCENE', // Фон от Photoroom (этап 1)
+  IMAGE_UPSCALED = 'IMAGE_UPSCALED', // Upscale от Stability AI
   VIDEO_FRAGMENT = 'VIDEO_FRAGMENT', // Генерация Kling/SVD
+  AUDIO_TTS = 'AUDIO_TTS', // Озвучка от YandexCloud TTS
   AUDIO_VOICEOVER = 'AUDIO_VOICEOVER',
   AUDIO_MUSIC = 'AUDIO_MUSIC',
 }

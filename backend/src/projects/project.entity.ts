@@ -13,11 +13,22 @@ import { ProjectSettings } from './interfaces/project-settings.interface';
 
 export enum ProjectStatus {
   DRAFT = 'DRAFT',
+  
+  // Этап 1: Генерация фона
+  GENERATING_IMAGE = 'GENERATING_IMAGE',
+  IMAGE_READY = 'IMAGE_READY', // Стоп-фактор: ждем подтверждения пользователя
+  
+  // Этап 2: Анимация видео
+  GENERATING_VIDEO = 'GENERATING_VIDEO',
+  
+  // Финальные статусы
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  
+  // Legacy статусы (можно удалить после миграции)
   QUEUED = 'QUEUED',
   PROCESSING = 'PROCESSING',
   RENDERING = 'RENDERING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
 }
 
 @Entity('projects')
