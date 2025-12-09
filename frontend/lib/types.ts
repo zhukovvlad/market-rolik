@@ -1,4 +1,4 @@
-export type ProjectStatus = 'DRAFT' | 'QUEUED' | 'PROCESSING' | 'RENDERING' | 'COMPLETED' | 'FAILED';
+export type ProjectStatus = 'DRAFT' | 'QUEUED' | 'PROCESSING' | 'RENDERING' | 'COMPLETED' | 'FAILED' | 'GENERATING_IMAGE' | 'IMAGE_READY' | 'GENERATING_VIDEO';
 
 export interface ProjectSettings {
     productName?: string;

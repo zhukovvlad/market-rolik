@@ -104,6 +104,7 @@ export class AnimationProcessor {
         sceneAsset = await this.assetRepository.findOne({
           where: { 
             id: settings.activeSceneAssetId,
+            project: { id: projectId },
             type: AssetType.IMAGE_SCENE 
           }
         });
@@ -159,7 +160,8 @@ export class AnimationProcessor {
         });
         await this.assetRepository.save(videoAsset);
       } catch (err) {
-        this.logger.error(`❌ Kling failed: ${err.message}. Will use static image in video.`);
+        const errMsg = err instanceof Error ? err.message : String(err);
+        this.logger.error(`❌ Kling failed: ${errMsg}. Will use static image in video.`);
         s3VideoUrl = null; // Remotion будет использовать статическую картинку
       }
 
