@@ -74,7 +74,10 @@ export default function ImagePreviewStep({
     if (isSelectingScene) return; // Prevent duplicate requests
     
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      toast.error('Пожалуйста, войдите в систему');
+      return;
+    }
 
     setIsSelectingScene(true);
     try {

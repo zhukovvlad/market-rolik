@@ -126,9 +126,10 @@ export class ProjectsService {
       .update(Project)
       .set({
         status,
-        settings: () => `settings || '${JSON.stringify(partialSettings)}'::jsonb`,
+        settings: () => `COALESCE(settings, '{}'::jsonb) || :partial::jsonb`,
       })
       .where('id = :id', { id: projectId })
+      .setParameters({ partial: JSON.stringify(partialSettings ?? {}) })
       .returning('*')
       .execute();
     

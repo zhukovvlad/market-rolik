@@ -129,13 +129,6 @@ export class BackgroundProcessor {
       const savedSceneAsset = await this.assetRepository.save(sceneAsset);
       this.logger.log(`✅ IMAGE_SCENE asset saved with ID: ${savedSceneAsset.id}`);
 
-      // Делаем этот новый ассет "Активным" по умолчанию
-      project.settings = {
-        ...project.settings,
-        activeSceneAssetId: savedSceneAsset.id,
-        scenePrompt: bgPrompt, // Обновляем промпт в настройках
-      };
-
       // --- 4. ГЕНЕРАЦИЯ TTS (Параллельно, но быстро) ---
       let ttsUrl: string | null = null;
       const textToSay = settings.ttsText || `${settings.productName || ''}. ${settings.usps?.join('. ') || ''}`;
@@ -164,9 +157,16 @@ export class BackgroundProcessor {
         }
       }
 
-      // --- ФИНАЛ: Переводим в IMAGE_READY ---
-      // Используем query builder чтобы не затереть ассеты
-      await this.projectsService.updateStatus(projectId, ProjectStatus.IMAGE_READY);
+      // --- ФИНАЛ: Переводим в IMAGE_READY и сохраняем настройки ---
+      // Атомарно обновляем статус и settings (activeSceneAssetId, scenePrompt)
+      await this.projectsService.updateStatusAndSettings(
+        projectId,
+        ProjectStatus.IMAGE_READY,
+        {
+          activeSceneAssetId: savedSceneAsset.id,
+          scenePrompt: bgPrompt,
+        },
+      );
 
       this.logger.log(`🎉 Background Generation COMPLETE for Project ${projectId}`);
       return { 
