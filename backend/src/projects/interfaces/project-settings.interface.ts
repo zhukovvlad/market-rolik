@@ -5,7 +5,9 @@ export interface ProjectSettings {
   description?: string;
   usps?: string[];
   mainImage?: string;
-  prompt?: string;
+  prompt?: string; // Kling animation prompt
+  scenePrompt?: string; // Photoroom background generation prompt
+  activeSceneAssetId?: string; // ID выбранного ассета для анимации
   aspectRatio?: AspectRatio;
   musicTheme?: 'energetic' | 'calm' | 'lofi';
   ttsEnabled?: boolean;

@@ -109,15 +109,14 @@ export class ProjectsController {
     }
 
     // Security: Pass userId to queue for ownership verification
-    await this.videoQueue.add('generate-kling', {
+    // Запускаем Этап 1: Генерация фона + TTS
+    await this.videoQueue.add('generate-background', {
       projectId: project.id,
-      userId: req.user.id, // Critical: for security check in processor
     }, {
-      // 👇 ДОБАВЬ ЭТИ НАСТРОЙКИ
-      attempts: 3,         // Пытаться 3 раза
+      attempts: 2,
       backoff: {
         type: 'exponential',
-        delay: 5000,       // Пауза 5 сек -> 10 сек -> 20 сек
+        delay: 5000,
       },
       removeOnComplete: true, 
       removeOnFail: false,
@@ -130,6 +129,87 @@ export class ProjectsController {
   @UseGuards(AuthGuard('jwt'))
   async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.projectsService.findOne(id, req.user.id);
+  }
+
+  /**
+   * Регенерация фона с новым промптом (Этап 1 повторно)
+   * Пользователь может вызывать этот эндпоинт несколько раз, пока не получит нужный результат
+   */
+  @Post(':id/regenerate-bg')
+  @UseGuards(AuthGuard('jwt'))
+  async regenerateBackground(
+    @Param('id') id: string,
+    @Body('scenePrompt') scenePrompt: string,
+    @Req() req: AuthenticatedRequest
+  ) {
+    const project = await this.projectsService.findOne(id, req.user.id);
+    
+    // Обновляем промпт в настройках
+    project.settings = {
+      ...project.settings,
+      scenePrompt: scenePrompt || project.settings.scenePrompt,
+    };
+    await this.projectsService.save(project);
+
+    // Запускаем генерацию фона заново
+    await this.videoQueue.add('generate-background', {
+      projectId: project.id,
+    }, {
+      attempts: 2,
+      backoff: { type: 'exponential', delay: 5000 },
+      removeOnComplete: true,
+      removeOnFail: false,
+    });
+
+    return { message: 'Background regeneration started', projectId: project.id };
+  }
+
+  /**
+   * Запуск анимации видео (Этап 2)
+   * Вызывается только когда пользователь одобрил фон и TTS
+   */
+  @Post(':id/animate')
+  @UseGuards(AuthGuard('jwt'))
+  async animateVideo(
+    @Param('id') id: string,
+    @Body('prompt') animationPrompt: string,
+    @Req() req: AuthenticatedRequest
+  ) {
+    const project = await this.projectsService.findOne(id, req.user.id);
+    
+    // Обновляем animation промпт если предоставлен
+    if (animationPrompt) {
+      project.settings = {
+        ...project.settings,
+        prompt: animationPrompt,
+      };
+      await this.projectsService.save(project);
+    }
+
+    // Запускаем Этап 2: Анимация
+    await this.videoQueue.add('animate-image', {
+      projectId: project.id,
+    }, {
+      attempts: 1, // Анимация дорогая, не ретраим автоматически
+      removeOnComplete: true,
+      removeOnFail: false,
+    });
+
+    return { message: 'Animation started', projectId: project.id };
+  }
+
+  /**
+   * Выбор одного из ранее сгенерированных фонов
+   * Позволяет пользователю вернуться к предыдущей генерации
+   */
+  @Post(':id/select-scene')
+  @UseGuards(AuthGuard('jwt'))
+  async selectScene(
+    @Param('id') id: string,
+    @Body('assetId') assetId: string,
+    @Req() req: AuthenticatedRequest
+  ) {
+    return this.projectsService.setActiveScene(id, assetId, req.user.id);
   }
   
   @Get('cleanup/run-now')
