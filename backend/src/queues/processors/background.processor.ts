@@ -75,8 +75,7 @@ export class BackgroundProcessor {
 
     try {
       const project = await this.projectsService.findOne(projectId);
-      project.status = ProjectStatus.GENERATING_IMAGE;
-      await this.projectsService.save(project);
+      await this.projectsService.updateStatus(projectId, ProjectStatus.GENERATING_IMAGE);
 
       const settings = project.settings || {};
       const originalImageUrl = settings.mainImage;
@@ -87,6 +86,9 @@ export class BackgroundProcessor {
       // --- 1. ГЕНЕРАЦИЯ СЦЕНЫ (Photoroom) ---
       const scenePromptValue = (settings.scenePrompt as string) ?? '';
       const scenePromptTrimmed = scenePromptValue.trim();
+      
+      this.logger.log(`🔍 scenePrompt from settings: "${scenePromptValue}" (length: ${scenePromptValue.length})`);
+      
       const bgPrompt = scenePromptTrimmed
         ? scenePromptTrimmed
         : this.configService.get<string>(
@@ -94,20 +96,25 @@ export class BackgroundProcessor {
             'professional product photography, on a wooden podium, cinematic lighting, high quality, 4k'
           );
 
-      this.logger.log(`📸 Generating scene with Photoroom: "${bgPrompt.substring(0, 50)}..."`);
+      this.logger.log(`📸 Generating scene with Photoroom: "${bgPrompt.substring(0, 50)}..."`);;
       let visualBuffer = await this.generateAiScene(originalImageUrl, bgPrompt, width, height);
 
-      // --- 2. UPSCALE (Stability AI) ---
-      this.logger.log('🔍 Upscaling with Stability AI...');
-      visualBuffer = await this.upscaleImageFast(visualBuffer);
+      // --- 2. UPSCALE (опционально) ---
+      const stabilityKey = this.configService.get<string>('STABILITY_AI_API_KEY');
+      if (stabilityKey && stabilityKey !== 'mock') {
+        this.logger.log('🔍 Upscaling with Stability AI...');
+        visualBuffer = await this.upscaleImageFast(visualBuffer);
+      } else {
+        this.logger.warn('⚠️ Stability AI disabled (mock or missing key), skipping upscale');
+      }
 
       // --- 3. СОХРАНЕНИЕ В S3 ---
       const highResUrl = await this.storageService.uploadFile(visualBuffer, 'image/png', 'processed');
       this.logger.log(`✅ High-Res Scene saved: ${highResUrl}`);
 
-      // Сохраняем как Asset
+      // Сохраняем как Asset (используем projectId для relation)
       const sceneAsset = this.assetRepository.create({
-        project: { id: projectId },
+        project: { id: projectId } as any, // TypeORM автоматически создаст foreign key
         type: AssetType.IMAGE_SCENE,
         provider: 'photoroom+stability',
         storageUrl: highResUrl,
@@ -118,7 +125,14 @@ export class BackgroundProcessor {
           createdAt: new Date().toISOString()
         },
       });
+      
+      this.logger.log(`🔍 Scene asset before save: ${JSON.stringify({ projectId, type: sceneAsset.type, hasProject: !!sceneAsset.project })}`);
       const savedSceneAsset = await this.assetRepository.save(sceneAsset);
+      this.logger.log(`✅ IMAGE_SCENE asset saved with ID: ${savedSceneAsset.id}`);
+      
+      // Verify it was actually saved
+      const verifyAsset = await this.assetRepository.findOne({ where: { id: savedSceneAsset.id }, relations: ['project'] });
+      this.logger.log(`🔍 Verification: asset exists=${!!verifyAsset}, projectId=${verifyAsset?.project?.id}`);
 
       // Делаем этот новый ассет "Активным" по умолчанию
       project.settings = {
@@ -140,14 +154,14 @@ export class BackgroundProcessor {
             ttsUrl = await this.storageService.uploadFile(ttsResult.buffer, ttsResult.mimeType, 'audio');
             
             const ttsAsset = this.assetRepository.create({
-              project: { id: projectId },
+              project: { id: projectId } as any, // TypeORM автоматически создаст foreign key
               type: AssetType.AUDIO_TTS,
               provider: 'yandex-cloud',
               storageUrl: ttsUrl,
               meta: { text: textToSay, voice: settings.ttsVoice || 'alena' },
             });
-            await this.assetRepository.save(ttsAsset);
-            this.logger.log(`✅ TTS saved: ${ttsUrl}`);
+            const savedTtsAsset = await this.assetRepository.save(ttsAsset);
+            this.logger.log(`✅ TTS saved: ${ttsUrl} (Asset ID: ${savedTtsAsset.id})`);
           }
         } catch (err) {
           const errMsg = err instanceof Error ? err.message : String(err);
@@ -156,8 +170,8 @@ export class BackgroundProcessor {
       }
 
       // --- ФИНАЛ: Переводим в IMAGE_READY ---
-      project.status = ProjectStatus.IMAGE_READY;
-      await this.projectsService.save(project);
+      // Используем query builder чтобы не затереть ассеты
+      await this.projectsService.updateStatus(projectId, ProjectStatus.IMAGE_READY);
 
       this.logger.log(`🎉 Background Generation COMPLETE for Project ${projectId}`);
       return { 
@@ -167,18 +181,40 @@ export class BackgroundProcessor {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.stack || error.message : String(error);
-      this.logger.error(`❌ Background Generation FAILED for Project ${projectId}`, errorMessage);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
       
-      try {
-        const project = await this.projectsService.findOne(projectId);
-        if (project) {
-          project.status = ProjectStatus.FAILED;
-          await this.projectsService.save(project);
+      // attemptsMade начинается с 0, поэтому добавляем +1 для отображения
+      const currentAttempt = job.attemptsMade + 1;
+      const maxAttempts = job.opts.attempts || 1;
+      
+      this.logger.error(`❌ Background Generation FAILED for Project ${projectId} (attempt ${currentAttempt}/${maxAttempts})`, {
+        error: errorMessage,
+        stack: errorStack,
+      });
+      
+      // Меняем статус на FAILED только если исчерпаны все попытки
+      const isLastAttempt = currentAttempt >= maxAttempts;
+      
+      if (isLastAttempt) {
+        this.logger.error(`❌ All retry attempts exhausted. Marking project as FAILED.`);
+        try {
+          const newSettings = {
+            lastError: errorMessage,
+            failedAt: new Date().toISOString(),
+          };
+          
+          this.logger.log(`💾 Updating project to FAILED status. Error: ${errorMessage}`);
+          await this.projectsService.updateStatusAndSettings(projectId, ProjectStatus.FAILED, newSettings);
+          this.logger.log(`✅ Project marked as FAILED successfully`);
+        } catch (dbError) {
+          const dbErrorMessage = dbError instanceof Error ? dbError.message : String(dbError);
+          this.logger.error(`❌ Failed to update project status to FAILED: ${dbErrorMessage}`);
         }
-      } catch (dbError) {
-        this.logger.error(`❌ Failed to update project status to FAILED`, dbError);
+      } else {
+        this.logger.warn(`⚠️ Attempt ${currentAttempt} failed. Will retry...`);
       }
+      
       throw error;
     }
   }
@@ -192,8 +228,8 @@ export class BackgroundProcessor {
     targetWidth: number,
     targetHeight: number,
   ): Promise<Buffer> {
-    const apiKey = this.configService.get<string>('PHOTOROOM_API_KEY');
-    if (!apiKey) throw new Error('PHOTOROOM_API_KEY not configured');
+    const apiKey = this.configService.get<string>('PHOTOROOM_SANDBOX_API_KEY');
+    if (!apiKey) throw new Error('PHOTOROOM_SANDBOX_API_KEY not configured');
 
     const form = new FormData();
     form.append('imageUrl', productImageUrl);
@@ -202,58 +238,88 @@ export class BackgroundProcessor {
 
     this.logger.log(`📸 Photoroom request: ${productImageUrl.substring(0, 50)}... | ${targetWidth}x${targetHeight}`);
 
-    const response = await axios.post('https://sdk.photoroom.com/v2/edit', form, {
-      headers: {
-        ...form.getHeaders(),
-        'x-api-key': apiKey,
-      },
-      responseType: 'arraybuffer',
-      timeout: 60000,
-    });
+    try {
+      const response = await axios.post('https://image-api.photoroom.com/v2/edit', form, {
+        headers: {
+          ...form.getHeaders(),
+          'x-api-key': apiKey,
+        },
+        responseType: 'arraybuffer',
+        timeout: 60000,
+      });
 
-    if (response.status !== 200) {
-      throw new Error(`Photoroom API error: HTTP ${response.status}`);
+      if (response.status !== 200) {
+        throw new Error(`Photoroom API error: HTTP ${response.status}`);
+      }
+
+      this.logger.log(`✅ Photoroom returned ${response.data.length} bytes`);
+      return Buffer.from(response.data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data ? Buffer.from(error.response.data).toString() : 'No response data';
+        this.logger.error(`❌ Photoroom API failed: ${error.message}`, {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: errorData,
+          requestUrl: 'https://image-api.photoroom.com/v2/edit',
+          requestParams: {
+            imageUrl: productImageUrl,
+            'background.prompt': prompt,
+            outputSize: `${targetWidth}x${targetHeight}`,
+          },
+        });
+      }
+      throw error;
     }
-
-    this.logger.log(`✅ Photoroom returned ${response.data.length} bytes`);
-    return Buffer.from(response.data);
   }
 
   /**
    * Upscale через Stability AI (Fast Upscaler, консервативный 2x)
    */
   private async upscaleImageFast(inputBuffer: Buffer): Promise<Buffer> {
-    const apiKey = this.configService.get<string>('STABILITY_API_KEY');
-    if (!apiKey) throw new Error('STABILITY_API_KEY not configured');
+    const apiKey = this.configService.get<string>('STABILITY_AI_API_KEY');
+    if (!apiKey) throw new Error('STABILITY_AI_API_KEY not configured');
 
     const form = new FormData();
     form.append('image', inputBuffer, { filename: 'image.png', contentType: 'image/png' });
     form.append('output_format', 'png');
 
-    this.logger.log('🔍 Stability AI Fast Upscaler (conservative)...');
+    this.logger.log('🔍 Stability AI Fast Upscaler...');
 
-    const response = await axios.post(
-      'https://api.stability.ai/v2beta/stable-image/upscale/conservative',
-      form,
-      {
-        headers: {
-          ...form.getHeaders(),
-          Authorization: `Bearer ${apiKey}`,
-          Accept: 'image/*',
-        },
-        responseType: 'arraybuffer',
-        timeout: 60000,
+    try {
+      const response = await axios.post(
+        'https://api.stability.ai/v2beta/stable-image/upscale/fast',
+        form,
+        {
+          headers: {
+            ...form.getHeaders(),
+            Authorization: `Bearer ${apiKey}`,
+            Accept: 'image/*',
+          },
+          responseType: 'arraybuffer',
+          timeout: 60000,
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error(`Stability API error: HTTP ${response.status}`);
       }
-    );
 
-    if (response.status !== 200) {
-      throw new Error(`Stability API error: HTTP ${response.status}`);
+      const upscaledBuffer = Buffer.from(response.data);
+      this.logger.log(`✅ Stability returned ${upscaledBuffer.length} bytes`);
+
+      // Конвертируем в PNG через sharp (на случай если вернулся webp)
+      return await sharp(upscaledBuffer).png().toBuffer();
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorData = error.response?.data ? Buffer.from(error.response.data).toString() : 'No response data';
+        this.logger.error(`❌ Stability AI failed: ${error.message}`, {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: errorData,
+        });
+      }
+      throw error;
     }
-
-    const upscaledBuffer = Buffer.from(response.data);
-    this.logger.log(`✅ Stability returned ${upscaledBuffer.length} bytes`);
-
-    // Конвертируем в PNG через sharp (на случай если вернулся webp)
-    return await sharp(upscaledBuffer).png().toBuffer();
   }
 }

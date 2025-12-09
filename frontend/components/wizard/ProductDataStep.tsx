@@ -10,7 +10,7 @@ import { API_URL } from "@/lib/utils";
 import { ProductData } from "@/types/product";
 
 interface ProductDataStepProps {
-    onNext: (data: { imageUrl: string; productData: ProductData }) => void;
+    onNext: (data: { imageUrl: string; productData: ProductData; scenePrompt?: string }) => void;
     projectTitle: string;
     setProjectTitle: (title: string) => void;
     isEditingTitle: boolean;
@@ -26,6 +26,7 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
     const [isUploading, setIsUploading] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [aiScenePrompt, setAiScenePrompt] = useState<string | undefined>(undefined); // Сохраняем scenePrompt от AI
 
     const [productData, setProductData] = useState<ProductData>(
         initialProductData || {
@@ -160,12 +161,17 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
             );
 
             // Validate response structure
-            const { title, description, usps } = res.data;
+            const { title, description, usps, scenePrompt } = res.data;
             setProductData({
                 title: title || "",
                 description: description || "",
                 usps: Array.isArray(usps) ? usps.slice(0, 7) : ["", "", ""],
             });
+            
+            // Сохраняем scenePrompt от AI
+            if (scenePrompt) {
+                setAiScenePrompt(scenePrompt);
+            }
             
             // Auto-fill project title: "Проект - Product Name"
             if (title) {
@@ -208,7 +214,7 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
             return;
         }
 
-        onNext({ imageUrl: uploadedUrl, productData });
+        onNext({ imageUrl: uploadedUrl, productData, scenePrompt: aiScenePrompt });
     };
 
     return (

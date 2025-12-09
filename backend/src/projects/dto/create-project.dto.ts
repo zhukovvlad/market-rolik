@@ -30,6 +30,16 @@ class ProjectSettingsDto {
   prompt?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(1000, { message: 'Scene prompt must not exceed 1000 characters' })
+  scenePrompt?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  activeSceneAssetId?: string;
+
+  @IsOptional()
   @IsIn(ASPECT_RATIOS)
   aspectRatio?: AspectRatio;
 
