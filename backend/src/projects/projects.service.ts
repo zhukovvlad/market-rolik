@@ -118,18 +118,21 @@ export class ProjectsService {
 
   /**
    * Обновляет статус и частично обновляет settings (мержит с существующими)
+   * Использует атомарное обновление через PostgreSQL JSONB || оператор
    */
   async updateStatusAndSettings(projectId: string, status: ProjectStatus, partialSettings: Partial<ProjectSettings>) {
-    const project = await this.projectsRepository.findOne({ where: { id: projectId } });
-    if (!project) throw new NotFoundException('Project not found');
-    
-    await this.projectsRepository.update(
-      { id: projectId },
-      {
+    const result = await this.projectsRepository
+      .createQueryBuilder()
+      .update(Project)
+      .set({
         status,
-        settings: { ...project.settings, ...partialSettings } as any,
-      }
-    );
+        settings: () => `settings || '${JSON.stringify(partialSettings)}'::jsonb`,
+      })
+      .where('id = :id', { id: projectId })
+      .returning('*')
+      .execute();
+    
+    if (!result.affected) throw new NotFoundException('Project not found');
   }
 
   /**

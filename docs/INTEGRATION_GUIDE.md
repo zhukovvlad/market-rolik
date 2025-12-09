@@ -26,7 +26,8 @@
 ```typescript
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useProjectStatus } from '@/lib/hooks/useProjectStatus';
 import ProductDataStep from '@/components/wizard/ProductDataStep';
 import ImagePreviewStep from '@/components/wizard/ImagePreviewStep';
@@ -35,6 +36,7 @@ import axios from 'axios';
 import { API_URL } from '@/lib/utils';
 
 export default function CreatePage() {
+  const router = useRouter();
   const [step, setStep] = useState<'product' | 'preview' | 'settings'>('product');
   const [projectId, setProjectId] = useState<string | null>(null);
   
@@ -58,7 +60,7 @@ export default function CreatePage() {
     // Создаем проект
     const token = localStorage.getItem('token');
     const res = await axios.post(`${API_URL}/projects`, {
-      title: projectTitle,
+      title: data.productData.title,
       settings: {
         mainImage: data.imageUrl,
         productName: data.productData.title,

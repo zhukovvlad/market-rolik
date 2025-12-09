@@ -106,7 +106,18 @@ export default function CreatePage() {
       
     } catch (error) {
       console.error('Project creation failed', error);
-      toast.error("Ошибка создания проекта");
+      if (axios.isAxiosError(error)) {
+        if (!error.response) {
+          toast.error("Ошибка сети. Проверьте подключение к интернету");
+        } else if (error.response.status === 401) {
+          toast.error("Сессия истекла. Пожалуйста, войдите снова");
+          router.push("/auth/signin");
+        } else {
+          toast.error(`Ошибка создания проекта: ${error.response.statusText}`);
+        }
+      } else {
+        toast.error("Ошибка создания проекта");
+      }
     }
   };
 
@@ -139,15 +150,6 @@ export default function CreatePage() {
   // Получаем ассеты для превью
   const sceneAssets = project?.assets?.filter(a => a.type === 'IMAGE_SCENE') || [];
   const ttsAsset = project?.assets?.find(a => a.type === 'AUDIO_TTS');
-
-  // Debug: логируем данные
-  console.log('📊 Project data:', {
-    id: project?.id,
-    status: project?.status,
-    assetsCount: project?.assets?.length,
-    sceneAssetsCount: sceneAssets.length,
-    assets: project?.assets,
-  });
 
   return (
     <div className="min-h-screen bg-background">

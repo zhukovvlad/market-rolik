@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, Length, IsOptional, ValidateNested, IsArray, MaxLength, IsIn, IsBoolean, IsUrl } from 'class-validator';
+import { IsString, IsNotEmpty, Length, IsOptional, ValidateNested, IsArray, MaxLength, IsIn, IsBoolean, IsUrl, IsUUID } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ASPECT_RATIOS, AspectRatio } from '../constants';
 
@@ -36,6 +36,7 @@ class ProjectSettingsDto {
 
   @IsOptional()
   @IsString()
+  @IsUUID()
   @MaxLength(100)
   activeSceneAssetId?: string;
 
