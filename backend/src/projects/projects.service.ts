@@ -118,8 +118,11 @@ export class ProjectsService {
     
     // Проверяем, что этот ассет реально принадлежит этому проекту
     const asset = project.assets.find(a => a.id === assetId);
-    if (!asset || asset.type !== AssetType.IMAGE_SCENE) {
-      throw new BadRequestException('Invalid asset for scene');
+    if (!asset) {
+      throw new BadRequestException('Asset not found in this project');
+    }
+    if (asset.type !== AssetType.IMAGE_SCENE) {
+      throw new BadRequestException(`Asset type must be IMAGE_SCENE, got ${asset.type}`);
     }
 
     // Обновляем настройки

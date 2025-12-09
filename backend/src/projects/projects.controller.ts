@@ -9,6 +9,8 @@ import { StorageService } from '../storage/storage.service';
 import { CleanupService } from '../storage/cleanup.service';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { RegenerateBackgroundDto } from './dto/regenerate-background.dto';
+import { AnimateVideoDto } from './dto/animate-video.dto';
 import { AssetType } from './asset.entity';
 import { UserRole } from '../users/user.entity';
 
@@ -139,7 +141,7 @@ export class ProjectsController {
   @UseGuards(AuthGuard('jwt'))
   async regenerateBackground(
     @Param('id') id: string,
-    @Body('scenePrompt') scenePrompt: string,
+    @Body() dto: RegenerateBackgroundDto,
     @Req() req: AuthenticatedRequest
   ) {
     const project = await this.projectsService.findOne(id, req.user.id);
@@ -147,7 +149,7 @@ export class ProjectsController {
     // Обновляем промпт в настройках
     project.settings = {
       ...project.settings,
-      scenePrompt: scenePrompt || project.settings.scenePrompt,
+      scenePrompt: dto.scenePrompt || project.settings.scenePrompt,
     };
     await this.projectsService.save(project);
 
@@ -172,16 +174,21 @@ export class ProjectsController {
   @UseGuards(AuthGuard('jwt'))
   async animateVideo(
     @Param('id') id: string,
-    @Body('prompt') animationPrompt: string,
+    @Body() dto: AnimateVideoDto,
     @Req() req: AuthenticatedRequest
   ) {
     const project = await this.projectsService.findOne(id, req.user.id);
     
+    // Проверяем статус проекта
+    if (project.status !== 'IMAGE_READY') {
+      throw new ForbiddenException(`Project must be in IMAGE_READY status to animate, current: ${project.status}`);
+    }
+    
     // Обновляем animation промпт если предоставлен
-    if (animationPrompt) {
+    if (dto.prompt) {
       project.settings = {
         ...project.settings,
-        prompt: animationPrompt,
+        prompt: dto.prompt,
       };
       await this.projectsService.save(project);
     }

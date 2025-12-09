@@ -150,7 +150,8 @@ export class BackgroundProcessor {
             this.logger.log(`✅ TTS saved: ${ttsUrl}`);
           }
         } catch (err) {
-          this.logger.warn(`⚠️ TTS generation failed, continuing without audio: ${err.message}`);
+          const errMsg = err instanceof Error ? err.message : String(err);
+          this.logger.warn(`⚠️ TTS generation failed, continuing without audio: ${errMsg}`);
         }
       }
 
