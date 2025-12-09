@@ -110,6 +110,29 @@ export class ProjectsService {
   }
 
   /**
+   * Обновляет только статус проекта без затирания relations
+   */
+  async updateStatus(projectId: string, status: ProjectStatus) {
+    await this.projectsRepository.update({ id: projectId }, { status });
+  }
+
+  /**
+   * Обновляет статус и частично обновляет settings (мержит с существующими)
+   */
+  async updateStatusAndSettings(projectId: string, status: ProjectStatus, partialSettings: Partial<ProjectSettings>) {
+    const project = await this.projectsRepository.findOne({ where: { id: projectId } });
+    if (!project) throw new NotFoundException('Project not found');
+    
+    await this.projectsRepository.update(
+      { id: projectId },
+      {
+        status,
+        settings: { ...project.settings, ...partialSettings } as any,
+      }
+    );
+  }
+
+  /**
    * Устанавливает выбранную сцену как активную для анимации
    * Позволяет пользователю переключаться между разными вариантами фона
    */

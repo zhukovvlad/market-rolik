@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Project } from './project.entity';
 
@@ -23,6 +24,7 @@ export class Asset {
   id: string;
 
   @ManyToOne(() => Project, (project) => project.assets, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'projectId' })
   project: Project;
 
   @Column({

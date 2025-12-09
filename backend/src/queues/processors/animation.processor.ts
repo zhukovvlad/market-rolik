@@ -200,17 +200,42 @@ export class AnimationProcessor {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.stack || error.message : String(error);
-      this.logger.error(`❌ Animation FAILED for Project ${projectId}`, errorMessage);
       
-      try {
-        const project = await this.projectsService.findOne(projectId);
-        if (project) {
-          project.status = ProjectStatus.FAILED;
-          await this.projectsService.save(project);
+      // attemptsMade начинается с 0, поэтому добавляем +1 для отображения
+      const currentAttempt = job.attemptsMade + 1;
+      const maxAttempts = job.opts.attempts || 1;
+      
+      this.logger.error(`❌ Animation FAILED for Project ${projectId} (attempt ${currentAttempt}/${maxAttempts})`, errorMessage);
+      
+      // Меняем статус на FAILED только если исчерпаны все попытки
+      const isLastAttempt = currentAttempt >= maxAttempts;
+      
+      if (isLastAttempt) {
+        this.logger.error(`❌ All retry attempts exhausted. Marking project as FAILED.`);
+        try {
+          const project = await this.projectsService.findOne(projectId);
+          if (project) {
+            project.status = ProjectStatus.FAILED;
+            const newSettings = {
+              ...project.settings,
+              lastError: error instanceof Error ? error.message : String(error),
+              failedAt: new Date().toISOString(),
+            };
+            project.settings = newSettings;
+            
+            this.logger.log(`💾 Saving project with FAILED status. Settings: ${JSON.stringify(newSettings)}`);
+            await this.projectsService.save(project);
+            this.logger.log(`✅ Project marked as FAILED successfully`);
+          } else {
+            this.logger.error(`❌ Project ${projectId} not found when trying to mark as FAILED`);
+          }
+        } catch (dbError) {
+          this.logger.error(`❌ Failed to update project status to FAILED`, dbError);
         }
-      } catch (dbError) {
-        this.logger.error(`❌ Failed to update project status to FAILED`, dbError);
+      } else {
+        this.logger.warn(`⚠️ Attempt ${currentAttempt} failed. Will retry...`);
       }
+      
       throw error;
     }
   }

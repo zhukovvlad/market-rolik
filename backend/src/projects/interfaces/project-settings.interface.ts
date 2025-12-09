@@ -13,5 +13,7 @@ export interface ProjectSettings {
   ttsEnabled?: boolean;
   ttsText?: string;
   ttsVoice?: 'ermil' | 'zahar' | 'jane' | 'alena' | 'omazh';
+  lastError?: string; // Последняя ошибка генерации
+  failedAt?: string; // Время последней ошибки (ISO string)
   [key: string]: unknown;
 }

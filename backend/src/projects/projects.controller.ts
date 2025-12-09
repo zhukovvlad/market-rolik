@@ -81,6 +81,9 @@ export class ProjectsController {
   @UseGuards(AuthGuard('jwt'))
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // Max 10 projects per minute
   async create(@Body() createProjectDto: CreateProjectDto, @Req() req: AuthenticatedRequest) {
+    // Логируем что пришло от фронтенда
+    this.logger.log(`📦 Creating project with settings: ${JSON.stringify(createProjectDto.settings)}`);
+    
     const project = await this.projectsService.createProject(
       req.user.id,
       createProjectDto.title,
@@ -130,7 +133,9 @@ export class ProjectsController {
   @Get(':id')
   @UseGuards(AuthGuard('jwt'))
   async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    return this.projectsService.findOne(id, req.user.id);
+    const project = await this.projectsService.findOne(id, req.user.id);
+    this.logger.log(`📤 Returning project ${id}: status=${project.status}, assetsCount=${project.assets?.length || 0}`);
+    return project;
   }
 
   /**

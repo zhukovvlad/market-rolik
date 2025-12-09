@@ -19,12 +19,16 @@ export interface ProjectSettings {
   description?: string;
   usps?: string[];
   mainImage?: string;
-  prompt?: string;
+  prompt?: string; // Kling animation prompt
+  scenePrompt?: string; // Photoroom background generation prompt
+  activeSceneAssetId?: string; // ID выбранной сцены для анимации
   aspectRatio?: AspectRatio;
   musicTheme?: MusicTheme;
   ttsEnabled?: boolean;
   ttsText?: string;
   ttsVoice?: TtsVoice;
+  lastError?: string; // Последняя ошибка генерации
+  failedAt?: string; // Время последней ошибки (ISO string)
   [key: string]: unknown;
 }
 
@@ -34,4 +38,53 @@ export type GenerateSettings = Required<Pick<ProjectSettings, 'prompt' | 'aspect
 export interface CreateProjectRequest {
   title: string;
   settings?: ProjectSettings;
+}
+
+export type ProjectStatus = 
+  | 'DRAFT'
+  | 'GENERATING_IMAGE'
+  | 'IMAGE_READY'
+  | 'GENERATING_VIDEO'
+  | 'COMPLETED'
+  | 'FAILED'
+  // Legacy statuses
+  | 'QUEUED'
+  | 'PROCESSING'
+  | 'RENDERING';
+
+export type AssetType = 
+  | 'IMAGE_CLEAN'
+  | 'IMAGE_SCENE'
+  | 'IMAGE_UPSCALED'
+  | 'VIDEO_FRAGMENT'
+  | 'AUDIO_TTS'
+  | 'AUDIO_VOICEOVER'
+  | 'AUDIO_MUSIC';
+
+export interface Asset {
+  id: string;
+  type: AssetType;
+  provider: string;
+  storageUrl: string;
+  meta?: {
+    prompt?: string;
+    width?: number;
+    height?: number;
+    text?: string;
+    voice?: string;
+    createdAt?: string;
+    [key: string]: unknown;
+  };
+  createdAt: string;
+}
+
+export interface Project {
+  id: string;
+  title: string;
+  status: ProjectStatus;
+  settings: ProjectSettings;
+  assets?: Asset[];
+  resultVideoUrl?: string;
+  createdAt: string;
+  updatedAt: string;
 }
