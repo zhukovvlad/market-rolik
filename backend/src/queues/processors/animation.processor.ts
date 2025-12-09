@@ -213,22 +213,14 @@ export class AnimationProcessor {
       if (isLastAttempt) {
         this.logger.error(`❌ All retry attempts exhausted. Marking project as FAILED.`);
         try {
-          const project = await this.projectsService.findOne(projectId);
-          if (project) {
-            project.status = ProjectStatus.FAILED;
-            const newSettings = {
-              ...project.settings,
-              lastError: error instanceof Error ? error.message : String(error),
-              failedAt: new Date().toISOString(),
-            };
-            project.settings = newSettings;
-            
-            this.logger.log(`💾 Saving project with FAILED status. Settings: ${JSON.stringify(newSettings)}`);
-            await this.projectsService.save(project);
-            this.logger.log(`✅ Project marked as FAILED successfully`);
-          } else {
-            this.logger.error(`❌ Project ${projectId} not found when trying to mark as FAILED`);
-          }
+          const newSettings = {
+            lastError: error instanceof Error ? error.message : String(error),
+            failedAt: new Date().toISOString(),
+          };
+          
+          this.logger.log(`💾 Updating project to FAILED status. Settings: ${JSON.stringify(newSettings)}`);
+          await this.projectsService.updateStatusAndSettings(projectId, ProjectStatus.FAILED, newSettings);
+          this.logger.log(`✅ Project marked as FAILED successfully`);
         } catch (dbError) {
           this.logger.error(`❌ Failed to update project status to FAILED`, dbError);
         }

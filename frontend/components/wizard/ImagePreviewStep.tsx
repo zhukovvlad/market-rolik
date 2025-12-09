@@ -32,6 +32,7 @@ export default function ImagePreviewStep({
 }: ImagePreviewStepProps) {
   const [scenePrompt, setScenePrompt] = useState(initialScenePrompt || '');
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isSelectingScene, setIsSelectingScene] = useState(false);
   const [selectedAssetId, setSelectedAssetId] = useState(activeSceneAssetId || sceneAssets[0]?.id);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -40,6 +41,8 @@ export default function ImagePreviewStep({
   const activeScene = sceneAssets.find(a => a.id === selectedAssetId) || sceneAssets[0];
 
   const handleRegenerateBackground = async () => {
+    if (isRegenerating) return; // Prevent duplicate requests
+    
     if (!scenePrompt.trim()) {
       toast.error('Введите промпт для генерации фона');
       return;
@@ -68,9 +71,12 @@ export default function ImagePreviewStep({
   };
 
   const handleSelectScene = async (assetId: string) => {
+    if (isSelectingScene) return; // Prevent duplicate requests
+    
     const token = localStorage.getItem('token');
     if (!token) return;
 
+    setIsSelectingScene(true);
     try {
       await axios.post(
         `${API_URL}/projects/${projectId}/select-scene`,
@@ -90,6 +96,8 @@ export default function ImagePreviewStep({
     } catch (error) {
       console.error('Select scene failed', error);
       toast.error('Ошибка выбора сцены');
+    } finally {
+      setIsSelectingScene(false);
     }
   };
 
@@ -140,6 +148,10 @@ export default function ImagePreviewStep({
                 fill
                 className="object-contain"
                 priority
+                onError={(e) => {
+                  console.error('Failed to load image:', activeScene.storageUrl);
+                  toast.error('Ошибка загрузки изображения');
+                }}
               />
             ) : (
               <div className="flex items-center justify-center h-full">
@@ -157,11 +169,12 @@ export default function ImagePreviewStep({
                   <button
                     key={asset.id}
                     onClick={() => handleSelectScene(asset.id)}
+                    disabled={isSelectingScene}
                     className={`relative w-20 h-32 rounded-md overflow-hidden border-2 shrink-0 transition-all ${
                       asset.id === selectedAssetId
                         ? 'border-primary ring-2 ring-primary'
                         : 'border-border hover:border-primary/50'
-                    }`}
+                    } ${isSelectingScene ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Image
                       src={asset.storageUrl}

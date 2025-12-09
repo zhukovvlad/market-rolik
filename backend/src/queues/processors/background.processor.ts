@@ -22,7 +22,7 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { StorageService } from '../../storage/storage.service';
 import { ProjectsService } from '../../projects/projects.service';
-import { ProjectStatus } from '../../projects/project.entity';
+import { ProjectStatus, Project } from '../../projects/project.entity';
 import { AssetType } from '../../projects/asset.entity';
 import { TtsService } from '../../common/tts.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -114,7 +114,7 @@ export class BackgroundProcessor {
 
       // Сохраняем как Asset (используем projectId для relation)
       const sceneAsset = this.assetRepository.create({
-        project: { id: projectId } as any, // TypeORM автоматически создаст foreign key
+        project: { id: projectId } as Project,
         type: AssetType.IMAGE_SCENE,
         provider: 'photoroom+stability',
         storageUrl: highResUrl,
@@ -126,13 +126,8 @@ export class BackgroundProcessor {
         },
       });
       
-      this.logger.log(`🔍 Scene asset before save: ${JSON.stringify({ projectId, type: sceneAsset.type, hasProject: !!sceneAsset.project })}`);
       const savedSceneAsset = await this.assetRepository.save(sceneAsset);
       this.logger.log(`✅ IMAGE_SCENE asset saved with ID: ${savedSceneAsset.id}`);
-      
-      // Verify it was actually saved
-      const verifyAsset = await this.assetRepository.findOne({ where: { id: savedSceneAsset.id }, relations: ['project'] });
-      this.logger.log(`🔍 Verification: asset exists=${!!verifyAsset}, projectId=${verifyAsset?.project?.id}`);
 
       // Делаем этот новый ассет "Активным" по умолчанию
       project.settings = {
@@ -154,7 +149,7 @@ export class BackgroundProcessor {
             ttsUrl = await this.storageService.uploadFile(ttsResult.buffer, ttsResult.mimeType, 'audio');
             
             const ttsAsset = this.assetRepository.create({
-              project: { id: projectId } as any, // TypeORM автоматически создаст foreign key
+              project: { id: projectId } as Project,
               type: AssetType.AUDIO_TTS,
               provider: 'yandex-cloud',
               storageUrl: ttsUrl,
