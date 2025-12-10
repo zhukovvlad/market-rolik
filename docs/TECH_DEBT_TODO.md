@@ -34,11 +34,15 @@
   - Safe default: disabled if NODE_ENV unset or misconfigured
   - Added NODE_ENV to `.env.example`
 
-- [ ] **Add environment validation at startup** (1 hour)
-  - Location: `backend/src/app.module.ts`
+- [x] **Add environment validation at startup** (1 hour) — ✅ Completed 2025-12-10
+  - Location: `backend/src/app.module.ts`, `backend/src/config/env.validation.ts`
   - Validate all required env vars (DATABASE_HOST, JWT_SECRET, etc.)
   - Use `@nestjs/config` with Joi validation schema
   - Fail fast if missing vars
+  - Added comprehensive validation for all required environment variables
+  - Validates JWT_SECRET is at least 32 characters
+  - Prevents use of placeholder values in production
+  - Shows all validation errors at startup
 
 - [ ] **Generate and validate strong JWT secret** (2 hours)
   - Location: `backend/.env.example`, `backend/src/auth/auth.module.ts`

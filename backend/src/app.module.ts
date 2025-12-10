@@ -23,12 +23,18 @@ import { StorageModule } from './storage/storage.module';
 import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from './logger/logger.module';
 import { HttpLoggingInterceptor } from './common/interceptors/http-logging.interceptor';
+import { envValidationSchema } from './config/env.validation';
 
 @Module({
   imports: [
-    // 1. Чтение .env файла
+    // 1. Чтение .env файла с валидацией
     ConfigModule.forRoot({
       isGlobal: true,
+      validationSchema: envValidationSchema,
+      validationOptions: {
+        abortEarly: false, // Show all validation errors at once
+        allowUnknown: true, // Allow other env vars not in schema
+      },
     }),
 
     // Schedule Module for cron jobs
