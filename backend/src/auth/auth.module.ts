@@ -27,7 +27,11 @@ import { validateJwtSecret } from '../config/jwt-validation.constants';
                 
                 return {
                     secret,
-                    signOptions: { expiresIn: '7d' },
+                    signOptions: { 
+                        expiresIn: '1h',
+                        audience: configService.get<string>('JWT_AUDIENCE') || 'market-rolik-app',
+                        issuer: configService.get<string>('JWT_ISSUER') || 'market-rolik-api',
+                    },
                 };
             },
             inject: [ConfigService],

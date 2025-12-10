@@ -15,6 +15,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
             secretOrKey: secret,
+            audience: configService.get<string>('JWT_AUDIENCE') || 'market-rolik-app',
+            issuer: configService.get<string>('JWT_ISSUER') || 'market-rolik-api',
         });
     }
 

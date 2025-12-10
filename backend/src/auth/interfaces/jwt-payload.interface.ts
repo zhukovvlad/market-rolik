@@ -5,4 +5,8 @@ export interface JwtPayload {
     firstName?: string;
     lastName?: string;
     avatarUrl?: string;
+    aud?: string; // audience claim
+    iss?: string; // issuer claim
+    exp?: number; // expiration time
+    iat?: number; // issued at time
 }
