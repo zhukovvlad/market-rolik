@@ -3,16 +3,23 @@
 > Extracted from CODE_REVIEW_REPORT.md and CODE_REVIEW_SUMMARY.md  
 > Last updated: 2025-12-10
 
+**Note:** Line numbers are approximate; always verify locations before making changes. Consider using code search (ripgrep, ast-grep) or your IDE's symbol search to locate items.
+
 ---
 
-## Как использовать этот файл
+## How to Use This File
 
-1. Беру задачу из P0 или P1.
-2. В VS Code выделяю строку с задачей и прошу Copilot:
-   - "Copilot, implement this checklist item. Show me the changes before applying."
-3. После коммита ставлю галочку `[x]` и добавляю краткий комментарий в конец файла с датой.
-4. Периодически прошу Copilot пересканировать репозиторий и обновить этот список.
+1. Select a task from P0 or P1.
+2. Create a feature branch and implement the task.
+3. **For P0/P1 tasks (especially security):** Implement with human expertise and thorough testing.
+   - Use AI tools for exploration only; never auto-apply critical changes without review.
+   - For security tasks (JWT, secrets, SSRF): add "security" label and request senior review.
+4. Submit a pull request for **mandatory code review** before merging.
+5. Test each fix (unit + integration tests) before approving.
+6. Once merged, check the item `[x]` and add a brief comment with the date.
+7. Periodically review this file and scan the codebase to identify new tech debt items.
 
+---
 
 ## P0 — Critical (Fix Immediately)
 
@@ -159,6 +166,14 @@
   - Test error states
   - Target 60% coverage
 
+- [ ] **Replace TypeScript `any` in critical modules** (3 days)
+  - Location: `backend/src/auth/`, `backend/src/projects/`, `backend/src/common/`
+  - Priority modules: `auth.service.ts`, `projects.service.ts`, `ai-text.service.ts`
+  - Create proper types for authentication payloads
+  - Type project metadata and settings objects
+  - Type AI service responses
+  - Weakens type safety during refactoring and increases regression risk in security-sensitive code
+
 ---
 
 ## P2 — Medium Priority (Fix in Month)
@@ -191,11 +206,12 @@
   - Extract HTTP client with retry logic to `ai-client.service.ts`
   - Separate concerns: client vs. business logic
 
-- [ ] **Replace TypeScript `any` with proper types** (1 week)
-  - 52 instances found
+- [ ] **Replace TypeScript `any` in remaining modules** (4 days)
+  - Complete remaining instances (UI components, utilities, helpers)
   - Create `AssetMetadata` interface
   - Create proper error types
   - Use `unknown` for truly dynamic data with type guards
+  - Note: ~52 total instances found; critical modules handled in P1
 
 - [ ] **Standardize error handling** (2 days)
   - Use NestJS HTTP exceptions consistently
