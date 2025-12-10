@@ -256,4 +256,8 @@ docker-compose logs -f postgres
 
 ---
 
-Если хочешь — могу дополнить README красивыми бейджами (Node, Docker, Redis, Postgres, Next.js, NestJS) или сделать логотип проекта.
+## 🔍 Code review
+
+Подробный отчёт от Copilot:
+- [Краткое резюме](./docs/CODE_REVIEW_SUMMARY.md)
+- [Полный отчёт](./docs/CODE_REVIEW_REPORT.md)

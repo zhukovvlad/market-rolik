@@ -59,7 +59,8 @@ import { HttpLoggingInterceptor } from './common/interceptors/http-logging.inter
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         entities: [User, Project, Asset, Transaction, UploadTracking],
-        synchronize: true, // ВНИМАНИЕ: Только для разработки! В проде используем миграции.
+        // Synchronize only in development. In production, use migrations to avoid data loss.
+        synchronize: configService.get<string>('NODE_ENV') !== 'production',
       }),
       inject: [ConfigService],
     }),
