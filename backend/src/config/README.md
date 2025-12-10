@@ -43,7 +43,7 @@ If validation fails, the application will:
 
 ### Example Error Output
 
-```
+```text
 Error: Config validation error: "JWT_SECRET" must be at least 32 characters long. "S3_ACCESS_KEY" cannot be a placeholder value. "OPENAI_API_KEY" is required
 ```
 

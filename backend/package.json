@@ -77,7 +77,6 @@
     "@types/express": "^5.0.0",
     "@types/form-data": "^2.2.1",
     "@types/jest": "^30.0.0",
-    "@types/joi": "^17.2.2",
     "@types/multer": "^2.0.0",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",

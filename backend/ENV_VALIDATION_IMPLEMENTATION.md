@@ -9,8 +9,7 @@
 ## Changes Made
 
 ### 1. Installed Dependencies
-- `joi` - Schema validation library
-- `@types/joi` - TypeScript type definitions
+- `joi` - Schema validation library (includes built-in TypeScript types)
 
 ### 2. Created Validation Schema
 **File:** `backend/src/config/env.validation.ts`
@@ -101,7 +100,7 @@ This demonstrates:
 
 If you try to start the app without proper environment variables:
 
-```
+```text
 Error: Config validation error: 
 "JWT_SECRET" must be at least 32 characters long
 "S3_ACCESS_KEY" cannot be a placeholder value
@@ -128,7 +127,7 @@ The following related P0 tasks should be prioritized:
 ## Rollback Instructions
 
 If needed, rollback by:
-1. `npm uninstall joi @types/joi`
+1. `npm uninstall joi`
 2. Delete `backend/src/config/env.validation.ts`
 3. Revert `backend/src/app.module.ts` to remove validation options
 4. Delete `backend/src/config/README.md`
