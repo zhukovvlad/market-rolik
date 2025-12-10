@@ -76,6 +76,11 @@ export function validateJwtSecret(secret: string): string | null {
     return `JWT_SECRET must be at least ${JWT_SECRET_MIN_LENGTH} characters long for security`;
   }
 
+  // Reject any explicitly forbidden exact values
+  if (JWT_SECRET_FORBIDDEN_VALUES.includes(secret as any)) {
+    return `JWT_SECRET cannot be a placeholder value. Generate a strong secret using: ${JWT_SECRET_GENERATION_COMMAND}`;
+  }
+
   if (isPlaceholderSecret(secret)) {
     return `JWT_SECRET appears to be a placeholder value. Generate a cryptographically secure secret using: ${JWT_SECRET_GENERATION_COMMAND}`;
   }

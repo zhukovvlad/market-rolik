@@ -63,14 +63,14 @@ To add new forbidden values or keywords:
 
 ## Example Error Messages
 
-```
+```text
 JWT_SECRET must be at least 32 characters long for security
 ```
 
-```
+```text
 JWT_SECRET cannot be a placeholder value. Generate a strong secret using: node backend/scripts/generate-jwt-secret.js
 ```
 
-```
+```text
 JWT_SECRET appears to be a placeholder value. Generate a cryptographically secure secret using: node backend/scripts/generate-jwt-secret.js
 ```
