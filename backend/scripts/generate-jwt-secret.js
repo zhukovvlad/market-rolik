@@ -2,7 +2,10 @@
 
 /**
  * Generate a cryptographically secure JWT secret
- * Usage: node scripts/generate-jwt-secret.js
+ * 
+ * Usage:
+ *   From backend directory: node scripts/generate-jwt-secret.js
+ *   From project root: node backend/scripts/generate-jwt-secret.js
  */
 
 const crypto = require('crypto');
