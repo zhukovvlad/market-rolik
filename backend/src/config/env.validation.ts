@@ -26,10 +26,22 @@ export const envValidationSchema = Joi.object({
   JWT_SECRET: Joi.string()
     .min(32)
     .required()
-    .invalid('your-secret-key', 'your-secret-key-change-in-production')
+    .invalid(
+      'your-secret-key',
+      'your-secret-key-change-in-production',
+      'CHANGE_ME_GENERATE_WITH_CRYPTO_RANDOM_BYTES_64',
+      'secret',
+      'jwt-secret',
+      'your-jwt-secret',
+      'change-me',
+      'changeme'
+    )
+    .pattern(/^(?!.*your-).*$/, { name: 'no-placeholder-prefix' })
+    .pattern(/^(?!.*change).*$/i, { name: 'no-change-keyword' })
     .messages({
-      'string.min': 'JWT_SECRET must be at least 32 characters long',
-      'any.invalid': 'JWT_SECRET cannot be a placeholder value. Generate a strong secret for production.',
+      'string.min': 'JWT_SECRET must be at least 32 characters long for security',
+      'any.invalid': 'JWT_SECRET cannot be a placeholder value. Generate a strong secret using: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'base64\'))"',
+      'string.pattern.name': 'JWT_SECRET appears to be a placeholder. Generate a cryptographically secure secret.',
     }),
 
   // S3 Storage Configuration

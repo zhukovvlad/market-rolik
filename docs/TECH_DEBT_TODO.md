@@ -44,11 +44,14 @@
   - Prevents use of placeholder values in production
   - Shows all validation errors at startup
 
-- [ ] **Generate and validate strong JWT secret** (2 hours)
+- [x] **Generate and validate strong JWT secret** (2 hours) — ✅ Completed 2025-12-10
   - Location: `backend/.env.example`, `backend/src/auth/auth.module.ts`
   - Add validation: min 32 characters
   - Generate new secret for production
   - Reject placeholders like "your-secret-key"
+  - Enhanced validation to catch multiple placeholder patterns
+  - Added runtime validation in auth.module.ts
+  - Created helper script: `backend/scripts/generate-jwt-secret.js`
 
 - [ ] **Add JWT expiration** (30 min)
   - Location: `backend/src/auth/auth.module.ts`
