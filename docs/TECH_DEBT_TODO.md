@@ -53,11 +53,15 @@
   - Added runtime validation in auth.module.ts
   - Created helper script: `backend/scripts/generate-jwt-secret.js`
 
-- [ ] **Add JWT expiration** (30 min)
+- [x] **Add JWT expiration** (30 min) — ✅ Completed 2025-12-10
   - Location: `backend/src/auth/auth.module.ts`
   - Set `expiresIn: '1h'` for access tokens
   - Add `audience` and `issuer` claims
   - Risk: Session hijacking without expiration
+  - Changed expiration from 7d to 1h
+  - Added JWT_AUDIENCE and JWT_ISSUER configuration
+  - Updated JWT strategy to validate audience and issuer
+  - Added standard JWT claims to payload interface
 
 - [ ] **Implement refresh token flow** (4 hours)
   - Create refresh token endpoint
