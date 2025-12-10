@@ -28,10 +28,11 @@
 
 ### Security & Data Integrity
 
-- [ ] **Set `synchronize: false` in production** (15 min)
-  - Location: `backend/src/app.module.ts:62`
-  - Remove `synchronize: true`, use migrations only
-  - Risk: Data loss, schema corruption
+- [x] **Set `synchronize: false` in production** (15 min) — ✅ Completed 2025-12-10
+  - Location: `backend/src/app.module.ts:64`
+  - Changed to allow-list approach: `synchronize: NODE_ENV === 'development'`
+  - Safe default: disabled if NODE_ENV unset or misconfigured
+  - Added NODE_ENV to `.env.example`
 
 - [ ] **Add environment validation at startup** (1 hour)
   - Location: `backend/src/app.module.ts`
