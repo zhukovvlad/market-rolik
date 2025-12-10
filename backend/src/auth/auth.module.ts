@@ -8,6 +8,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { User } from '../users/user.entity';
+import { validateJwtSecret } from '../config/jwt-validation.constants';
 
 @Module({
     imports: [
@@ -18,35 +19,10 @@ import { User } from '../users/user.entity';
             useFactory: async (configService: ConfigService) => {
                 const secret = configService.get<string>('JWT_SECRET');
                 
-                // Additional runtime validation for JWT_SECRET
-                if (!secret) {
-                    throw new Error('JWT_SECRET is not defined in environment variables');
-                }
-                
-                if (secret.length < 32) {
-                    throw new Error('JWT_SECRET must be at least 32 characters long for security');
-                }
-                
-                // Reject common placeholder patterns
-                const placeholders = [
-                    'your-secret',
-                    'change-me',
-                    'changeme',
-                    'secret-key',
-                    'jwt-secret',
-                    'CHANGE_ME',
-                ];
-                
-                const isPlaceholder = placeholders.some(placeholder => 
-                    secret.toLowerCase().includes(placeholder.toLowerCase())
-                );
-                
-                if (isPlaceholder) {
-                    throw new Error(
-                        'JWT_SECRET appears to be a placeholder value. ' +
-                        'Generate a cryptographically secure secret using: ' +
-                        'node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'base64\'))"'
-                    );
+                // Runtime validation using centralized validation logic
+                const validationError = validateJwtSecret(secret || '');
+                if (validationError) {
+                    throw new Error(validationError);
                 }
                 
                 return {
