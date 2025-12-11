@@ -118,7 +118,15 @@ export const envValidationSchema = Joi.object({
     .valid('true', 'false', 'loopback', 'cloudflare')
     .default('loopback'),
   // Custom proxy IPs/CIDRs (comma-separated)
-  TRUST_PROXY_IPS: Joi.string().optional().allow(''),
+  // Examples: "10.0.0.1", "172.17.0.0/16", "10.0.0.1,192.168.1.0/24"
+  TRUST_PROXY_IPS: Joi.string()
+    .optional()
+    .allow('')
+    .pattern(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\/\d{1,2})?)(\s*,\s*\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\/\d{1,2})?)*$/)
+    .messages({
+      'string.pattern.base':
+        'TRUST_PROXY_IPS must be comma-separated IP addresses or CIDR ranges (e.g., "10.0.0.1,172.17.0.0/16")',
+    }),
 
   // Proxy Configuration (optional)
   PROXY_HOST: Joi.string().optional().allow(''),
