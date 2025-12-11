@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/dashboard/ProjectCard"; // <--- Используем компонент
 import { Plus, Video } from "lucide-react";
@@ -64,10 +65,11 @@ export default function DashboardPage() {
     if (isAuthLoading) return <div className="p-10 text-center">Загрузка...</div>;
 
     return (
-        <div className="min-h-screen bg-background">
-            <Navbar />
+        <ProtectedRoute>
+            <div className="min-h-screen bg-background">
+                <Navbar />
 
-            <main className="container mx-auto px-4 pt-24 pb-8">
+                <main className="container mx-auto px-4 pt-24 pb-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-foreground">Мои проекты</h1>
@@ -105,5 +107,6 @@ export default function DashboardPage() {
                 )}
             </main>
         </div>
+        </ProtectedRoute>
     );
 }

@@ -32,11 +32,11 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
     },
     enabled: enabled && !!projectId,
     // Опрашивать каждые 3 сек, если статус в процессе генерации
-    refetchInterval: (data) => {
-      if (!data) return 3000; // Если данных еще нет - продолжаем опрашивать
+    refetchInterval: (query) => {
+      if (!query.state.data) return 3000; // Если данных еще нет - продолжаем опрашивать
       
       const processingStatuses = ['GENERATING_IMAGE', 'GENERATING_VIDEO', 'QUEUED', 'PROCESSING', 'RENDERING'];
-      const currentStatus = data.status;
+      const currentStatus = query.state.data.status;
       const prevStatus = previousStatusRef.current;
       
       // Сохраняем текущий статус для следующей проверки

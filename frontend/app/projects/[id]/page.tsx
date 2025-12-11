@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Navbar from "@/components/landing/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +20,7 @@ import axios from "axios";
 export default function ProjectDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const router = useRouter();
-    const { isLoading: isAuthLoading, token } = useAuth();
+    const { isLoading: isAuthLoading, user } = useAuth();
 
     const [project, setProject] = useState<Project | null>(null);
     const [loading, setLoading] = useState(true);
@@ -27,7 +28,7 @@ export default function ProjectDetailsPage() {
     // Загрузка проекта
     useEffect(() => {
         const fetchProject = async () => {
-            if (!token) {
+            if (!user) {
                 setLoading(false);
                 router.push("/dashboard");
                 return;
@@ -35,7 +36,7 @@ export default function ProjectDetailsPage() {
 
             try {
                 const res = await axios.get<Project>(`${API_URL}/projects/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
+                    withCredentials: true,
                 });
 
                 setProject(res.data);
@@ -52,13 +53,13 @@ export default function ProjectDetailsPage() {
         };
 
         if (!isAuthLoading) fetchProject();
-    }, [id, isAuthLoading, router, token]);
+    }, [id, isAuthLoading, router, user]);
 
     // Удаление
     const handleDelete = async () => {
         if (!confirm("Вы уверены? Это действие необратимо.")) return;
         
-        if (!token) {
+        if (!user) {
             toast.error("Требуется авторизация");
             router.push("/dashboard");
             return;
@@ -66,7 +67,7 @@ export default function ProjectDetailsPage() {
 
         try {
             await axios.delete(`${API_URL}/projects/${id}`, {
-                headers: { Authorization: `Bearer ${token}` },
+                withCredentials: true,
             });
             toast.success("Проект удален");
             router.push("/dashboard");
@@ -102,6 +103,7 @@ export default function ProjectDetailsPage() {
     };
 
     return (
+        <ProtectedRoute>
         <div className="min-h-screen bg-background">
             <Navbar />
 
@@ -269,5 +271,6 @@ export default function ProjectDetailsPage() {
                 </div>
             </main>
         </div>
+        </ProtectedRoute>
     );
 }

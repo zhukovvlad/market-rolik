@@ -7,6 +7,9 @@ export const statusColors: Record<Project['status'], string> = {
     RENDERING: "bg-primary/10 text-primary",
     COMPLETED: "bg-green-500/10 text-green-700 dark:text-green-400",
     FAILED: "bg-destructive/10 text-destructive",
+    GENERATING_IMAGE: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
+    IMAGE_READY: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400",
+    GENERATING_VIDEO: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400",
 };
 
 export const statusLabels: Record<Project['status'], string> = {
@@ -16,4 +19,7 @@ export const statusLabels: Record<Project['status'], string> = {
     RENDERING: "Рендеринг",
     COMPLETED: "Готово",
     FAILED: "Ошибка",
+    GENERATING_IMAGE: "Генерация фона",
+    IMAGE_READY: "Фон готов",
+    GENERATING_VIDEO: "Генерация видео",
 };

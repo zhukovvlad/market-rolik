@@ -63,14 +63,15 @@ export class AuthService {
 
     // --- ЛОГИКА ДЛЯ EMAIL/PASSWORD ---
     async register(email: string, password: string) {
-        const existing = await this.usersRepository.findOne({ where: { email } });
+        const normalizedEmail = email.toLowerCase().trim();
+        const existing = await this.usersRepository.findOne({ where: { email: normalizedEmail } });
         if (existing) throw new ConflictException('User already exists');
 
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
 
         const user = this.usersRepository.create({
-            email,
+            email: normalizedEmail,
             passwordHash: hash,
             creditsBalance: 10,
             role: UserRole.USER,
@@ -80,8 +81,9 @@ export class AuthService {
     }
 
     async login(email: string, password: string) {
+        const normalizedEmail = email.toLowerCase().trim();
         const user = await this.usersRepository.findOne({
-            where: { email },
+            where: { email: normalizedEmail },
             select: ['id', 'email', 'passwordHash', 'role', 'avatarUrl', 'creditsBalance', 'firstName', 'lastName']
         });
 
@@ -244,5 +246,11 @@ export class AuthService {
             firstName: user.firstName,
             lastName: user.lastName,
         };
+    }
+
+    // Обновить пользователя
+    async updateUser(userData: { id: string; firstName?: string; lastName?: string }): Promise<void> {
+        const { id, ...updateData } = userData;
+        await this.usersRepository.update(id, updateData);
     }
 }
