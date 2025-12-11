@@ -98,12 +98,19 @@
 
 ### Input Validation & Security
 
-- [ ] **Add comprehensive DTO validation** (2 days)
+- [x] **Add comprehensive DTO validation** (2 days) — ✅ Completed 2025-12-11
   - Location: `backend/src/projects/dto/create-project.dto.ts`
-  - Add `@MinLength`, `@MaxLength`, `@IsOptional` decorators
-  - Create `ProjectSettingsDto` with full validation
-  - Validate all nested objects with `@ValidateNested`
-  - Remove `settings?: any` type
+  - Added `@MinLength`, `@MaxLength`, `@IsOptional` decorators to all fields
+  - Created `ProjectSettingsDto` with full validation (all 13 fields validated)
+  - Validated all nested objects with `@ValidateNested` and `@Type()`
+  - Removed `settings?: any` type - now fully typed as `ProjectSettingsDto`
+  - Added `@Transform()` decorators to trim whitespace from string inputs
+  - Added array validation with `@ArrayMinSize` and `@ArrayMaxSize`
+  - Enhanced error messages for better user experience
+  - Updated ValidationPipe config with `forbidNonWhitelisted: true`
+  - Created comprehensive test suite with 34 passing tests
+  - Updated related DTOs: `RegenerateBackgroundDto`, `AnimateVideoDto`
+  - Removed index signature from `ProjectSettings` interface for type safety
 
 - [ ] **Add rate limiting to upload endpoint** (1 day)
   - Location: `backend/src/projects/projects.controller.ts:38`

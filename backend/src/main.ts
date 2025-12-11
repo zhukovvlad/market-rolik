@@ -12,8 +12,17 @@ async function bootstrap() {
   // Enable cookie parser for httpOnly cookies
   app.use(cookieParser());
 
-  // Enable global validation pipe
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  // Enable global validation pipe with comprehensive security options
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Strip properties that don't have decorators
+      forbidNonWhitelisted: true, // Throw error if non-whitelisted properties exist
+      transform: true, // Transform payloads to DTO instances
+      transformOptions: {
+        enableImplicitConversion: false, // Require explicit @Type() decorators
+      },
+    }),
+  );
 
   // Enable CORS for frontend with credentials support
   app.enableCors({
