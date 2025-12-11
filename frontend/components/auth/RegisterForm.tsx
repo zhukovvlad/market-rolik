@@ -17,6 +17,7 @@ interface RegisterFormProps {
 
 export function RegisterForm({ onSuccess }: RegisterFormProps) {
     const { login } = useAuth();
+    const PASSWORD_MIN_LENGTH = 12;
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -40,8 +41,8 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             return;
         }
 
-        if (formData.password.length < 12) {
-            toast.error("Пароль должен быть минимум 12 символов");
+        if (formData.password.length < PASSWORD_MIN_LENGTH) {
+            toast.error(`Пароль должен быть минимум ${PASSWORD_MIN_LENGTH} символов`);
             return;
         }
 
@@ -126,11 +127,12 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                         placeholder="••••••••"
                         value={formData.password}
                         onChange={handleChange("password")}
+                        minLength={PASSWORD_MIN_LENGTH}
                         required
                         disabled={loading}
                     />
                     <p className="text-xs text-muted-foreground">
-                        Минимум 12 символов
+                        Минимум {PASSWORD_MIN_LENGTH} символов
                     </p>
                 </div>
 
