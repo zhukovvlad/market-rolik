@@ -41,19 +41,15 @@ export class AuthController {
 
         // Update user with optional fields
         if (registerDto.firstName || registerDto.lastName) {
-            await this.authService.updateUser({
+            const updatedUser = await this.authService.updateUser({
                 id: result.user.id,
                 ...(registerDto.firstName && { firstName: registerDto.firstName }),
                 ...(registerDto.lastName && { lastName: registerDto.lastName }),
             });
-
-            // Ensure response payload reflects saved names
-            if (registerDto.firstName) {
-                result.user.firstName = registerDto.firstName;
-            }
-            if (registerDto.lastName) {
-                result.user.lastName = registerDto.lastName;
-            }
+            
+            // Update only the changed fields in result.user
+            result.user.firstName = updatedUser.firstName;
+            result.user.lastName = updatedUser.lastName;
         }
 
         // Set httpOnly cookies
