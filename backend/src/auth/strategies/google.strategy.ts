@@ -33,7 +33,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     async validate(accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback): Promise<any> {
         try {
-            this.logger.log(`OAuth validate called for profile ID: ${profile?.id}`);
+            this.logger.log('OAuth validate called for Google profile');
             
             const { id, name, emails, photos } = profile;
 
@@ -42,7 +42,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
                 return done(new Error('Email not provided by Google'), undefined);
             }
 
-            this.logger.log(`Processing OAuth login for email: ${emails[0].value}`);
+            this.logger.log('Processing OAuth login for verified email');
 
             // Формируем данные от Google
             const details: OAuthDetails = {
@@ -56,7 +56,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             // Вызываем сервис - он найдет/создаст юзера И выдаст токен
             const tokenResult = await this.authService.validateOAuthLogin(details);
             
-            this.logger.log(`Successfully generated tokens for user: ${emails[0].value}`);
+            this.logger.log('Successfully generated tokens for authenticated user');
 
             done(null, tokenResult);
         } catch (error) {
