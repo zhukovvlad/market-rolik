@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
@@ -24,6 +24,7 @@ import { StorageModule } from './storage/storage.module';
 import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from './logger/logger.module';
 import { HttpLoggingInterceptor } from './common/interceptors/http-logging.interceptor';
+import { IpThrottlerGuard } from './common/guards/ip-throttler.guard';
 import { envValidationSchema } from './config/env.validation';
 
 @Module({
@@ -96,6 +97,10 @@ import { envValidationSchema } from './config/env.validation';
     {
       provide: APP_INTERCEPTOR,
       useClass: HttpLoggingInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: IpThrottlerGuard,
     },
   ],
 })

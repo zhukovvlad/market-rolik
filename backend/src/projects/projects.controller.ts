@@ -35,8 +35,13 @@ export class ProjectsController {
     return this.projectsService.findAll(req.user.id);
   }
 
+  /**
+   * Upload endpoint with strict IP-based rate limiting.
+   * Allows 5 uploads per minute per IP to prevent abuse.
+   */
   @Post('upload')
   @UseGuards(AuthGuard('jwt'))
+  @Throttle({ default: { ttl: 60000, limit: 5 } }) // 5 uploads per minute per IP
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile(

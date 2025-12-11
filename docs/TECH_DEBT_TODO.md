@@ -112,11 +112,13 @@
   - Updated related DTOs: `RegenerateBackgroundDto`, `AnimateVideoDto`
   - Removed index signature from `ProjectSettings` interface for type safety
 
-- [ ] **Add rate limiting to upload endpoint** (1 day)
+- [x] **Add rate limiting to upload endpoint** (1 day) — ✅ Completed 2025-12-11
   - Location: `backend/src/projects/projects.controller.ts:38`
-  - Add `@Throttle()` decorator
-  - Implement per-IP rate limiting (not just per-user)
-  - Add global throttler config in `main.ts`
+  - Added `@Throttle()` decorator with 5 uploads per minute limit
+  - Implemented IP-based rate limiting via custom `IpThrottlerGuard`
+  - Added global throttler guard in `app.module.ts`
+  - Guard extracts real IP from proxy headers (X-Forwarded-For, X-Real-IP)
+  - Added THROTTLE_TTL and THROTTLE_LIMIT to `.env.example`
 
 - [ ] **Complete SSRF protection** (1 day)
   - Location: `backend/src/common/ai-text.service.ts:160-168`
