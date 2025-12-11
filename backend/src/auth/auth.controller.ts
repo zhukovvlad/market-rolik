@@ -12,6 +12,23 @@ export class AuthController {
         private authService: AuthService,
     ) { }
 
+    private getCookieOptions(type: 'access' | 'refresh') {
+        const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+        const baseOptions = {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: 'lax' as const,
+            path: '/',
+        };
+
+        return {
+            ...baseOptions,
+            maxAge: type === 'access'
+                ? 60 * 60 * 1000 // 1 hour
+                : 7 * 24 * 60 * 60 * 1000, // 7 days
+        };
+    }
+
     // 1. Сюда стучится фронтенд, чтобы начать вход
     @Get('google')
     @UseGuards(AuthGuard('google'))
@@ -28,24 +45,9 @@ export class AuthController {
         // Passport уже сделал всю работу и положил токены в req.user
         const { access_token, refresh_token } = req.user;
 
-        const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-
         // Set httpOnly cookies instead of passing tokens in URL
-        res.cookie('access_token', access_token, {
-            httpOnly: true,
-            secure: isProduction, // HTTPS only in production
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 1000, // 1 hour (matches JWT expiration)
-            path: '/',
-        });
-
-        res.cookie('refresh_token', refresh_token, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            path: '/',
-        });
+        res.cookie('access_token', access_token, this.getCookieOptions('access'));
+        res.cookie('refresh_token', refresh_token, this.getCookieOptions('refresh'));
 
         // Редиректим на фронтенд БЕЗ токенов в URL
         const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
@@ -75,24 +77,9 @@ export class AuthController {
 
         const tokens = await this.authService.refreshTokens(refreshToken);
         
-        const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-
         // Set new tokens in httpOnly cookies
-        res.cookie('access_token', tokens.access_token, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 1000, // 1 hour
-            path: '/',
-        });
-
-        res.cookie('refresh_token', tokens.refresh_token, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            path: '/',
-        });
+        res.cookie('access_token', tokens.access_token, this.getCookieOptions('access'));
+        res.cookie('refresh_token', tokens.refresh_token, this.getCookieOptions('refresh'));
 
         return res.json({ message: 'Tokens refreshed successfully' });
     }
@@ -118,15 +105,8 @@ export class AuthController {
             }
         }
         
-        const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-        const clearOptions = {
-            path: '/',
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: 'lax' as const,
-        };
-        
-        // Clear cookies
+        // Clear cookies (remove maxAge from options)
+        const { maxAge, ...clearOptions } = this.getCookieOptions('access');
         res.clearCookie('access_token', clearOptions);
         res.clearCookie('refresh_token', clearOptions);
         
