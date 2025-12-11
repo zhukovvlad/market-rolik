@@ -16,6 +16,7 @@ export class AiTextService {
   private genAI: GoogleGenAI;
   private readonly modelName: string;
   private static readonly MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+  private static readonly IMAGE_DOWNLOAD_TIMEOUT_MS = 30_000; // 30 seconds
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
@@ -170,7 +171,10 @@ export class AiTextService {
 
   private async downloadImage(url: string): Promise<{ buffer: Buffer; mimeType: string }> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
+    const timeout = setTimeout(
+      () => controller.abort(),
+      AiTextService.IMAGE_DOWNLOAD_TIMEOUT_MS,
+    );
     
     try {
       const res = await fetch(url, { signal: controller.signal });
