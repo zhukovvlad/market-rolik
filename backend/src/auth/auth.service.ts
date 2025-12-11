@@ -206,7 +206,7 @@ export class AuthService {
      */
     async revokeRefreshTokenIfOwned(tokenId: string, userId: string): Promise<void> {
         const result = await this.refreshTokenRepository.delete({ id: tokenId, userId });
-        if (result.affected === 0) {
+        if (!result.affected) {
             throw new UnauthorizedException('Token not found or does not belong to user');
         }
     }

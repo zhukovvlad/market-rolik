@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Req, Res, UseFilters } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req, Res, UseFilters, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
@@ -55,12 +55,15 @@ export class AuthController {
     @UseGuards(AuthGuard('jwt'))
     async logout(@Req() req, @Body() body: { refreshToken?: string }) {
         if (body.refreshToken) {
-            // Parse tokenId from the refresh token
-            const [tokenId] = body.refreshToken.split('.');
-            if (tokenId) {
-                // Revoke only if token belongs to current user
-                await this.authService.revokeRefreshTokenIfOwned(tokenId, req.user.id);
+            // Validate token format (should be tokenId.tokenSecret)
+            const parts = body.refreshToken.split('.');
+            if (parts.length !== 2 || !parts[0] || !parts[1]) {
+                throw new UnauthorizedException('Invalid refresh token format');
             }
+            
+            const [tokenId] = parts;
+            // Revoke only if token belongs to current user
+            await this.authService.revokeRefreshTokenIfOwned(tokenId, req.user.id);
         } else {
             // If no specific token provided, revoke all user's tokens (logout from all devices)
             await this.authService.revokeAllUserTokens(req.user.id);

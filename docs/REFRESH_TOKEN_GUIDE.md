@@ -254,8 +254,11 @@ private async createRefreshToken(userId: string): Promise<string>
 // Validate refresh token and return new token pair
 async refreshTokens(refreshToken: string): Promise<TokenPair>
 
-// Revoke a specific refresh token
+// Revoke a specific refresh token (internal use)
 async revokeRefreshToken(tokenId: string): Promise<void>
+
+// Revoke a refresh token only if it belongs to the user (used in logout)
+async revokeRefreshTokenIfOwned(tokenId: string, userId: string): Promise<void>
 
 // Revoke all tokens for a user (logout all devices)
 async revokeAllUserTokens(userId: string): Promise<void>
