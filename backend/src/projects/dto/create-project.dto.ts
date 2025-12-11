@@ -1,7 +1,6 @@
 import {
   IsString,
   IsNotEmpty,
-  Length,
   IsOptional,
   ValidateNested,
   IsArray,
@@ -15,7 +14,14 @@ import {
   ArrayMaxSize,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { ASPECT_RATIOS, AspectRatio } from '../constants';
+import {
+  ASPECT_RATIOS,
+  AspectRatio,
+  MUSIC_THEMES,
+  MusicTheme,
+  TTS_VOICES,
+  TtsVoice,
+} from '../constants';
 
 /**
  * DTO for project settings configuration
@@ -40,6 +46,9 @@ export class ProjectSettingsDto {
   @IsArray({ message: 'USPs must be an array' })
   @ArrayMinSize(1, { message: 'At least one USP is required if USPs are provided' })
   @ArrayMaxSize(10, { message: 'Maximum 10 USPs allowed' })
+  @Transform(({ value }) =>
+    value?.map((item: string) => (typeof item === 'string' ? item.trim() : item)),
+  )
   @IsString({ each: true, message: 'Each USP must be a string' })
   @MinLength(1, { each: true, message: 'Each USP must not be empty' })
   @MaxLength(200, { each: true, message: 'Each USP must not exceed 200 characters' })
@@ -73,8 +82,8 @@ export class ProjectSettingsDto {
   aspectRatio?: AspectRatio;
 
   @IsOptional()
-  @IsIn(['energetic', 'calm', 'lofi'], { message: 'Music theme must be one of: energetic, calm, lofi' })
-  musicTheme?: 'energetic' | 'calm' | 'lofi';
+  @IsIn(MUSIC_THEMES, { message: `Music theme must be one of: ${MUSIC_THEMES.join(', ')}` })
+  musicTheme?: MusicTheme;
 
   @IsOptional()
   @IsBoolean({ message: 'TTS enabled must be a boolean value' })
@@ -88,10 +97,10 @@ export class ProjectSettingsDto {
   ttsText?: string;
 
   @IsOptional()
-  @IsIn(['ermil', 'zahar', 'jane', 'alena', 'omazh'], { 
-    message: 'TTS voice must be one of: ermil, zahar, jane, alena, omazh' 
+  @IsIn(TTS_VOICES, {
+    message: `TTS voice must be one of: ${TTS_VOICES.join(', ')}`,
   })
-  ttsVoice?: 'ermil' | 'zahar' | 'jane' | 'alena' | 'omazh';
+  ttsVoice?: TtsVoice;
 }
 
 /**
