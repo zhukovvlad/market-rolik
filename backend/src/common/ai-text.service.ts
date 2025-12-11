@@ -47,6 +47,7 @@ export class AiTextService {
     this.validateImageUrl(imageUrl);
 
     try {
+      // Скачиваем изображение и конвертируем в base64
       const { buffer, mimeType } = await this.downloadImage(imageUrl);
       const base64Image = buffer.toString('base64');
       return await this.callGemini(base64Image, mimeType, uspCount);
@@ -169,7 +170,7 @@ export class AiTextService {
 
   private async downloadImage(url: string): Promise<{ buffer: Buffer; mimeType: string }> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
     
     try {
       const res = await fetch(url, { signal: controller.signal });

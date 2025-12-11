@@ -53,15 +53,8 @@ export const envValidationSchema = Joi.object({
     .messages({
       'any.invalid': 'S3_SECRET_KEY cannot be a placeholder value',
     }),
-  S3_PUBLIC_URL: Joi.string().uri().required(),
 
   // AI Services API Keys
-  OPENAI_API_KEY: Joi.string()
-    .required()
-    .invalid('your-openai-key')
-    .messages({
-      'any.invalid': 'OPENAI_API_KEY cannot be a placeholder value',
-    }),
   GEMINI_API_KEY: Joi.string()
     .required()
     .invalid('your-gemini-key')
