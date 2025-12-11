@@ -18,7 +18,13 @@ export class AddUniqueConstraintToGoogleId1764028675476 implements MigrationInte
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "users" DROP CONSTRAINT "UQ_f382af58ab36057334fb262efd5"`);
+        const constraintExists = await queryRunner.query(`
+            SELECT 1 FROM pg_constraint WHERE conname = 'UQ_f382af58ab36057334fb262efd5'
+        `);
+        
+        if (constraintExists && constraintExists.length > 0) {
+            await queryRunner.query(`ALTER TABLE "users" DROP CONSTRAINT "UQ_f382af58ab36057334fb262efd5"`);
+        }
     }
 
 }

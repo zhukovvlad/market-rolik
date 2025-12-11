@@ -16,17 +16,21 @@ A secure refresh token flow has been implemented for the market-rolik applicatio
 - `createdAt` (TIMESTAMP) - Token creation timestamp
 
 **Indexes:**
-- Composite index on `(userId, expiresAt)` for efficient cleanup and validation queries
+- Primary key index on `id` (tokenId) for O(1) token lookup
+- Composite index on `(userId, expiresAt)` for efficient cleanup and user queries
+- Index on `tokenHash` for administrative queries and debugging
 
 **Foreign Key:**
 - CASCADE delete on user deletion to clean up orphaned tokens
 
 ## Security Features
 
-### 1. Token Hashing
-- Refresh tokens are hashed using bcrypt before storage
-- Only the hash is stored in the database
-- Plain tokens are never stored, similar to password handling
+### 1. Token Format and Hashing
+- Refresh tokens use format: `tokenId.tokenSecret`
+- `tokenId` (UUID) is used for O(1) database lookup
+- `tokenSecret` (64 hex characters) is hashed using bcrypt before storage
+- Only the hash is stored in the database, never the plain secret
+- This approach combines performance (direct lookup) with security (hashed secret)
 
 ### 2. Token Rotation
 - When a refresh token is used, it's immediately revoked
@@ -95,7 +99,7 @@ Authorization: Bearer <access_token>
 
 Request Body (optional):
 {
-  "refreshToken": "a1b2c3d4..."
+  "refreshToken": "tokenId.tokenSecret..."
 }
 
 Response:
@@ -103,10 +107,26 @@ Response:
   "message": "Logged out successfully"
 }
 
-Note: Currently allows natural token expiration.
-To implement logout-all-devices, uncomment:
-await this.authService.revokeAllUserTokens(req.user.id);
+Behavior:
+- If refreshToken is provided: revokes that specific token
+- If no refreshToken provided: revokes ALL tokens for the user (logout from all devices)
 ```
+
+## Known Security Limitations (To Be Addressed)
+
+### OAuth Callback Token Exposure
+**⚠️ Current Issue:** Tokens are passed as URL query parameters in OAuth callback:
+```
+/auth/callback?token=...&refresh_token=...
+```
+
+This exposes tokens in:
+- Browser history
+- Server access logs  
+- Referrer headers
+- Potentially shared URLs
+
+**Planned Fix (P0):** Migrate to httpOnly cookies for token storage (see TECH_DEBT_TODO.md)
 
 ## Frontend Integration
 
@@ -186,7 +206,7 @@ api.interceptors.response.use(
       }
       
       try {
-        const { data } = await axios.post('/auth/refresh', { refreshToken });
+        const { data } = await api.post('/auth/refresh', { refreshToken });
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('refreshToken', data.refresh_token);
         

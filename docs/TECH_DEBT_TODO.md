@@ -65,12 +65,17 @@
 
 - [x] **Implement refresh token flow** (4 hours) — ✅ Completed 2025-12-11
   - Created refresh token endpoint at POST /auth/refresh
+  - Created logout endpoint at POST /auth/logout with token revocation
   - Storing refresh tokens in database with 7-day expiry
   - Implemented rotation on use (old token revoked, new one issued)
   - Added token revocation methods (single token and all user tokens)
   - Updated all auth flows (OAuth, login, register) to return refresh tokens
-  - Added database migration for refresh_tokens table
-  - Security: Tokens are hashed using bcrypt before storage
+  - Added database migration for refresh_tokens table with proper indexes
+  - Security: Tokens use tokenId.tokenSecret format for O(1) lookup
+  - Security: Token secrets are hashed using bcrypt before storage
+  - Performance: Optimized token validation from O(n) to O(1) using direct ID lookup
+  - Code Quality: Made migrations idempotent for safer rollbacks
+  - Code Quality: Added consistent column quoting in SQL queries
 
 - [ ] **Migrate JWT from localStorage to httpOnly cookies** (3 days)
   - Location: `frontend/app/create/page.tsx:80`, `frontend/app/dashboard/page.tsx:24`
