@@ -1,4 +1,4 @@
-import { AspectRatio } from '../constants';
+import { AspectRatio, MusicTheme, TtsVoice } from '../constants';
 
 /**
  * Interface for project settings stored in the database
@@ -13,10 +13,10 @@ export interface ProjectSettings {
   scenePrompt?: string; // Photoroom background generation prompt
   activeSceneAssetId?: string; // ID выбранного ассета для анимации
   aspectRatio?: AspectRatio;
-  musicTheme?: 'energetic' | 'calm' | 'lofi';
+  musicTheme?: MusicTheme;
   ttsEnabled?: boolean;
   ttsText?: string;
-  ttsVoice?: 'ermil' | 'zahar' | 'jane' | 'alena' | 'omazh';
+  ttsVoice?: TtsVoice;
   lastError?: string; // Последняя ошибка генерации
   failedAt?: string; // Время последней ошибки (ISO string)
 }

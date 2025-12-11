@@ -145,6 +145,21 @@ describe('ProjectSettingsDto', () => {
       const errors = await validate(dto);
       expect(errors).toHaveLength(1);
     });
+
+    it('should fail if USP item is empty string', async () => {
+      const dto = plainToInstance(ProjectSettingsDto, {
+        usps: ['Valid USP', ''],
+      });
+      const errors = await validate(dto);
+      expect(errors.length).toBeGreaterThan(0);
+    });
+
+    it('should trim whitespace from USP items', async () => {
+      const dto = plainToInstance(ProjectSettingsDto, {
+        usps: ['  USP 1  ', '  USP 2  '],
+      });
+      expect(dto.usps).toEqual(['USP 1', 'USP 2']);
+    });
   });
 
   describe('mainImage validation', () => {
