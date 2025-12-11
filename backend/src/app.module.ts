@@ -12,6 +12,7 @@ import { Project } from './projects/project.entity';
 import { Asset } from './projects/asset.entity';
 import { Transaction } from './transactions/transaction.entity';
 import { UploadTracking } from './storage/upload-tracking.entity';
+import { RefreshToken } from './auth/refresh-token.entity';
 import { QueuesModule } from './queues/queues.module';
 import { CommonModule } from './common/common.module';
 import { ProjectsModule } from './projects/projects.module';
@@ -64,7 +65,7 @@ import { envValidationSchema } from './config/env.validation';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Project, Asset, Transaction, UploadTracking],
+        entities: [User, Project, Asset, Transaction, UploadTracking, RefreshToken],
         // Only enable auto-sync in development. Defaults to false for safety.
         // In production/staging, always use migrations to avoid data loss.
         synchronize: configService.get<string>('NODE_ENV') === 'development',

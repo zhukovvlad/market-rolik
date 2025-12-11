@@ -1,12 +1,14 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth.service';
 import { OAuthDetails } from '../interfaces/oauth-details.interface';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+    private readonly logger = new Logger(GoogleStrategy.name);
+
     constructor(
         private configService: ConfigService,
         private authService: AuthService,
@@ -25,27 +27,41 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             callbackURL,
             scope: ['email', 'profile'],
         });
+        
+        this.logger.log('GoogleStrategy initialized');
     }
 
     async validate(accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback): Promise<any> {
-        const { id, name, emails, photos } = profile;
+        try {
+            this.logger.log(`OAuth validate called for profile ID: ${profile?.id}`);
+            
+            const { id, name, emails, photos } = profile;
 
-        if (!emails?.[0]?.value) {
-            return done(new Error('Email not provided by Google'), undefined);
+            if (!emails?.[0]?.value) {
+                this.logger.error('Email not provided by Google');
+                return done(new Error('Email not provided by Google'), undefined);
+            }
+
+            this.logger.log(`Processing OAuth login for email: ${emails[0].value}`);
+
+            // Формируем данные от Google
+            const details: OAuthDetails = {
+                googleId: id,
+                email: emails[0].value,
+                firstName: name?.givenName || undefined,
+                lastName: name?.familyName || undefined,
+                picture: photos?.[0]?.value,
+            };
+
+            // Вызываем сервис - он найдет/создаст юзера И выдаст токен
+            const tokenResult = await this.authService.validateOAuthLogin(details);
+            
+            this.logger.log(`Successfully generated tokens for user: ${emails[0].value}`);
+
+            done(null, tokenResult);
+        } catch (error) {
+            this.logger.error('Error in validate method:', error);
+            done(error, undefined);
         }
-
-        // Формируем данные от Google
-        const details: OAuthDetails = {
-            googleId: id,
-            email: emails[0].value,
-            firstName: name?.givenName || undefined,
-            lastName: name?.familyName || undefined,
-            picture: photos?.[0]?.value,
-        };
-
-        // Вызываем сервис - он найдет/создаст юзера И выдаст токен
-        const tokenResult = await this.authService.validateOAuthLogin(details);
-
-        done(null, tokenResult);
     }
 }

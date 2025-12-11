@@ -77,13 +77,17 @@
   - Code Quality: Made migrations idempotent for safer rollbacks
   - Code Quality: Added consistent column quoting in SQL queries
 
-- [ ] **Migrate JWT from localStorage to httpOnly cookies** (3 days)
+- [x] **Migrate JWT from localStorage to httpOnly cookies** (3 days) — ✅ Completed 2025-12-11
   - Location: `frontend/app/create/page.tsx:80`, `frontend/app/dashboard/page.tsx:24`
-  - Create cookie middleware in backend
-  - Update frontend to use credentials mode
-  - Remove all `localStorage.getItem("token")` calls
-  - Test auth flow end-to-end
-  - Risk: XSS vulnerability, account takeover
+  - Backend: Set httpOnly cookies in /auth/google/callback, /auth/refresh, /auth/logout
+  - Backend: Updated JWT strategy to extract token from cookies first, then Authorization header (backward compat)
+  - Backend: Added cookie-parser middleware
+  - Frontend: Removed all localStorage token operations
+  - Frontend: Updated all axios calls to use withCredentials: true
+  - Frontend: Created AuthProvider.refreshAuth() to fetch user from /auth/me
+  - Frontend: Updated OAuth callback to work without URL tokens
+  - Security: Tokens no longer exposed to JavaScript (XSS protection)
+  - Security: SameSite=lax prevents CSRF attacks
 
 ---
 

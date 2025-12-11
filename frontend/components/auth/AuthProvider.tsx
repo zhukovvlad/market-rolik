@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
 
 interface User {
     id: string;
@@ -15,82 +14,71 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    token: string | null;
-    login: (token: string, user: User) => void;
+    login: (user: User) => void;
     logout: () => void;
     isLoading: boolean;
+    refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
-    useEffect(() => {
-        // Check for token in localStorage on mount
-        const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
+    const refreshAuth = useCallback(async () => {
+        try {
+            // Fetch current user from backend - JWT is in httpOnly cookie
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/me`, {
+                credentials: 'include', // Important: send cookies
+            });
 
-        if (storedToken && storedUser) {
-            // Check if token is expired
-            let isExpired = true;
-            try {
-                const decoded = jwtDecode<{ exp: number }>(storedToken);
-                if (decoded.exp && Date.now() < decoded.exp * 1000) {
-                    isExpired = false;
-                }
-            } catch (e) {
-                console.error("Failed to parse token expiration:", e);
-            }
-
-            if (!isExpired) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
-                setToken(storedToken);
-                try {
-                    const parsedUser = JSON.parse(storedUser);
-                    // Validate and apply defaults for new required fields
-                    if (typeof parsedUser.credits !== 'number') {
-                        parsedUser.credits = 0;
-                    }
-                    setUser(parsedUser);
-                } catch (error) {
-                    console.error("Failed to parse user data from localStorage:", error);
-                    localStorage.removeItem("user");
-                }
+            if (response.ok) {
+                const userData = await response.json();
+                const safeUser: User = {
+                    ...userData,
+                    credits: typeof userData.credits === "number" ? userData.credits : 0,
+                };
+                setUser(safeUser);
             } else {
-                // Token expired or invalid
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
+                setUser(null);
             }
+        } catch (error) {
+            console.error("Failed to fetch user:", error);
+            setUser(null);
         }
-        setIsLoading(false);
     }, []);
 
-    const login = useCallback((newToken: string, newUser: User) => {
+    useEffect(() => {
+        // Check authentication status on mount
+        refreshAuth().finally(() => setIsLoading(false));
+    }, [refreshAuth]);
+
+    const login = useCallback((newUser: User) => {
         const safeUser: User = {
             ...newUser,
             credits: typeof newUser.credits === "number" ? newUser.credits : 0,
         };
-
-        localStorage.setItem("token", newToken);
-        localStorage.setItem("user", JSON.stringify(safeUser));
-        setToken(newToken);
         setUser(safeUser);
     }, []);
 
-    const logout = useCallback(() => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setToken(null);
+    const logout = useCallback(async () => {
+        try {
+            // Call backend logout to clear cookies
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include',
+            });
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
         setUser(null);
         router.push("/");
     }, [router]);
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+        <AuthContext.Provider value={{ user, login, logout, isLoading, refreshAuth }}>
             {children}
         </AuthContext.Provider>
     );
@@ -98,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
     const context = useContext(AuthContext);
-    if (context === undefined) {
+    if (!context) {
         throw new Error("useAuth must be used within an AuthProvider");
     }
     return context;

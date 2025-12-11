@@ -20,42 +20,48 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let isMounted = true;
+
         const fetchProjects = async () => {
-            const token = localStorage.getItem("token");
-            if (!token) {
+            if (!user) {
                 setLoading(false);
                 return;
             }
 
             try {
                 const res = await axios.get<Project[]>(`${API_URL}/projects`, {
-                    headers: { Authorization: `Bearer ${token}` },
+                    withCredentials: true,
                 });
-                setProjects(res.data);
+                if (isMounted) {
+                    setProjects(res.data);
+                }
             } catch (error) {
                 logger.error("Failed to fetch projects", "DashboardPage", error);
                 toast.error("Не удалось загрузить проекты");
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         };
 
         if (!isAuthLoading && user) {
             fetchProjects();
         }
+
+        return () => {
+            isMounted = false;
+        };
     }, [user, isAuthLoading]);
 
     const handleDelete = async (projectId: string) => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
         // Оптимистичное обновление
         const oldProjects = [...projects];
         setProjects(prev => prev.filter(p => p.id !== projectId));
 
         try {
             await axios.delete(`${API_URL}/projects/${projectId}`, {
-                headers: { Authorization: `Bearer ${token}` },
+                withCredentials: true,
             });
 
             toast.success("Проект удален");

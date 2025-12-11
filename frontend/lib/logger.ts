@@ -135,23 +135,13 @@ class Logger {
             headers['x-api-key'] = apiKey;
         }
 
-        // Try to get token from localStorage if available (client-side only)
-        if (typeof window !== 'undefined') {
-            try {
-                const token = localStorage.getItem('token');
-                if (token) {
-                    headers['Authorization'] = `Bearer ${token}`;
-                }
-            } catch (e) {
-                // Ignore localStorage errors
-            }
-        }
+        // Note: JWT is now in httpOnly cookie, sent automatically with credentials
+        // No need to manually add Authorization header
 
         if (useKeepalive) {
             const payload = {
                 logs: batch,
                 apiKey: apiKey,
-                authorization: headers['Authorization'],
             };
             const blob = new Blob([this.safeStringify(payload)], { type: 'application/json' });
 

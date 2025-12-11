@@ -105,12 +105,6 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
     const handleUpload = async () => {
         if (!file) return;
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-            toast.error("Пожалуйста, войдите в систему");
-            return;
-        }
-
         setIsUploading(true);
         try {
             const formData = new FormData();
@@ -119,8 +113,8 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
             const res = await axios.post(`${API_URL}/projects/upload`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
-                    Authorization: `Bearer ${token}`,
                 },
+                withCredentials: true,
                 timeout: 30000, // 30 second timeout for image uploads
             });
 
@@ -140,12 +134,6 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
             return;
         }
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-            toast.error("Пожалуйста, войдите в систему");
-            return;
-        }
-
         setIsAnalyzing(true);
         try {
             const payload: { imageUrl: string; uspCount?: number } = { imageUrl: uploadedUrl };
@@ -157,7 +145,7 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
             const res = await axios.post(
                 `${API_URL}/ai/analyze-image`,
                 payload,
-                { headers: { Authorization: `Bearer ${token}` } }
+                { withCredentials: true }
             );
 
             // Validate response structure

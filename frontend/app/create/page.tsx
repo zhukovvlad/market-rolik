@@ -77,13 +77,6 @@ export default function CreatePage() {
 
   // Шаг 1: Создание проекта и запуск генерации фона
   const handleProductDataNext = async (data: { imageUrl: string; productData: ProductData; scenePrompt?: string }) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Вы не авторизованы. Войдите в систему.");
-      router.push("/auth/signin");
-      return;
-    }
-
     try {
       const requestBody: CreateProjectRequest = {
         title: projectTitle,
@@ -97,7 +90,7 @@ export default function CreatePage() {
       };
 
       const res = await axios.post(`${API_URL}/projects`, requestBody, {
-        headers: { Authorization: `Bearer ${token}` }
+        withCredentials: true // Send cookies
       });
 
       setProjectId(res.data.id);
@@ -111,7 +104,7 @@ export default function CreatePage() {
           toast.error("Ошибка сети. Проверьте подключение к интернету");
         } else if (error.response.status === 401) {
           toast.error("Сессия истекла. Пожалуйста, войдите снова");
-          router.push("/auth/signin");
+          router.push("/");
         } else {
           toast.error(`Ошибка создания проекта: ${error.response.statusText}`);
         }
@@ -124,15 +117,12 @@ export default function CreatePage() {
   // Шаг 2: Запуск анимации видео
   const handleAnimate = async () => {
     if (!projectId) return;
-    
-    const token = localStorage.getItem('token');
-    if (!token) return;
 
     try {
       await axios.post(
         `${API_URL}/projects/${projectId}/animate`,
         {},
-        { headers: { Authorization: `Bearer ${token}` }}
+        { withCredentials: true } // Send cookies
       );
       
       setStep('animating');

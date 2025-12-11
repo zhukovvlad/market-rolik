@@ -111,73 +111,117 @@ Behavior:
 - If no refreshToken provided: revokes ALL tokens for the user (logout from all devices)
 ```
 
-## Known Security Limitations (To Be Addressed)
+## Known Security Features (Implemented 2025-12-11)
 
-### OAuth Callback Token Exposure
-**⚠️ Current Issue:** Tokens are passed as URL query parameters in OAuth callback:
-```text
-/auth/callback?token=...&refresh_token=...
+### HttpOnly Cookie Storage
+**✅ Implemented:** Tokens are now stored in httpOnly cookies instead of localStorage
+
+**Security Benefits:**
+- Protected from XSS attacks (JavaScript cannot access cookies)
+- SameSite=lax prevents CSRF attacks
+- Automatic transmission with API requests
+- No manual token management needed
+
+**Cookie Configuration:**
+```typescript
+// Access token cookie
+{
+  httpOnly: true,
+  secure: true (production only),
+  sameSite: 'lax',
+  maxAge: 3600000, // 1 hour
+  path: '/'
+}
+
+// Refresh token cookie
+{
+  httpOnly: true,
+  secure: true (production only),
+  sameSite: 'lax',
+  maxAge: 604800000, // 7 days
+  path: '/'
+}
 ```
-
-This exposes tokens in:
-- Browser history
-- Server access logs  
-- Referrer headers
-- Potentially shared URLs
-
-**Planned Fix (P0):** Migrate to httpOnly cookies for token storage (see TECH_DEBT_TODO.md)
 
 ## Frontend Integration
 
-### Storing Tokens
+### Authentication Flow
 
-**Current Implementation:**
-- Tokens stored in localStorage (P0 task: migrate to httpOnly cookies)
-
-**Recommended Flow:**
+**OAuth Callback (No URL Tokens):**
 ```typescript
-// On login/register success
-const { access_token, refresh_token } = response.data;
-localStorage.setItem('token', access_token);
-localStorage.setItem('refreshToken', refresh_token);
+// Backend sets cookies automatically
+// Frontend just needs to fetch user data
+const response = await fetch(`${API_URL}/auth/me`, {
+  credentials: 'include' // Important: send cookies
+});
+const user = await response.json();
 ```
 
-### Using Refresh Tokens
+### Making Authenticated Requests
 
+**All API calls must include credentials:**
 ```typescript
-// When access token expires (401 response)
-async function refreshAccessToken() {
-  const refreshToken = localStorage.getItem('refreshToken');
-  
-  if (!refreshToken) {
-    // Redirect to login
-    return;
-  }
-  
-  try {
-    const response = await fetch('/auth/refresh', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken })
-    });
-    
-    if (!response.ok) {
-      // Refresh token invalid/expired - redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      window.location.href = '/login';
-      return;
+// Using axios
+await axios.get(`${API_URL}/projects`, {
+  withCredentials: true
+});
+
+// Using fetch
+await fetch(`${API_URL}/projects`, {
+  credentials: 'include'
+});
+```
+
+### Token Refresh (Automatic)
+
+**Backend handles refresh via cookies:**
+```typescript
+// POST /auth/refresh
+// - Reads refresh_token from cookie
+// - Validates and rotates token
+// - Sets new cookies automatically
+// - Returns success message
+```
+
+### Automatic Token Refresh with Axios Interceptor
+
+**Recommended implementation:**
+```typescript
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true, // Always send cookies
+});
+
+// Response interceptor to handle token refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If error is 401 and we haven't tried to refresh yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // Try to refresh the token (cookies updated automatically)
+        await axios.post(`${API_URL}/auth/refresh`, {}, {
+          withCredentials: true
+        });
+
+        // Retry the original request
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Refresh failed, redirect to login
+        window.location.href = '/';
+        return Promise.reject(refreshError);
+      }
     }
-    
-    const data = await response.json();
-    localStorage.setItem('token', data.access_token);
-    localStorage.setItem('refreshToken', data.refresh_token);
-    
-    // Retry the original request with new token
-  } catch (error) {
-    // Handle error - redirect to login
+
+    return Promise.reject(error);
   }
-}
+);
 ```
 
 ### Axios Interceptor Example
