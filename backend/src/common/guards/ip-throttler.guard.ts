@@ -10,27 +10,12 @@ import { Request } from 'express';
 export class IpThrottlerGuard extends ThrottlerGuard {
   /**
    * Generate tracking key based on IP address instead of user ID.
-   * Extracts real IP from X-Forwarded-For or X-Real-IP headers when behind proxy.
+   * Uses req.ip which is safely populated by Express when trust proxy is configured.
+   * This prevents IP spoofing attacks from untrusted X-Forwarded-For headers.
    */
   protected async getTracker(req: Request): Promise<string> {
-    // Try to get real IP from proxy headers first
-    const forwardedFor = req.headers['x-forwarded-for'];
-    const realIp = req.headers['x-real-ip'];
-    
-    // X-Forwarded-For can be a comma-separated list, take the first IP
-    if (forwardedFor) {
-      const ips = Array.isArray(forwardedFor) 
-        ? forwardedFor[0] 
-        : forwardedFor;
-      return ips.split(',')[0].trim();
-    }
-    
-    // Fall back to X-Real-IP header
-    if (realIp) {
-      return Array.isArray(realIp) ? realIp[0] : realIp;
-    }
-    
-    // Fall back to socket IP
+    // Use req.ip which Express populates from trusted proxy headers
+    // Trust proxy must be configured in main.ts for this to work correctly
     return req.ip || req.socket.remoteAddress || 'unknown';
   }
 }
