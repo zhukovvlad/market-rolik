@@ -111,6 +111,15 @@ export const envValidationSchema = Joi.object({
   THROTTLE_TTL: Joi.number().integer().min(1000).default(60000),
   THROTTLE_LIMIT: Joi.number().integer().min(1).default(10),
 
+  // Trust Proxy Configuration (for rate limiting and security)
+  // See: https://expressjs.com/en/guide/behind-proxies.html
+  TRUST_PROXY: Joi.string()
+    .optional()
+    .valid('true', 'false', 'loopback', 'cloudflare')
+    .default('loopback'),
+  // Custom proxy IPs/CIDRs (comma-separated)
+  TRUST_PROXY_IPS: Joi.string().optional().allow(''),
+
   // Proxy Configuration (optional)
   PROXY_HOST: Joi.string().optional().allow(''),
   PROXY_PORT: Joi.number().port().optional().allow(''),
