@@ -1,5 +1,9 @@
 import { AspectRatio } from '../constants';
 
+/**
+ * Interface for project settings stored in the database
+ * All fields are optional as they can be set incrementally during project creation
+ */
 export interface ProjectSettings {
   productName?: string;
   description?: string;
@@ -15,5 +19,4 @@ export interface ProjectSettings {
   ttsVoice?: 'ermil' | 'zahar' | 'jane' | 'alena' | 'omazh';
   lastError?: string; // Последняя ошибка генерации
   failedAt?: string; // Время последней ошибки (ISO string)
-  [key: string]: unknown;
 }
