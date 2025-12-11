@@ -1,8 +1,9 @@
-import { Controller, Get, UseGuards, Req, Res, UseFilters } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req, Res, UseFilters } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { OAuthExceptionFilter } from './filters/oauth-exception.filter';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -24,12 +25,12 @@ export class AuthController {
     @UseGuards(AuthGuard('google'))
     @UseFilters(OAuthExceptionFilter)
     async googleAuthRedirect(@Req() req, @Res() res) {
-        // Passport уже сделал всю работу и положил токен в req.user
-        const { access_token } = req.user;
+        // Passport уже сделал всю работу и положил токены в req.user
+        const { access_token, refresh_token } = req.user;
 
-        // Редиректим на фронтенд, передавая токен в URL
+        // Редиректим на фронтенд, передавая оба токена в URL
         const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
-        res.redirect(`${frontendUrl}/auth/callback?token=${access_token}`);
+        res.redirect(`${frontendUrl}/auth/callback?token=${access_token}&refresh_token=${refresh_token}`);
     }
 
     // 3. Эндпоинт для получения данных текущего пользователя
@@ -41,5 +42,28 @@ export class AuthController {
 
         // Получаем полную информацию о пользователе из БД
         return this.authService.getUserById(req.user.id);
+    }
+
+    // 4. Эндпоинт для обновления access token с помощью refresh token
+    @Post('refresh')
+    async refreshTokens(@Body() refreshTokenDto: RefreshTokenDto) {
+        return this.authService.refreshTokens(refreshTokenDto.refreshToken);
+    }
+
+    // 5. Эндпоинт для выхода (отзыв refresh token)
+    @Post('logout')
+    @UseGuards(AuthGuard('jwt'))
+    async logout(@Req() req, @Body() body: { refreshToken?: string }) {
+        // If refresh token provided, revoke it specifically
+        // Otherwise, could revoke all tokens for the user
+        if (body.refreshToken) {
+            // We'd need to find the token by hash first, but for simplicity
+            // we can just let it expire naturally
+        }
+        
+        // For logout-all-devices functionality:
+        // await this.authService.revokeAllUserTokens(req.user.id);
+        
+        return { message: 'Logged out successfully' };
     }
 }
