@@ -251,8 +251,13 @@ export class AuthService {
     }
 
     // Обновить пользователя
-    async updateUser(userData: { id: string; firstName?: string; lastName?: string }): Promise<void> {
+    async updateUser(userData: { id: string; firstName?: string; lastName?: string }): Promise<User> {
         const { id, ...updateData } = userData;
         await this.usersRepository.update(id, updateData);
+        const updatedUser = await this.usersRepository.findOne({ where: { id } });
+        if (!updatedUser) {
+            throw new NotFoundException('User not found after update');
+        }
+        return updatedUser;
     }
 }

@@ -11,13 +11,14 @@ import { toast } from "sonner";
 import { API_URL } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
+const PASSWORD_MIN_LENGTH = 12;
+
 interface RegisterFormProps {
     onSuccess?: () => void;
 }
 
 export function RegisterForm({ onSuccess }: RegisterFormProps) {
     const { login } = useAuth();
-    const PASSWORD_MIN_LENGTH = 12;
     const [formData, setFormData] = useState({
         email: "",
         password: "",
