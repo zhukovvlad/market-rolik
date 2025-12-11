@@ -13,32 +13,27 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     const { user, isLoading } = useAuth();
     const router = useRouter();
 
+    const loader = (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
+                <p className="text-muted-foreground">Загрузка...</p>
+            </div>
+        </div>
+    );
+
     useEffect(() => {
         if (!isLoading && !user) {
             router.push("/");
         }
-    }, [user, isLoading]);
+    }, [user, isLoading, router]);
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
-                    <p className="text-muted-foreground">Загрузка...</p>
-                </div>
-            </div>
-        );
+        return loader;
     }
 
     if (!user) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
-                    <p className="text-muted-foreground">Загрузка...</p>
-                </div>
-            </div>
-        );
+        return loader;
     }
 
     return <>{children}</>;

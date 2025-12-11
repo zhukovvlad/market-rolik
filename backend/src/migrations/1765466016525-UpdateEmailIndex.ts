@@ -12,10 +12,10 @@ export class UpdateEmailIndex1765466016525 implements MigrationInterface {
         `);
 
         if (duplicates.length > 0) {
-            const duplicateEmails = duplicates.map((d: any) => d.email_lower).join(', ');
             throw new Error(
-                `Cannot create unique index on email: case-insensitive duplicates found for: ${duplicateEmails}. ` +
-                `Please merge or remove duplicate accounts before running this migration.`
+                `Cannot create unique index on email: found ${duplicates.length} case-insensitive duplicate group(s). ` +
+                `Please resolve duplicates before running this migration. ` +
+                `Hint: run "SELECT LOWER(email) AS email_lower, COUNT(*) FROM \\"users\\" GROUP BY LOWER(email) HAVING COUNT(*) > 1;" to inspect them.`
             );
         }
 

@@ -174,7 +174,12 @@ class Logger {
                 if (
                     lowerKey.includes('authorization') ||
                     lowerKey.includes('token') ||
-                    lowerKey.includes('password')
+                    lowerKey.includes('password') ||
+                    lowerKey.includes('secret') ||
+                    lowerKey.includes('api_key') ||
+                    lowerKey.includes('apikey') ||
+                    lowerKey.includes('session') ||
+                    lowerKey.includes('cookie')
                 ) {
                     return '[REDACTED]';
                 }
@@ -184,7 +189,7 @@ class Logger {
                     return {
                         name: val.name,
                         message: val.message,
-                        stack: val.stack,
+                        ...(this.isProduction ? {} : { stack: val.stack }),
                     };
                 }
 

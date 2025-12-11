@@ -46,6 +46,14 @@ export class AuthController {
                 ...(registerDto.firstName && { firstName: registerDto.firstName }),
                 ...(registerDto.lastName && { lastName: registerDto.lastName }),
             });
+
+            // Ensure response payload reflects saved names
+            if (registerDto.firstName) {
+                result.user.firstName = registerDto.firstName;
+            }
+            if (registerDto.lastName) {
+                result.user.lastName = registerDto.lastName;
+            }
         }
 
         // Set httpOnly cookies
