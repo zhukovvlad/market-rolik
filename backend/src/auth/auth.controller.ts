@@ -116,14 +116,19 @@ export class AuthController {
                     console.error('Failed to revoke refresh token:', error);
                 }
             }
-        } else {
-            // If no specific token in cookie, revoke all user's tokens (logout from all devices)
-            await this.authService.revokeAllUserTokens(req.user.id);
         }
         
+        const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+        const clearOptions = {
+            path: '/',
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: 'lax' as const,
+        };
+        
         // Clear cookies
-        res.clearCookie('access_token', { path: '/' });
-        res.clearCookie('refresh_token', { path: '/' });
+        res.clearCookie('access_token', clearOptions);
+        res.clearCookie('refresh_token', clearOptions);
         
         return res.json({ message: 'Logged out successfully' });
     }

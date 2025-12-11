@@ -224,49 +224,6 @@ api.interceptors.response.use(
 );
 ```
 
-### Axios Interceptor Example
-
-```typescript
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL
-});
-
-// Response interceptor for token refresh
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        window.location.href = '/login';
-        return Promise.reject(error);
-      }
-      
-      try {
-        const { data } = await api.post('/auth/refresh', { refreshToken });
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('refreshToken', data.refresh_token);
-        
-        originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        localStorage.clear();
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      }
-    }
-    
-    return Promise.reject(error);
-  }
-);
-```
-
 ## Token Lifetimes
 
 - **Access Token:** 1 hour

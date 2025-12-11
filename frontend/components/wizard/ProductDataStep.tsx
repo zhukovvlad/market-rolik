@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Upload, Sparkles, X, Image as ImageIcon, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { API_URL } from "@/lib/utils";
 import { ProductData } from "@/types/product";
 
@@ -110,11 +110,10 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
             const formData = new FormData();
             formData.append("file", file);
 
-            const res = await axios.post(`${API_URL}/projects/upload`, formData, {
+            const res = await api.post('/projects/upload', formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
-                withCredentials: true,
                 timeout: 30000, // 30 second timeout for image uploads
             });
 
@@ -142,11 +141,7 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
                 payload.uspCount = filledUspsCount;
             }
             
-            const res = await axios.post(
-                `${API_URL}/ai/analyze-image`,
-                payload,
-                { withCredentials: true }
-            );
+            const res = await api.post('/ai/analyze-image', payload);
 
             // Validate response structure
             const { title, description, usps, scenePrompt } = res.data;

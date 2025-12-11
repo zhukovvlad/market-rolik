@@ -11,8 +11,7 @@ import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { Project } from "@/lib/types";
 import { logger } from "@/lib/logger";
-
-import axios from "axios";
+import { api } from "@/lib/api";
 
 export default function DashboardPage() {
     const { user, isLoading: isAuthLoading } = useAuth();
@@ -23,15 +22,8 @@ export default function DashboardPage() {
         let isMounted = true;
 
         const fetchProjects = async () => {
-            if (!user) {
-                setLoading(false);
-                return;
-            }
-
             try {
-                const res = await axios.get<Project[]>(`${API_URL}/projects`, {
-                    withCredentials: true,
-                });
+                const res = await api.get<Project[]>('/projects');
                 if (isMounted) {
                     setProjects(res.data);
                 }
@@ -60,9 +52,7 @@ export default function DashboardPage() {
         setProjects(prev => prev.filter(p => p.id !== projectId));
 
         try {
-            await axios.delete(`${API_URL}/projects/${projectId}`, {
-                withCredentials: true,
-            });
+            await api.delete(`/projects/${projectId}`);
 
             toast.success("Проект удален");
         } catch (error) {
