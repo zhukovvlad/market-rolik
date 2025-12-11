@@ -182,6 +182,10 @@ export class AuthService {
             throw new UnauthorizedException('Invalid refresh token');
         }
 
+        if (!storedToken.user) {
+            throw new UnauthorizedException('User not found');
+        }
+
         // Revoke the old token (rotation)
         await this.revokeRefreshToken(storedToken.id);
 
@@ -194,6 +198,17 @@ export class AuthService {
      */
     async revokeRefreshToken(tokenId: string): Promise<void> {
         await this.refreshTokenRepository.delete(tokenId);
+    }
+
+    /**
+     * Revokes a refresh token only if it belongs to the specified user
+     * Prevents users from revoking other users' tokens
+     */
+    async revokeRefreshTokenIfOwned(tokenId: string, userId: string): Promise<void> {
+        const result = await this.refreshTokenRepository.delete({ id: tokenId, userId });
+        if (result.affected === 0) {
+            throw new UnauthorizedException('Token not found or does not belong to user');
+        }
     }
 
     /**

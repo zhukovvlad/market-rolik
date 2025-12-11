@@ -18,7 +18,6 @@ A secure refresh token flow has been implemented for the market-rolik applicatio
 **Indexes:**
 - Primary key index on `id` (tokenId) for O(1) token lookup
 - Composite index on `(userId, expiresAt)` for efficient cleanup and user queries
-- Index on `tokenHash` for administrative queries and debugging
 
 **Foreign Key:**
 - CASCADE delete on user deletion to clean up orphaned tokens
@@ -116,7 +115,7 @@ Behavior:
 
 ### OAuth Callback Token Exposure
 **⚠️ Current Issue:** Tokens are passed as URL query parameters in OAuth callback:
-```
+```text
 /auth/callback?token=...&refresh_token=...
 ```
 
