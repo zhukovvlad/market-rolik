@@ -1,5 +1,5 @@
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Request } from 'express';
 
 /**
@@ -8,6 +8,8 @@ import { Request } from 'express';
  */
 @Injectable()
 export class IpThrottlerGuard extends ThrottlerGuard {
+  private readonly logger = new Logger(IpThrottlerGuard.name);
+
   /**
    * Generate tracking key based on IP address instead of user ID.
    * Uses req.ip which is safely populated by Express when trust proxy is configured.
@@ -16,6 +18,15 @@ export class IpThrottlerGuard extends ThrottlerGuard {
   protected async getTracker(req: Request): Promise<string> {
     // Use req.ip which Express populates from trusted proxy headers
     // Trust proxy must be configured in main.ts for this to work correctly
-    return req.ip || req.socket.remoteAddress || 'unknown';
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    
+    if (ip === 'unknown') {
+      this.logger.warn(
+        'Unable to extract client IP address. Check trust proxy configuration in main.ts. ' +
+        'Rate limiting may not work correctly.'
+      );
+    }
+    
+    return ip;
   }
 }

@@ -14,14 +14,38 @@ async function bootstrap() {
   // This prevents IP spoofing attacks and enables correct rate limiting
   const trustProxy = process.env.TRUST_PROXY || 'loopback';
   const trustProxyIps = process.env.TRUST_PROXY_IPS;
+  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
   
   if (trustProxyIps) {
     // Use custom proxy IPs/CIDRs (comma-separated)
-    const proxyList = trustProxyIps.split(',').map(ip => ip.trim());
-    app.set('trust proxy', proxyList);
+    const proxyList = trustProxyIps
+      .split(',')
+      .map(ip => ip.trim())
+      .filter(ip => ip.length > 0);
+    
+    if (proxyList.length === 0) {
+      logger.warn('⚠️  TRUST_PROXY_IPS is set but empty. Falling back to loopback.');
+      app.set('trust proxy', 'loopback');
+    } else {
+      app.set('trust proxy', proxyList);
+      logger.log(`Trust proxy configured with custom IPs: ${proxyList.join(', ')}`);
+    }
   } else if (trustProxy === 'true') {
     // Trust first proxy (use with caution in production)
+    if (process.env.NODE_ENV === 'production') {
+      logger.warn(
+        '⚠️  TRUST_PROXY=true trusts the first proxy unconditionally. ' +
+        'Consider using TRUST_PROXY_IPS for explicit IP configuration in production.'
+      );
+    }
     app.set('trust proxy', true);
+  } else if (trustProxy === 'false') {
+    // Explicitly disable trust proxy - app is directly exposed to internet
+    app.set('trust proxy', false);
+    logger.warn(
+      '⚠️  Trust proxy is disabled. Only use this if the app is directly exposed to the internet ' +
+      'without any reverse proxy. Rate limiting will use socket IP addresses.'
+    );
   } else if (trustProxy === 'cloudflare') {
     // Trust Cloudflare IPs
     app.set('trust proxy', 'loopback, cloudflare');
