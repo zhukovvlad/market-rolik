@@ -5,5 +5,7 @@ export type AspectRatio = typeof ASPECT_RATIOS[number];
 export const MUSIC_THEMES = ['energetic', 'calm', 'lofi'] as const;
 export type MusicTheme = typeof MUSIC_THEMES[number];
 
+// IMPORTANT: Keep values in sync with frontend/types/project.ts
+// Frontend uses objects with labels for UI, backend uses simple array for validation
 export const TTS_VOICES = ['ermil', 'zahar', 'jane', 'alena', 'omazh'] as const;
 export type TtsVoice = typeof TTS_VOICES[number];
