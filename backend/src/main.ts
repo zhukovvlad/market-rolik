@@ -8,16 +8,17 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
+  app.useLogger(logger);
 
   // Configure trust proxy to safely extract real client IP from reverse proxy headers
   // This prevents IP spoofing attacks and enables correct rate limiting
   const trustProxy = process.env.TRUST_PROXY || 'loopback';
   const trustProxyIps = process.env.TRUST_PROXY_IPS;
-  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
   
   if (trustProxyIps) {
     // Use custom proxy IPs/CIDRs (comma-separated)
+    // This takes precedence over TRUST_PROXY preset if both are set
     const proxyList = trustProxyIps
       .split(',')
       .map(ip => ip.trim())
@@ -28,7 +29,9 @@ async function bootstrap() {
       app.set('trust proxy', 'loopback');
     } else {
       app.set('trust proxy', proxyList);
-      logger.log(`Trust proxy configured with custom IPs: ${proxyList.join(', ')}`);
+      logger.log(
+        `Trust proxy configured with custom IP list (overriding TRUST_PROXY): ${proxyList.join(', ')}`
+      );
     }
   } else if (trustProxy === 'true') {
     // Trust first proxy (use with caution in production)

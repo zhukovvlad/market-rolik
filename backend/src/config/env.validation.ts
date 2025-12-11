@@ -122,10 +122,23 @@ export const envValidationSchema = Joi.object({
   TRUST_PROXY_IPS: Joi.string()
     .optional()
     .allow('')
-    .pattern(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\/\d{1,2})?)(\s*,\s*\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\/\d{1,2})?)*$/)
-    .messages({
-      'string.pattern.base':
-        'TRUST_PROXY_IPS must be comma-separated IP addresses or CIDR ranges (e.g., "10.0.0.1,172.17.0.0/16")',
+    .custom((value, helpers) => {
+      if (!value || value === '') return value;
+      
+      const entries = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      
+      for (const entry of entries) {
+        // Validate each entry as IPv4 with optional CIDR
+        const validation = Joi.string().ip({ version: ['ipv4'], cidr: 'optional' }).validate(entry);
+        
+        if (validation.error) {
+          return helpers.error('any.invalid', {
+            message: `"${entry}" is not a valid IPv4 address or CIDR range. Example: "10.0.0.1" or "172.17.0.0/16"`,
+          });
+        }
+      }
+      
+      return value;
     }),
 
   // Proxy Configuration (optional)
