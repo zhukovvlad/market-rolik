@@ -63,11 +63,14 @@
   - Updated JWT strategy to validate audience and issuer
   - Added standard JWT claims to payload interface
 
-- [ ] **Implement refresh token flow** (4 hours)
-  - Create refresh token endpoint
-  - Store refresh tokens in database with expiry (7 days)
-  - Add rotation on use
-  - Handle token revocation
+- [x] **Implement refresh token flow** (4 hours) — ✅ Completed 2025-12-11
+  - Created refresh token endpoint at POST /auth/refresh
+  - Storing refresh tokens in database with 7-day expiry
+  - Implemented rotation on use (old token revoked, new one issued)
+  - Added token revocation methods (single token and all user tokens)
+  - Updated all auth flows (OAuth, login, register) to return refresh tokens
+  - Added database migration for refresh_tokens table
+  - Security: Tokens are hashed using bcrypt before storage
 
 - [ ] **Migrate JWT from localStorage to httpOnly cookies** (3 days)
   - Location: `frontend/app/create/page.tsx:80`, `frontend/app/dashboard/page.tsx:24`

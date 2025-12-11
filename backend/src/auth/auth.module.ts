@@ -8,11 +8,12 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { User } from '../users/user.entity';
+import { RefreshToken } from './refresh-token.entity';
 import { validateJwtSecret } from '../config/jwt-validation.constants';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User]),
+        TypeOrmModule.forFeature([User, RefreshToken]),
         PassportModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
