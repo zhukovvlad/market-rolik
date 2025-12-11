@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { OAuthExceptionFilter } from './filters/oauth-exception.filter';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +29,50 @@ export class AuthController {
                 ? 60 * 60 * 1000 // 1 hour
                 : 7 * 24 * 60 * 60 * 1000, // 7 days
         };
+    }
+
+    // Email/Password Registration
+    @Post('register')
+    async register(@Body() registerDto: RegisterDto, @Res() res) {
+        const result = await this.authService.register(
+            registerDto.email,
+            registerDto.password,
+        );
+
+        // Update user with optional fields
+        if (registerDto.firstName || registerDto.lastName) {
+            const user = await this.authService.getUserById(result.user.id);
+            if (registerDto.firstName) user.firstName = registerDto.firstName;
+            if (registerDto.lastName) user.lastName = registerDto.lastName;
+            await this.authService.updateUser(user);
+        }
+
+        // Set httpOnly cookies
+        res.cookie('access_token', result.access_token, this.getCookieOptions('access'));
+        res.cookie('refresh_token', result.refresh_token, this.getCookieOptions('refresh'));
+
+        return res.json({
+            message: 'Registration successful',
+            user: result.user,
+        });
+    }
+
+    // Email/Password Login
+    @Post('login')
+    async login(@Body() loginDto: LoginDto, @Res() res) {
+        const result = await this.authService.login(
+            loginDto.email,
+            loginDto.password,
+        );
+
+        // Set httpOnly cookies
+        res.cookie('access_token', result.access_token, this.getCookieOptions('access'));
+        res.cookie('refresh_token', result.refresh_token, this.getCookieOptions('refresh'));
+
+        return res.json({
+            message: 'Login successful',
+            user: result.user,
+        });
     }
 
     // 1. Сюда стучится фронтенд, чтобы начать вход

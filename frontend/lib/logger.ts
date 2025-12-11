@@ -77,28 +77,6 @@ class Logger {
         }
     }
 
-    private safeStringify(value: any, space?: number): string {
-        const seen = new WeakSet();
-        try {
-            return JSON.stringify(value, (key, val) => {
-                // Redact sensitive fields
-                if (key.toLowerCase().includes('authorization') || key.toLowerCase().includes('token') || key.toLowerCase().includes('password')) {
-                    return '[REDACTED]';
-                }
-
-                if (typeof val === 'object' && val !== null) {
-                    if (seen.has(val)) {
-                        return '[Circular]';
-                    }
-                    seen.add(val);
-                }
-                return val;
-            }, space);
-        } catch (error) {
-            return '<unserializable data>';
-        }
-    }
-
     private sendToBackend(entry: LogEntry) {
         this.logQueue.push(entry);
 
@@ -183,6 +161,28 @@ class Logger {
             case 'warn': return '#ffa500'; // Orange
             case 'error': return '#ff0000'; // Red
             default: return '#000000';
+        }
+    }
+
+    private safeStringify(value: unknown, space?: number): string {
+        const seen = new WeakSet();
+        try {
+            return JSON.stringify(value, (key, val) => {
+                // Redact sensitive fields
+                if (key.toLowerCase().includes('authorization') || key.toLowerCase().includes('token') || key.toLowerCase().includes('password')) {
+                    return '[REDACTED]';
+                }
+
+                if (typeof val === 'object' && val !== null) {
+                    if (seen.has(val)) {
+                        return '[Circular]';
+                    }
+                    seen.add(val);
+                }
+                return val;
+            }, space);
+        } catch (error) {
+            return '<unserializable data>';
         }
     }
 

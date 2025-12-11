@@ -6,11 +6,20 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { AuthDialog } from "@/components/auth/AuthDialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const [authDialogOpen, setAuthDialogOpen] = useState(false);
+    const [authDialogTab, setAuthDialogTab] = useState<"login" | "register">("login");
     const { user, logout } = useAuth();
+
+    const openAuthDialog = (tab: "login" | "register") => {
+        setAuthDialogTab(tab);
+        setAuthDialogOpen(true);
+        setIsOpen(false);
+    };
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
@@ -63,18 +72,19 @@ export default function Navbar() {
                             </div>
                         ) : (
                             <>
-                                <Link 
-                                    href="/auth/login"
-                                    className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors inline-flex items-center justify-center"
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => openAuthDialog("login")}
+                                    className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
                                 >
                                     Sign In
-                                </Link>
-                                <Link 
-                                    href="/auth/register"
-                                    className="px-6 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-all border border-primary/20 inline-flex items-center justify-center"
+                                </Button>
+                                <Button
+                                    onClick={() => openAuthDialog("register")}
+                                    className="px-6 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-all border border-primary/20"
                                 >
                                     Get Started
-                                </Link>
+                                </Button>
                             </>
                         )}
                     </div>
@@ -134,25 +144,30 @@ export default function Navbar() {
                             </>
                         ) : (
                             <div className="flex flex-col gap-3">
-                                <Link 
-                                    href="/auth/login" 
-                                    onClick={() => setIsOpen(false)}
-                                    className="w-full px-4 py-2 text-muted-foreground hover:text-foreground transition-colors text-left inline-block"
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => openAuthDialog("login")}
+                                    className="w-full text-muted-foreground hover:text-foreground justify-start px-0"
                                 >
                                     Sign In
-                                </Link>
-                                <Link 
-                                    href="/auth/register" 
-                                    onClick={() => setIsOpen(false)}
-                                    className="w-full px-6 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-all border border-primary/20 inline-flex items-center justify-center"
+                                </Button>
+                                <Button
+                                    onClick={() => openAuthDialog("register")}
+                                    className="w-full px-6 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-all border border-primary/20"
                                 >
                                     Get Started
-                                </Link>
+                                </Button>
                             </div>
                         )}
                     </div>
                 )}
             </nav>
+            
+            <AuthDialog 
+                open={authDialogOpen} 
+                onOpenChange={setAuthDialogOpen}
+                defaultTab={authDialogTab}
+            />
         </header>
     );
 }

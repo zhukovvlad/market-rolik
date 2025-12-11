@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import ProductDataStep from "@/components/wizard/ProductDataStep";
 import ImagePreviewStep from "@/components/wizard/ImagePreviewStep";
 import Navbar from "@/components/landing/Navbar";
@@ -142,6 +143,7 @@ export default function CreatePage() {
   const ttsAsset = project?.assets?.find(a => a.type === 'AUDIO_TTS');
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 pt-24 pb-8 flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
@@ -209,5 +211,6 @@ export default function CreatePage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   );
 }
