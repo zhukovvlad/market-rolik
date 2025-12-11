@@ -127,64 +127,66 @@ export class AuthService {
     /**
      * Creates a new refresh token for a user
      * Generates a cryptographically secure random token and stores its hash
+     * Format: tokenId.tokenSecret for efficient O(1) lookup
      */
     private async createRefreshToken(userId: string): Promise<string> {
-        // Generate a secure random token (32 bytes = 64 hex characters)
-        const token = crypto.randomBytes(32).toString('hex');
+        // Generate token ID (for database lookup) and secret (for validation)
+        const tokenId = crypto.randomUUID();
+        const tokenSecret = crypto.randomBytes(32).toString('hex');
         
-        // Hash the token before storing (similar to password hashing)
-        const tokenHash = await bcrypt.hash(token, 10);
+        // Hash only the secret portion (tokenId is used for lookup)
+        const tokenHash = await bcrypt.hash(tokenSecret, 10);
 
         // Calculate expiry date (7 days from now)
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + this.REFRESH_TOKEN_EXPIRY_DAYS);
 
-        // Store the hashed token in database
+        // Store the token with explicit ID
         const refreshToken = this.refreshTokenRepository.create({
+            id: tokenId,
             tokenHash,
             userId,
             expiresAt,
         });
         await this.refreshTokenRepository.save(refreshToken);
 
-        // Return the plain token to send to the client
-        return token;
+        // Return combined token (tokenId.tokenSecret)
+        return `${tokenId}.${tokenSecret}`;
     }
 
     /**
      * Validates a refresh token and returns new access + refresh tokens (rotation)
      * Implements token rotation: old token is revoked, new one is issued
+     * Uses O(1) lookup by tokenId instead of O(n) scan
      */
     async refreshTokens(refreshToken: string) {
-        // Find all non-expired tokens (we need to check all to find matching hash)
-        const storedTokens = await this.refreshTokenRepository.find({
-            where: {
-                expiresAt: LessThan(new Date()) ? undefined : undefined, // Not expired
-            },
+        // Parse token format: tokenId.tokenSecret
+        const [tokenId, tokenSecret] = refreshToken.split('.');
+        if (!tokenId || !tokenSecret) {
+            throw new UnauthorizedException('Invalid refresh token format');
+        }
+
+        // Direct O(1) lookup by tokenId
+        const storedToken = await this.refreshTokenRepository.findOne({
+            where: { id: tokenId },
             relations: ['user'],
         });
 
-        // Check each token hash to find a match
-        let matchedToken: RefreshToken | null = null;
-        for (const stored of storedTokens) {
-            if (stored.isExpired()) continue;
-            
-            const isValid = await bcrypt.compare(refreshToken, stored.tokenHash);
-            if (isValid) {
-                matchedToken = stored;
-                break;
-            }
-        }
-
-        if (!matchedToken) {
+        if (!storedToken || storedToken.isExpired()) {
             throw new UnauthorizedException('Invalid or expired refresh token');
         }
 
+        // Validate the secret portion against stored hash
+        const isValid = await bcrypt.compare(tokenSecret, storedToken.tokenHash);
+        if (!isValid) {
+            throw new UnauthorizedException('Invalid refresh token');
+        }
+
         // Revoke the old token (rotation)
-        await this.revokeRefreshToken(matchedToken.id);
+        await this.revokeRefreshToken(storedToken.id);
 
         // Generate new token pair
-        return this.generateTokenPair(matchedToken.user);
+        return this.generateTokenPair(storedToken.user);
     }
 
     /**

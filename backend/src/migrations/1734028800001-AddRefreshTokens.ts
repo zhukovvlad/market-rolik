@@ -50,6 +50,16 @@ export class AddRefreshTokens1734028800001 implements MigrationInterface {
             }),
         );
 
+        // Create index on tokenHash for admin queries and debugging
+        // Note: Main lookups use tokenId (primary key), this is for secondary queries
+        await queryRunner.createIndex(
+            'refresh_tokens',
+            new TableIndex({
+                name: 'IDX_REFRESH_TOKEN_HASH',
+                columnNames: ['tokenHash'],
+            }),
+        );
+
         // Add foreign key to users table with CASCADE delete
         await queryRunner.createForeignKey(
             'refresh_tokens',
@@ -65,12 +75,26 @@ export class AddRefreshTokens1734028800001 implements MigrationInterface {
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         // Drop foreign key
-        await queryRunner.dropForeignKey('refresh_tokens', 'FK_REFRESH_TOKEN_USER');
+        const table = await queryRunner.getTable('refresh_tokens');
+        if (table) {
+            const foreignKey = table.foreignKeys.find(fk => fk.name === 'FK_REFRESH_TOKEN_USER');
+            if (foreignKey) {
+                await queryRunner.dropForeignKey('refresh_tokens', foreignKey);
+            }
 
-        // Drop index
-        await queryRunner.dropIndex('refresh_tokens', 'IDX_REFRESH_TOKEN_USER_EXPIRES');
+            // Drop indexes (check if they exist first)
+            const userExpiresIndex = table.indices.find(idx => idx.name === 'IDX_REFRESH_TOKEN_USER_EXPIRES');
+            if (userExpiresIndex) {
+                await queryRunner.dropIndex('refresh_tokens', userExpiresIndex);
+            }
 
-        // Drop table
-        await queryRunner.dropTable('refresh_tokens');
+            const hashIndex = table.indices.find(idx => idx.name === 'IDX_REFRESH_TOKEN_HASH');
+            if (hashIndex) {
+                await queryRunner.dropIndex('refresh_tokens', hashIndex);
+            }
+
+            // Drop table
+            await queryRunner.dropTable('refresh_tokens');
+        }
     }
 }

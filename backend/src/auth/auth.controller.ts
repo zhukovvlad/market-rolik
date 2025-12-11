@@ -54,15 +54,17 @@ export class AuthController {
     @Post('logout')
     @UseGuards(AuthGuard('jwt'))
     async logout(@Req() req, @Body() body: { refreshToken?: string }) {
-        // If refresh token provided, revoke it specifically
-        // Otherwise, could revoke all tokens for the user
         if (body.refreshToken) {
-            // We'd need to find the token by hash first, but for simplicity
-            // we can just let it expire naturally
+            // Parse tokenId from the refresh token
+            const [tokenId] = body.refreshToken.split('.');
+            if (tokenId) {
+                // Revoke the specific refresh token
+                await this.authService.revokeRefreshToken(tokenId);
+            }
+        } else {
+            // If no specific token provided, revoke all user's tokens (logout from all devices)
+            await this.authService.revokeAllUserTokens(req.user.id);
         }
-        
-        // For logout-all-devices functionality:
-        // await this.authService.revokeAllUserTokens(req.user.id);
         
         return { message: 'Logged out successfully' };
     }
