@@ -23,12 +23,9 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
     queryKey: ['project', projectId],
     queryFn: async () => {
       if (!projectId) throw new Error('Project ID is required');
-      
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('No authentication token');
 
       const response = await axios.get<Project>(`${API_URL}/projects/${projectId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true, // Send cookies
       });
 
       return response.data;

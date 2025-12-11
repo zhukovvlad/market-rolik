@@ -5,6 +5,7 @@ import { User } from './users/user.entity';
 import { Project } from './projects/project.entity';
 import { Asset } from './projects/asset.entity';
 import { Transaction } from './transactions/transaction.entity';
+import { RefreshToken } from './auth/refresh-token.entity';
 
 // Load .env file.
 // Note: We use process.cwd() to resolve the .env file path.
@@ -20,7 +21,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DATABASE_USER || 'postgres',
   password: process.env.DATABASE_PASSWORD || 'postgres',
   database: process.env.DATABASE_NAME || 'market_rolik',
-  entities: [User, Project, Asset, Transaction],
+  entities: [User, Project, Asset, Transaction, RefreshToken],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   synchronize: false,
 });

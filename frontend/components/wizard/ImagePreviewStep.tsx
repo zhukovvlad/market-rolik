@@ -48,18 +48,12 @@ export default function ImagePreviewStep({
       return;
     }
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      toast.error('Пожалуйста, войдите в систему');
-      return;
-    }
-
     setIsRegenerating(true);
     try {
       await axios.post(
         `${API_URL}/projects/${projectId}/regenerate-bg`,
         { scenePrompt },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { withCredentials: true }
       );
       toast.success('Генерация фона запущена');
     } catch (error) {
@@ -72,19 +66,13 @@ export default function ImagePreviewStep({
 
   const handleSelectScene = async (assetId: string) => {
     if (isSelectingScene) return; // Prevent duplicate requests
-    
-    const token = localStorage.getItem('token');
-    if (!token) {
-      toast.error('Пожалуйста, войдите в систему');
-      return;
-    }
 
     setIsSelectingScene(true);
     try {
       await axios.post(
         `${API_URL}/projects/${projectId}/select-scene`,
         { assetId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { withCredentials: true }
       );
       
       setSelectedAssetId(assetId);

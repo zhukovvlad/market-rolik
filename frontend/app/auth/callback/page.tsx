@@ -1,46 +1,43 @@
 "use client";
 
 import { useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { API_URL } from "@/lib/utils";
 import { toast } from "sonner";
 
 function AuthCallbackContent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const { login } = useAuth();
 
     useEffect(() => {
-        const token = searchParams.get("token");
-
-        if (token) {
-            // Очищаем URL от токена, чтобы он не сохранялся в истории
-            window.history.replaceState(null, '', window.location.pathname);
-
-            // Fetch user data from backend
+        // Small delay to ensure cookies are set by the browser after redirect
+        const timer = setTimeout(() => {
+            // Tokens are now in httpOnly cookies, just fetch user data
             fetch(`${API_URL}/auth/me`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                credentials: 'include', // Important: send cookies
             })
                 .then(res => {
-                    if (!res.ok) throw new Error('Failed to fetch user');
+                    if (!res.ok) {
+                        console.error('Auth response status:', res.status);
+                        throw new Error('Failed to fetch user');
+                    }
                     return res.json();
                 })
                 .then(user => {
-                    login(token, user);
+                    login(user);
                     toast.success("Вход выполнен успешно!");
                     router.push("/dashboard");
                 })
                 .catch(error => {
-                    console.error("Failed to fetch user", error);
-                    router.push("/auth/error");
+                    console.error("Failed to fetch user profile:", error);
+                    toast.error("Ошибка входа");
+                    router.push("/");
                 });
-        } else {
-            router.push("/");
-        }
-    }, [searchParams, router, login]);
+        }, 100); // 100ms delay to ensure cookies are set
+
+        return () => clearTimeout(timer);
+    }, [router, login]);
 
     return (
         <div className="flex items-center justify-center min-h-screen">
