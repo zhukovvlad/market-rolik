@@ -17,7 +17,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
         if (!isLoading && !user) {
             router.push("/");
         }
-    }, [user, isLoading, router]);
+    }, [user, isLoading]);
 
     if (isLoading) {
         return (
@@ -31,7 +31,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
 
     if (!user) {
-        return null;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
+                    <p className="text-muted-foreground">Загрузка...</p>
+                </div>
+            </div>
+        );
     }
 
     return <>{children}</>;

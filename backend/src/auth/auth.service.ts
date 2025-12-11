@@ -29,13 +29,15 @@ export class AuthService {
             throw new BadRequestException('Email is required from OAuth provider');
         }
 
+        const normalizedEmail = email.toLowerCase().trim();
+
         // 1. Ищем пользователя по email
-        let user = await this.usersRepository.findOne({ where: { email } });
+        let user = await this.usersRepository.findOne({ where: { email: normalizedEmail } });
 
         // 2. Если нет - создаем нового (без пароля)
         if (!user) {
             user = this.usersRepository.create({
-                email,
+                email: normalizedEmail,
                 firstName: firstName || '',
                 lastName: lastName || '',
                 avatarUrl: picture || '',

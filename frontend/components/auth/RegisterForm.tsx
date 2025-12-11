@@ -26,7 +26,9 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     });
     const [loading, setLoading] = useState(false);
 
-    const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    type RegisterField = keyof typeof formData;
+
+    const handleChange = (field: RegisterField) => (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({ ...prev, [field]: e.target.value }));
     };
 
@@ -38,8 +40,8 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             return;
         }
 
-        if (formData.password.length < 6) {
-            toast.error("Пароль должен быть минимум 6 символов");
+        if (formData.password.length < 12) {
+            toast.error("Пароль должен быть минимум 12 символов");
             return;
         }
 
@@ -128,7 +130,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                         disabled={loading}
                     />
                     <p className="text-xs text-muted-foreground">
-                        Минимум 6 символов
+                        Минимум 12 символов
                     </p>
                 </div>
 

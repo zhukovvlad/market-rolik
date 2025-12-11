@@ -168,9 +168,24 @@ class Logger {
         const seen = new WeakSet();
         try {
             return JSON.stringify(value, (key, val) => {
+                const lowerKey = key.toLowerCase();
+
                 // Redact sensitive fields
-                if (key.toLowerCase().includes('authorization') || key.toLowerCase().includes('token') || key.toLowerCase().includes('password')) {
+                if (
+                    lowerKey.includes('authorization') ||
+                    lowerKey.includes('token') ||
+                    lowerKey.includes('password')
+                ) {
                     return '[REDACTED]';
+                }
+
+                // Serialize Error instances with useful fields
+                if (val instanceof Error) {
+                    return {
+                        name: val.name,
+                        message: val.message,
+                        stack: val.stack,
+                    };
                 }
 
                 if (typeof val === 'object' && val !== null) {

@@ -5,7 +5,7 @@ export class RegisterDto {
     email: string;
 
     @IsString()
-    @MinLength(6, { message: 'Пароль должен быть минимум 6 символов' })
+    @MinLength(12, { message: 'Пароль должен быть минимум 12 символов' })
     @MaxLength(100, { message: 'Пароль слишком длинный' })
     password: string;
 
