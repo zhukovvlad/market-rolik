@@ -70,13 +70,13 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                         alt="Preview" 
                         className="w-full h-full object-cover opacity-80" 
                         onLoad={(e) => {
-                            const attemptedSrc = e.currentTarget.getAttribute('src');
+                            const attemptedSrc = e.currentTarget.currentSrc || e.currentTarget.src;
                             if (attemptedSrc === imageUrl) {
                                 setImageErrorUrl(null);
                             }
                         }}
                         onError={(e) => {
-                            const attemptedSrc = e.currentTarget.getAttribute('src');
+                            const attemptedSrc = e.currentTarget.currentSrc || e.currentTarget.src;
                             if (attemptedSrc === imageUrl) {
                                 setImageErrorUrl(imageUrl);
                             }
@@ -151,7 +151,8 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                             Фоновая музыка
                         </Label>
                         <Select value={musicTheme} onValueChange={(v) => {
-                            if (['energetic', 'calm', 'lofi'].includes(v)) {
+                            const validThemes = ['energetic', 'calm', 'lofi'] as const;
+                            if ((validThemes as readonly string[]).includes(v)) {
                                 setMusicTheme(v as MusicTheme);
                             }
                         }}>
@@ -185,8 +186,8 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                                 <div className="space-y-2">
                                     <Label htmlFor="tts-voice" className="text-sm">Голос диктора</Label>
                                     <Select value={ttsVoice} onValueChange={(v) => {
-                                        const validVoices = ['ermil', 'zahar', 'jane', 'alena', 'omazh'];
-                                        if (validVoices.includes(v)) {
+                                        const validVoices = new Set(TTS_VOICES.map(({ value }) => value));
+                                        if (validVoices.has(v as TtsVoice)) {
                                             setTtsVoice(v as TtsVoice);
                                         }
                                     }}>

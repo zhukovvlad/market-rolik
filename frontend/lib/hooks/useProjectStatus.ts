@@ -62,7 +62,6 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
       const processingStatuses = ['DRAFT', 'GENERATING_IMAGE', 'GENERATING_VIDEO', 'QUEUED', 'PROCESSING', 'RENDERING'];
       const currentStatus = query.state.data.status;
 
-      resetRefsIfProjectChanged(projectId);
       const prevStatus = previousStatusRef.current;
       
       // Сохраняем текущий статус для следующей проверки

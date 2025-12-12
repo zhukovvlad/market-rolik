@@ -79,8 +79,8 @@ export class AnimationProcessor {
    */
   @Process('animate-image')
   async handleAnimateImage(job: Job<{ projectId: string; prompt?: string; requestId?: string }>) {
-    const { projectId, prompt } = job.data;
-    this.logger.log(`🎬 START Animation for Project ${projectId}`);
+    const { projectId, prompt, requestId } = job.data;
+    this.logger.log(`🎬 START Animation for Project ${projectId}${requestId ? ` (requestId=${requestId})` : ''}`);
 
     try {
       const project = await this.projectsService.findOne(projectId);
@@ -104,13 +104,14 @@ export class AnimationProcessor {
       // concurrent API requests cannot clobber the prompt used for this animation.
       // Normalize values to avoid unnecessary writes due to whitespace-only differences.
       if (normalizedJobPrompt.length > 0 && normalizedJobPrompt !== normalizedSettingsPrompt) {
-        project.settings = {
+        const updatedSettings = {
           ...settings,
           prompt: normalizedJobPrompt,
         };
+        project.settings = updatedSettings;
         await this.projectsService.save(project);
-        // settings already contains the correct values; do not reassign
-        settings = project.settings;
+        // Keep local settings reference stable regardless of ORM hydration behavior
+        settings = updatedSettings;
       }
 
       const { width, height } = getDimensions(settings.aspectRatio);
@@ -227,13 +228,13 @@ export class AnimationProcessor {
       const currentAttempt = job.attemptsMade + 1;
       const maxAttempts = job.opts.attempts || 1;
       
-      this.logger.error(`❌ Animation FAILED for Project ${projectId} (attempt ${currentAttempt}/${maxAttempts})`, errorMessage);
+      this.logger.error(`❌ Animation FAILED for Project ${projectId}${requestId ? ` (requestId=${requestId})` : ''} (attempt ${currentAttempt}/${maxAttempts})`, errorMessage);
       
       // Меняем статус на FAILED только если исчерпаны все попытки
       const isLastAttempt = currentAttempt >= maxAttempts;
       
       if (isLastAttempt) {
-        this.logger.error(`❌ All retry attempts exhausted. Marking project as FAILED.`);
+        this.logger.error(`❌ All retry attempts exhausted${requestId ? ` (requestId=${requestId})` : ''}. Marking project as FAILED.`);
         try {
           const newSettings = {
             lastError: error instanceof Error ? error.message : String(error),

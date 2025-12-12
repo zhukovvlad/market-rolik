@@ -29,7 +29,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const mountedRef = useRef(true);
 
     useEffect(() => {
-        mountedRef.current = true;
         return () => {
             mountedRef.current = false;
         };
@@ -73,15 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Check authentication status on mount
-        let isMounted = true;
-        refreshAuth().finally(() => {
-            if (isMounted) {
-                setIsLoading(false);
-            }
-        });
-        return () => {
-            isMounted = false;
-        };
+        refreshAuth();
     }, [refreshAuth]);
 
     const login = useCallback((newUser: User) => {
@@ -102,7 +93,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
             console.error("Logout error:", error);
         }
-        setUser(null);
+        if (mountedRef.current) {
+            setUser(null);
+        }
         router.push("/");
     }, [router]);
 
