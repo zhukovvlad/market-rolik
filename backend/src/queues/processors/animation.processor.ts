@@ -86,12 +86,14 @@ export class AnimationProcessor {
       const project = await this.projectsService.findOne(projectId);
       
       // Проверка статуса
-      if (project.status !== ProjectStatus.IMAGE_READY) {
-        throw new Error(`Project must be in IMAGE_READY status, current: ${project.status}`);
+      if (project.status !== ProjectStatus.IMAGE_READY && project.status !== ProjectStatus.GENERATING_VIDEO) {
+        throw new Error(`Project must be in IMAGE_READY or GENERATING_VIDEO status, current: ${project.status}`);
       }
 
-      project.status = ProjectStatus.GENERATING_VIDEO;
-      await this.projectsService.save(project);
+      if (project.status === ProjectStatus.IMAGE_READY) {
+        project.status = ProjectStatus.GENERATING_VIDEO;
+        await this.projectsService.save(project);
+      }
 
       const settings = project.settings || {};
       const { width, height } = getDimensions(settings.aspectRatio);

@@ -9,10 +9,11 @@ import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { API_URL } from "@/lib/utils";
 import { ProductData } from "@/types/product";
-import { CreateProjectRequest } from "@/types/project";
+import { AspectRatio, CreateProjectRequest, Project } from "@/types/project";
 import { useProjectStatus } from "@/lib/hooks/useProjectStatus";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 type WizardStep = 'product' | 'preview' | 'animating';
 
@@ -21,6 +22,8 @@ export default function CreatePage() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [projectTitle, setProjectTitle] = useState("Untitled Project");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+
+  const queryClient = useQueryClient();
   
   const router = useRouter();
   
@@ -77,7 +80,7 @@ export default function CreatePage() {
   }, [project?.status, step, router, project?.id, project?.settings]);
 
   // Шаг 1: Создание проекта и запуск генерации фона
-  const handleProductDataNext = async (data: { imageUrl: string; productData: ProductData; scenePrompt?: string }) => {
+  const handleProductDataNext = async (data: { imageUrl: string; productData: ProductData; scenePrompt?: string; aspectRatio: AspectRatio }) => {
     try {
       const requestBody: CreateProjectRequest = {
         title: projectTitle,
@@ -86,6 +89,7 @@ export default function CreatePage() {
           description: data.productData.description,
           usps: data.productData.usps.filter(u => u.trim().length > 0),
           mainImage: data.imageUrl,
+          aspectRatio: data.aspectRatio,
           ...(data.scenePrompt && { scenePrompt: data.scenePrompt }), // Передаем промпт от AI только если он есть
         }
       };
@@ -125,6 +129,13 @@ export default function CreatePage() {
         {},
         { withCredentials: true } // Send cookies
       );
+
+      // Important: polling stops at IMAGE_READY. Kick it back into polling immediately.
+      queryClient.setQueryData<Project>(['project', projectId], (prev) => {
+        if (!prev) return prev;
+        return { ...prev, status: 'GENERATING_VIDEO' };
+      });
+      await queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       
       setStep('animating');
       toast.success('Анимация запущена! Это займет ~3-4 минуты');
@@ -180,6 +191,7 @@ export default function CreatePage() {
               activeSceneAssetId={project.settings?.activeSceneAssetId}
               ttsAsset={ttsAsset}
               scenePrompt={project.settings?.scenePrompt}
+              aspectRatio={project.settings?.aspectRatio}
               onAnimate={handleAnimate}
               onBack={handleBackToProduct}
             />

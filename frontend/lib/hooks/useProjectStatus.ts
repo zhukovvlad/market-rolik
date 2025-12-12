@@ -35,7 +35,7 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
     refetchInterval: (query) => {
       if (!query.state.data) return 3000; // Если данных еще нет - продолжаем опрашивать
       
-      const processingStatuses = ['GENERATING_IMAGE', 'GENERATING_VIDEO', 'QUEUED', 'PROCESSING', 'RENDERING'];
+      const processingStatuses = ['DRAFT', 'GENERATING_IMAGE', 'GENERATING_VIDEO', 'QUEUED', 'PROCESSING', 'RENDERING'];
       const currentStatus = query.state.data.status;
       const prevStatus = previousStatusRef.current;
       

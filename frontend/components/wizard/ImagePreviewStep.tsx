@@ -8,7 +8,7 @@ import { Loader2, Sparkles, Play, Pause, RotateCcw, ChevronLeft } from 'lucide-r
 import { toast } from 'sonner';
 import axios from 'axios';
 import { API_URL } from '@/lib/utils';
-import { Asset } from '@/types/project';
+import { Asset, AspectRatio } from '@/types/project';
 import Image from 'next/image';
 
 interface ImagePreviewStepProps {
@@ -17,6 +17,7 @@ interface ImagePreviewStepProps {
   activeSceneAssetId?: string;
   ttsAsset?: Asset | null;
   scenePrompt?: string;
+  aspectRatio?: AspectRatio;
   onAnimate: () => void;
   onBack: () => void;
 }
@@ -27,6 +28,7 @@ export default function ImagePreviewStep({
   activeSceneAssetId,
   ttsAsset,
   scenePrompt: initialScenePrompt,
+  aspectRatio = '9:16',
   onAnimate,
   onBack,
 }: ImagePreviewStepProps) {
@@ -36,6 +38,22 @@ export default function ImagePreviewStep({
   const [selectedAssetId, setSelectedAssetId] = useState(activeSceneAssetId || sceneAssets[0]?.id);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  const getPreviewAspectClass = (ratio: AspectRatio) => {
+    switch (ratio) {
+      case '9:16':
+        return 'aspect-[9/16]';
+      case '16:9':
+        return 'aspect-video';
+      case '1:1':
+        return 'aspect-square';
+      case '3:4':
+        return 'aspect-[3/4]';
+    }
+
+    // Fallback (should be unreachable with current AspectRatio union)
+    return 'aspect-[9/16]';
+  };
 
   // Получаем активную сцену
   const activeScene = sceneAssets.find(a => a.id === selectedAssetId) || sceneAssets[0];
@@ -131,7 +149,7 @@ export default function ImagePreviewStep({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Image Preview */}
         <div className="space-y-4">
-          <div className="aspect-ratio-9-16 relative rounded-lg overflow-hidden border-2 border-border bg-muted">
+          <div className={`${getPreviewAspectClass(aspectRatio)} relative rounded-lg overflow-hidden border-2 border-border bg-muted`}>
             {activeScene ? (
               <Image
                 src={activeScene.storageUrl}
@@ -139,6 +157,7 @@ export default function ImagePreviewStep({
                 fill
                 className="object-contain"
                 priority
+                unoptimized
                 onError={(e) => {
                   console.error('Failed to load image:', activeScene.storageUrl);
                   toast.error('Ошибка загрузки изображения');
@@ -172,6 +191,7 @@ export default function ImagePreviewStep({
                       alt={`Version ${sceneAssets.indexOf(asset) + 1}`}
                       fill
                       className="object-cover"
+                      unoptimized
                     />
                   </button>
                 ))}

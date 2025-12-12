@@ -13,6 +13,7 @@ import { RegenerateBackgroundDto } from './dto/regenerate-background.dto';
 import { AnimateVideoDto } from './dto/animate-video.dto';
 import { AssetType } from './asset.entity';
 import { UserRole } from '../users/user.entity';
+import { ProjectStatus } from './project.entity';
 
 import { ProjectSettings } from './interfaces/project-settings.interface';
 
@@ -190,7 +191,8 @@ export class ProjectsController {
     const project = await this.projectsService.findOne(id, req.user.id);
     
     // Проверяем статус проекта
-    if (project.status !== 'IMAGE_READY') {
+    // Important: we allow re-entry if status is already GENERATING_VIDEO (e.g. duplicate clicks)
+    if (project.status !== ProjectStatus.IMAGE_READY && project.status !== ProjectStatus.GENERATING_VIDEO) {
       throw new ForbiddenException(`Project must be in IMAGE_READY status to animate, current: ${project.status}`);
     }
     
@@ -200,8 +202,14 @@ export class ProjectsController {
         ...project.settings,
         prompt: dto.prompt,
       };
-      await this.projectsService.save(project);
     }
+
+    // Move project to GENERATING_VIDEO immediately so frontend polling can continue
+    // The queue worker will handle the rest.
+    if (project.status === ProjectStatus.IMAGE_READY) {
+      project.status = ProjectStatus.GENERATING_VIDEO;
+    }
+    await this.projectsService.save(project);
 
     // Запускаем Этап 2: Анимация
     await this.videoQueue.add('animate-image', {

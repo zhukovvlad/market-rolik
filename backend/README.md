@@ -87,7 +87,7 @@ GOOGLE_CLIENT_SECRET=your-secret
 GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/callback
 
 # Remotion (optional, defaults provided)
-REMOTION_BUNDLE_PATH=../video/remotion-build
+REMOTION_BUNDLE_PATH=./remotion-build
 REMOTION_OUTPUT_DIR=./output
 REMOTION_COMPOSITION_ID=WbClassic
 ```

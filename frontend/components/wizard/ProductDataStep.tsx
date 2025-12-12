@@ -3,14 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Sparkles, X, Image as ImageIcon, Loader2, Pencil } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Upload, Sparkles, X, Image as ImageIcon, Loader2, Pencil, Smartphone, Monitor, Square, RectangleVertical } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { API_URL } from "@/lib/utils";
 import { ProductData } from "@/types/product";
+import { ASPECT_RATIOS, AspectRatio } from "@/types/project";
 
 interface ProductDataStepProps {
-    onNext: (data: { imageUrl: string; productData: ProductData; scenePrompt?: string }) => void;
+    onNext: (data: { imageUrl: string; productData: ProductData; scenePrompt?: string; aspectRatio: AspectRatio }) => void;
     projectTitle: string;
     setProjectTitle: (title: string) => void;
     isEditingTitle: boolean;
@@ -18,6 +20,13 @@ interface ProductDataStepProps {
     initialImageUrl?: string | null;
     initialProductData?: ProductData | null;
 }
+
+const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: React.ElementType }> = {
+    "9:16": { label: "Stories (9:16)", Icon: Smartphone },
+    "16:9": { label: "Landscape (16:9)", Icon: Monitor },
+    "1:1": { label: "Square (1:1)", Icon: Square },
+    "3:4": { label: "Post (3:4)", Icon: RectangleVertical },
+};
 
 export default function ProductDataStep({ onNext, projectTitle, setProjectTitle, isEditingTitle, setIsEditingTitle, initialImageUrl, initialProductData }: ProductDataStepProps) {
     const [file, setFile] = useState<File | null>(null);
@@ -27,6 +36,7 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [aiScenePrompt, setAiScenePrompt] = useState<string | undefined>(undefined); // Сохраняем scenePrompt от AI
+    const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
 
     const [productData, setProductData] = useState<ProductData>(
         initialProductData || {
@@ -197,7 +207,7 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
             return;
         }
 
-        onNext({ imageUrl: uploadedUrl, productData, scenePrompt: aiScenePrompt });
+        onNext({ imageUrl: uploadedUrl, productData, scenePrompt: aiScenePrompt, aspectRatio });
     };
 
     return (
@@ -233,6 +243,34 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
                     <h2 className="text-2xl font-bold font-heading">Добавьте фотографии товара</h2>
                     <p className="text-muted-foreground text-sm">
                         (одно изображение будет основным, остальные - опциональны)
+                    </p>
+                </div>
+
+                <div className="space-y-3">
+                    <Label className="text-base">Формат обложки</Label>
+                    <RadioGroup
+                        value={aspectRatio}
+                        onValueChange={(v) => setAspectRatio(v as AspectRatio)}
+                        className="grid grid-cols-2 gap-4"
+                    >
+                        {ASPECT_RATIOS.map((ratio) => {
+                            const { label, Icon } = ASPECT_RATIO_CONFIG[ratio];
+                            return (
+                                <div key={ratio}>
+                                    <RadioGroupItem value={ratio} id={`cover-r-${ratio}`} className="peer sr-only" />
+                                    <Label
+                                        htmlFor={`cover-r-${ratio}`}
+                                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
+                                    >
+                                        <Icon className="mb-3 h-6 w-6" />
+                                        <span className="font-semibold text-xs">{label}</span>
+                                    </Label>
+                                </div>
+                            );
+                        })}
+                    </RadioGroup>
+                    <p className="text-xs text-muted-foreground">
+                        Этот формат используется для генерации фона и всего дальнейшего пайплайна.
                     </p>
                 </div>
 
