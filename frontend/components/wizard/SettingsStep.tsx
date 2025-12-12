@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Smartphone, Monitor, Square, RectangleVertical, Music, Mic } from "lucide-react";
-import { GenerateSettings, AspectRatio, ASPECT_RATIOS, MusicTheme, TtsVoice, TTS_VOICES } from "@/types/project";
+import { GenerateSettings, AspectRatio, ASPECT_RATIOS, MusicTheme, MUSIC_THEMES, TtsVoice, TTS_VOICES } from "@/types/project";
 
 interface SettingsStepProps {
     imageUrl: string;
@@ -22,6 +22,9 @@ const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: ElementTyp
     "1:1": { label: "Square (1:1)", Icon: Square },
     "3:4": { label: "Post (3:4)", Icon: RectangleVertical },
 };
+
+const VALID_MUSIC_THEMES = MUSIC_THEMES as readonly string[];
+const VALID_TTS_VOICES = new Set(TTS_VOICES.map(({ value }) => value));
 
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBack }: SettingsStepProps) {
     const [prompt, setPrompt] = useState("");
@@ -70,14 +73,16 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                         alt="Preview" 
                         className="w-full h-full object-cover opacity-80" 
                         onLoad={(e) => {
-                            const attemptedSrc = e.currentTarget.getAttribute('src');
-                            if (attemptedSrc === imageUrl) {
+                            const attemptedSrc = e.currentTarget.currentSrc || e.currentTarget.src;
+                            const normalizedImageUrl = new URL(imageUrl, window.location.href).href;
+                            if (attemptedSrc === normalizedImageUrl) {
                                 setImageErrorUrl(null);
                             }
                         }}
                         onError={(e) => {
-                            const attemptedSrc = e.currentTarget.getAttribute('src');
-                            if (attemptedSrc === imageUrl) {
+                            const attemptedSrc = e.currentTarget.currentSrc || e.currentTarget.src;
+                            const normalizedImageUrl = new URL(imageUrl, window.location.href).href;
+                            if (attemptedSrc === normalizedImageUrl) {
                                 setImageErrorUrl(imageUrl);
                             }
                         }}
@@ -151,7 +156,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                             Фоновая музыка
                         </Label>
                         <Select value={musicTheme} onValueChange={(v) => {
-                            if (['energetic', 'calm', 'lofi'].includes(v)) {
+                            if ((VALID_MUSIC_THEMES as readonly string[]).includes(v)) {
                                 setMusicTheme(v as MusicTheme);
                             }
                         }}>
@@ -185,8 +190,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                                 <div className="space-y-2">
                                     <Label htmlFor="tts-voice" className="text-sm">Голос диктора</Label>
                                     <Select value={ttsVoice} onValueChange={(v) => {
-                                        const validVoices = ['ermil', 'zahar', 'jane', 'alena', 'omazh'];
-                                        if (validVoices.includes(v)) {
+                                        if (VALID_TTS_VOICES.has(v as TtsVoice)) {
                                             setTtsVoice(v as TtsVoice);
                                         }
                                     }}>

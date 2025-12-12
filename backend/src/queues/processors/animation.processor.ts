@@ -79,8 +79,8 @@ export class AnimationProcessor {
    */
   @Process('animate-image')
   async handleAnimateImage(job: Job<{ projectId: string; prompt?: string; requestId?: string }>) {
-    const { projectId, prompt } = job.data;
-    this.logger.log(`🎬 START Animation for Project ${projectId}`);
+    const { projectId, prompt, requestId } = job.data;
+    this.logger.log(`🎬 START Animation for Project ${projectId}${requestId ? ` (requestId=${requestId})` : ''}`);
 
     try {
       const project = await this.projectsService.findOne(projectId);
@@ -104,13 +104,14 @@ export class AnimationProcessor {
       // concurrent API requests cannot clobber the prompt used for this animation.
       // Normalize values to avoid unnecessary writes due to whitespace-only differences.
       if (normalizedJobPrompt.length > 0 && normalizedJobPrompt !== normalizedSettingsPrompt) {
-        project.settings = {
+        const updatedSettings = {
           ...settings,
           prompt: normalizedJobPrompt,
         };
+        project.settings = updatedSettings;
         await this.projectsService.save(project);
-        // settings already contains the correct values; do not reassign
-        settings = project.settings;
+        // Keep local settings reference stable regardless of ORM hydration behavior
+        settings = updatedSettings;
       }
 
       const { width, height } = getDimensions(settings.aspectRatio);
@@ -183,7 +184,7 @@ export class AnimationProcessor {
         await this.assetRepository.save(videoAsset);
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err);
-        this.logger.error(`❌ Kling failed: ${errMsg}. Will use static image in video.`);
+        this.logger.error(`❌ Kling failed${requestId ? ` (requestId=${requestId})` : ''}: ${errMsg}. Will use static image in video.`);
         s3VideoUrl = null; // Remotion будет использовать статическую картинку
       }
 
@@ -217,7 +218,7 @@ export class AnimationProcessor {
       project.resultVideoUrl = finalS3Url;
       await this.projectsService.save(project);
 
-      this.logger.log(`🎉 ANIMATION COMPLETE! Final video: ${finalS3Url}`);
+      this.logger.log(`🎉 ANIMATION COMPLETE${requestId ? ` (requestId=${requestId})` : ''}! Final video: ${finalS3Url}`);
       return { result: finalS3Url };
 
     } catch (error) {
@@ -227,22 +228,22 @@ export class AnimationProcessor {
       const currentAttempt = job.attemptsMade + 1;
       const maxAttempts = job.opts.attempts || 1;
       
-      this.logger.error(`❌ Animation FAILED for Project ${projectId} (attempt ${currentAttempt}/${maxAttempts})`, errorMessage);
+      this.logger.error(`❌ Animation FAILED for Project ${projectId}${requestId ? ` (requestId=${requestId})` : ''} (attempt ${currentAttempt}/${maxAttempts})`, errorMessage);
       
       // Меняем статус на FAILED только если исчерпаны все попытки
       const isLastAttempt = currentAttempt >= maxAttempts;
       
       if (isLastAttempt) {
-        this.logger.error(`❌ All retry attempts exhausted. Marking project as FAILED.`);
+        this.logger.error(`❌ All retry attempts exhausted${requestId ? ` (requestId=${requestId})` : ''}. Marking project as FAILED.`);
         try {
           const newSettings = {
             lastError: error instanceof Error ? error.message : String(error),
             failedAt: new Date().toISOString(),
           };
           
-          this.logger.log(`💾 Updating project to FAILED status. Settings: ${JSON.stringify(newSettings)}`);
+          this.logger.log(`💾 Updating project to FAILED status${requestId ? ` (requestId=${requestId})` : ''}. Settings: ${JSON.stringify(newSettings)}`);
           await this.projectsService.updateStatusAndSettings(projectId, ProjectStatus.FAILED, newSettings);
-          this.logger.log(`✅ Project marked as FAILED successfully`);
+          this.logger.log(`✅ Project marked as FAILED successfully${requestId ? ` (requestId=${requestId})` : ''}`);
         } catch (dbError) {
           this.logger.error(`❌ Failed to update project status to FAILED`, dbError);
         }
