@@ -109,7 +109,8 @@ export class AnimationProcessor {
           prompt: normalizedJobPrompt,
         };
         await this.projectsService.save(project);
-        settings = project.settings || {};
+        // settings already contains the correct values; do not reassign
+        settings = project.settings;
       }
 
       const { width, height } = getDimensions(settings.aspectRatio);

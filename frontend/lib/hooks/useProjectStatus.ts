@@ -28,23 +28,24 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
   const previousProjectIdRef = useRef<string | null>(null);
   const onStatusChangeRef = useRef(options?.onStatusChange);
   
-  // Keep callback ref up to date
-  onStatusChangeRef.current = options?.onStatusChange;
-
-  const resetRefsIfProjectChanged = (currentProjectId: string | null) => {
-    if (previousProjectIdRef.current !== currentProjectId) {
-      previousProjectIdRef.current = currentProjectId;
+  // Keep callback ref up to date (safe pattern for storing latest callback)
+  useEffect(() => {
+    onStatusChangeRef.current = options?.onStatusChange;
+  });
+  
+  // Reset refs synchronously when projectId changes to avoid race conditions
+  useEffect(() => {
+    if (previousProjectIdRef.current !== projectId) {
+      previousProjectIdRef.current = projectId;
       previousStatusRef.current = undefined;
       previousNotifiedStatusRef.current = undefined;
     }
-  };
+  }, [projectId]);
   
   const query = useQuery({
     queryKey: ['project', projectId],
     queryFn: async () => {
       if (!projectId) throw new Error('Project ID is required');
-
-      resetRefsIfProjectChanged(projectId);
 
       const response = await axios.get<Project>(`${API_URL}/projects/${projectId}`, {
         withCredentials: true, // Send cookies
@@ -55,6 +56,7 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
     enabled: enabled && !!projectId,
     // Опрашивать каждые 3 сек, если статус в процессе генерации
     refetchInterval: (query) => {
+      if (query.state.status === 'error') return false; // Stop polling on persistent errors
       if (!query.state.data) return 3000; // Если данных еще нет - продолжаем опрашивать
       
       const processingStatuses = ['DRAFT', 'GENERATING_IMAGE', 'GENERATING_VIDEO', 'QUEUED', 'PROCESSING', 'RENDERING'];
@@ -95,8 +97,6 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
   // Handle status change callback using useEffect instead of deprecated onSuccess
   useEffect(() => {
     if (query.data) {
-      resetRefsIfProjectChanged(projectId);
-
       const prevStatus = previousNotifiedStatusRef.current;
       if (query.data.status !== prevStatus) {
         onStatusChangeRef.current?.(query.data, prevStatus);

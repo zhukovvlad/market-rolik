@@ -73,7 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Check authentication status on mount
-        refreshAuth();
+        let isMounted = true;
+        refreshAuth().finally(() => {
+            if (isMounted) {
+                setIsLoading(false);
+            }
+        });
+        return () => {
+            isMounted = false;
+        };
     }, [refreshAuth]);
 
     const login = useCallback((newUser: User) => {
