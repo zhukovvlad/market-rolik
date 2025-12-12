@@ -1,4 +1,11 @@
-import { IsIn, IsISO8601, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsIn,
+  IsISO8601,
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class FrontendLogDto {
   @IsIn(['debug', 'info', 'warn', 'error'])

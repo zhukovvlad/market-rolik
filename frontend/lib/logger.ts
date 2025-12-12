@@ -201,7 +201,7 @@ class Logger {
                 }
                 return val;
             }, space);
-        } catch (error) {
+        } catch {
             return '<unserializable data>';
         }
     }

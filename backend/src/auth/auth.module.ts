@@ -12,34 +12,36 @@ import { RefreshToken } from './refresh-token.entity';
 import { validateJwtSecret } from '../config/jwt-validation.constants';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([User, RefreshToken]),
-        PassportModule,
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => {
-                const secret = configService.get<string>('JWT_SECRET');
-                
-                // Runtime validation using centralized validation logic
-                const validationError = validateJwtSecret(secret || '');
-                if (validationError) {
-                    throw new Error(validationError);
-                }
-                
-                return {
-                    secret,
-                    signOptions: { 
-                        expiresIn: '1h',
-                        audience: configService.get<string>('JWT_AUDIENCE') || 'market-rolik-app',
-                        issuer: configService.get<string>('JWT_ISSUER') || 'market-rolik-api',
-                    },
-                };
-            },
-            inject: [ConfigService],
-        }),
-    ],
-    controllers: [AuthController],
-    providers: [AuthService, JwtStrategy, GoogleStrategy],
-    exports: [AuthService],
+  imports: [
+    TypeOrmModule.forFeature([User, RefreshToken]),
+    PassportModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+
+        // Runtime validation using centralized validation logic
+        const validationError = validateJwtSecret(secret || '');
+        if (validationError) {
+          throw new Error(validationError);
+        }
+
+        return {
+          secret,
+          signOptions: {
+            expiresIn: '1h',
+            audience:
+              configService.get<string>('JWT_AUDIENCE') || 'market-rolik-app',
+            issuer:
+              configService.get<string>('JWT_ISSUER') || 'market-rolik-api',
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy, GoogleStrategy],
+  exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

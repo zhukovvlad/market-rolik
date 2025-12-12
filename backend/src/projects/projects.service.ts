@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project, ProjectStatus } from './project.entity';
@@ -15,10 +19,14 @@ export class ProjectsService {
     private assetsRepository: Repository<Asset>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) { }
+  ) {}
 
   // Create a project
-  async createProject(userId: string, title: string, settings: ProjectSettings = {}) {
+  async createProject(
+    userId: string,
+    title: string,
+    settings: ProjectSettings = {},
+  ) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
@@ -100,7 +108,9 @@ export class ProjectsService {
     const result = await this.projectsRepository.delete({ id, userId });
 
     if (result.affected === 0) {
-      throw new NotFoundException(`Project ${id} not found or you don't have permission`);
+      throw new NotFoundException(
+        `Project ${id} not found or you don't have permission`,
+      );
     }
     return { deleted: true };
   }
@@ -120,7 +130,11 @@ export class ProjectsService {
    * Обновляет статус и частично обновляет settings (мержит с существующими)
    * Использует атомарное обновление через PostgreSQL JSONB || оператор
    */
-  async updateStatusAndSettings(projectId: string, status: ProjectStatus, partialSettings: Partial<ProjectSettings>) {
+  async updateStatusAndSettings(
+    projectId: string,
+    status: ProjectStatus,
+    partialSettings: Partial<ProjectSettings>,
+  ) {
     const result = await this.projectsRepository
       .createQueryBuilder()
       .update(Project)
@@ -132,7 +146,7 @@ export class ProjectsService {
       .setParameters({ partial: JSON.stringify(partialSettings ?? {}) })
       .returning('*')
       .execute();
-    
+
     if (!result.affected) throw new NotFoundException('Project not found');
   }
 
@@ -142,14 +156,16 @@ export class ProjectsService {
    */
   async setActiveScene(projectId: string, assetId: string, userId: string) {
     const project = await this.findOne(projectId, userId);
-    
+
     // Проверяем, что этот ассет реально принадлежит этому проекту
-    const asset = project.assets.find(a => a.id === assetId);
+    const asset = project.assets.find((a) => a.id === assetId);
     if (!asset) {
       throw new BadRequestException('Asset not found in this project');
     }
     if (asset.type !== AssetType.IMAGE_SCENE) {
-      throw new BadRequestException(`Asset type must be IMAGE_SCENE, got ${asset.type}`);
+      throw new BadRequestException(
+        `Asset type must be IMAGE_SCENE, got ${asset.type}`,
+      );
     }
 
     // Обновляем настройки
@@ -157,7 +173,7 @@ export class ProjectsService {
       ...project.settings,
       activeSceneAssetId: asset.id,
     };
-    
+
     // Если у ассета в метаданных есть промпт, восстанавливаем его в настройки,
     // чтобы пользователь видел тот промпт, который создал эту картинку
     if (asset.meta?.prompt) {

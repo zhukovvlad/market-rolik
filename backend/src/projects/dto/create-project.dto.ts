@@ -44,25 +44,42 @@ export class ProjectSettingsDto {
 
   @IsOptional()
   @IsArray({ message: 'USPs must be an array' })
-  @ArrayMinSize(1, { message: 'At least one USP is required if USPs are provided' })
+  @ArrayMinSize(1, {
+    message: 'At least one USP is required if USPs are provided',
+  })
   @ArrayMaxSize(10, { message: 'Maximum 10 USPs allowed' })
   @Transform(({ value }) =>
-    value?.map((item: string) => (typeof item === 'string' ? item.trim() : item)),
+    value?.map((item: string) =>
+      typeof item === 'string' ? item.trim() : item,
+    ),
   )
   @IsString({ each: true, message: 'Each USP must be a string' })
   @MinLength(1, { each: true, message: 'Each USP must not be empty' })
-  @MaxLength(200, { each: true, message: 'Each USP must not exceed 200 characters' })
+  @MaxLength(200, {
+    each: true,
+    message: 'Each USP must not exceed 200 characters',
+  })
   usps?: string[];
 
   @IsOptional()
-  @IsUrl({ require_protocol: true }, { message: 'Main image must be a valid URL with protocol (http:// or https://)' })
-  @MaxLength(2048, { message: 'Main image URL must not exceed 2048 characters' })
+  @IsUrl(
+    { require_protocol: true },
+    {
+      message:
+        'Main image must be a valid URL with protocol (http:// or https://)',
+    },
+  )
+  @MaxLength(2048, {
+    message: 'Main image URL must not exceed 2048 characters',
+  })
   mainImage?: string;
 
   @IsOptional()
   @IsString({ message: 'Animation prompt must be a string' })
   @MinLength(1, { message: 'Animation prompt must not be empty' })
-  @MaxLength(500, { message: 'Animation prompt must not exceed 500 characters' })
+  @MaxLength(500, {
+    message: 'Animation prompt must not exceed 500 characters',
+  })
   @Transform(({ value }) => value?.trim())
   prompt?: string;
 
@@ -78,11 +95,15 @@ export class ProjectSettingsDto {
   activeSceneAssetId?: string;
 
   @IsOptional()
-  @IsIn(ASPECT_RATIOS, { message: `Aspect ratio must be one of: ${ASPECT_RATIOS.join(', ')}` })
+  @IsIn(ASPECT_RATIOS, {
+    message: `Aspect ratio must be one of: ${ASPECT_RATIOS.join(', ')}`,
+  })
   aspectRatio?: AspectRatio;
 
   @IsOptional()
-  @IsIn(MUSIC_THEMES, { message: `Music theme must be one of: ${MUSIC_THEMES.join(', ')}` })
+  @IsIn(MUSIC_THEMES, {
+    message: `Music theme must be one of: ${MUSIC_THEMES.join(', ')}`,
+  })
   musicTheme?: MusicTheme;
 
   @IsOptional()
@@ -116,7 +137,9 @@ export class CreateProjectDto {
   title: string;
 
   @IsOptional()
-  @ValidateNested({ message: 'Settings must be a valid ProjectSettingsDto object' })
+  @ValidateNested({
+    message: 'Settings must be a valid ProjectSettingsDto object',
+  })
   @Type(() => ProjectSettingsDto)
   settings?: ProjectSettingsDto;
 }

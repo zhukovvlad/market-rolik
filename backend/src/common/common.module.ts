@@ -8,7 +8,19 @@ import { TtsService } from './tts.service';
 
 @Global() // Делаем модуль глобальным, чтобы не импортировать его в каждом файле
 @Module({
-  providers: [ProxyService, AiVideoService, AiTextService, RenderService, TtsService],
-  exports: [ProxyService, AiVideoService, AiTextService, RenderService, TtsService],
+  providers: [
+    ProxyService,
+    AiVideoService,
+    AiTextService,
+    RenderService,
+    TtsService,
+  ],
+  exports: [
+    ProxyService,
+    AiVideoService,
+    AiTextService,
+    RenderService,
+    TtsService,
+  ],
 })
-export class CommonModule { }
+export class CommonModule {}

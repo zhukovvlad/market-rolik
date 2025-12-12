@@ -157,7 +157,7 @@ export default function ImagePreviewStep({
                 fill
                 className="object-contain"
                 priority
-                onError={(e) => {
+                onError={() => {
                   console.error('Failed to load image:', activeScene.storageUrl);
                   toast.error('Ошибка загрузки изображения');
                 }}

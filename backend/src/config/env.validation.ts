@@ -41,38 +41,23 @@ export const envValidationSchema = Joi.object({
   S3_ENDPOINT: Joi.string().required(),
   S3_REGION: Joi.string().required(),
   S3_BUCKET: Joi.string().required(),
-  S3_ACCESS_KEY: Joi.string()
-    .required()
-    .invalid('your-access-key')
-    .messages({
-      'any.invalid': 'S3_ACCESS_KEY cannot be a placeholder value',
-    }),
-  S3_SECRET_KEY: Joi.string()
-    .required()
-    .invalid('your-secret-key')
-    .messages({
-      'any.invalid': 'S3_SECRET_KEY cannot be a placeholder value',
-    }),
+  S3_ACCESS_KEY: Joi.string().required().invalid('your-access-key').messages({
+    'any.invalid': 'S3_ACCESS_KEY cannot be a placeholder value',
+  }),
+  S3_SECRET_KEY: Joi.string().required().invalid('your-secret-key').messages({
+    'any.invalid': 'S3_SECRET_KEY cannot be a placeholder value',
+  }),
 
   // AI Services API Keys
-  GEMINI_API_KEY: Joi.string()
-    .required()
-    .invalid('your-gemini-key')
-    .messages({
-      'any.invalid': 'GEMINI_API_KEY cannot be a placeholder value',
-    }),
-  PIAPI_API_KEY: Joi.string()
-    .required()
-    .invalid('your-piapi-key')
-    .messages({
-      'any.invalid': 'PIAPI_API_KEY cannot be a placeholder value',
-    }),
-  KLING_API_KEY: Joi.string()
-    .required()
-    .invalid('your-kling-key')
-    .messages({
-      'any.invalid': 'KLING_API_KEY cannot be a placeholder value',
-    }),
+  GEMINI_API_KEY: Joi.string().required().invalid('your-gemini-key').messages({
+    'any.invalid': 'GEMINI_API_KEY cannot be a placeholder value',
+  }),
+  PIAPI_API_KEY: Joi.string().required().invalid('your-piapi-key').messages({
+    'any.invalid': 'PIAPI_API_KEY cannot be a placeholder value',
+  }),
+  KLING_API_KEY: Joi.string().required().invalid('your-kling-key').messages({
+    'any.invalid': 'KLING_API_KEY cannot be a placeholder value',
+  }),
   PHOTOROOM_API_KEY: Joi.string()
     .required()
     .invalid('your-photoroom-key')
@@ -124,20 +109,25 @@ export const envValidationSchema = Joi.object({
     .allow('')
     .custom((value, helpers) => {
       if (!value || value === '') return value;
-      
-      const entries = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
-      
+
+      const entries = value
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
       for (const entry of entries) {
         // Validate each entry as IPv4 with optional CIDR
-        const validation = Joi.string().ip({ version: ['ipv4'], cidr: 'optional' }).validate(entry);
-        
+        const validation = Joi.string()
+          .ip({ version: ['ipv4'], cidr: 'optional' })
+          .validate(entry);
+
         if (validation.error) {
           return helpers.error('any.invalid', {
             message: `"${entry}" is not a valid IPv4 address or CIDR range. Example: "10.0.0.1" or "172.17.0.0/16"`,
           });
         }
       }
-      
+
       return value;
     }),
 

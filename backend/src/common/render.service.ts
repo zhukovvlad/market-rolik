@@ -12,7 +12,7 @@ export class RenderService {
   private readonly MAX_DIMENSION = 4096;
   private readonly MIN_DIMENSION = 128;
 
-  constructor(private readonly configService: ConfigService) { }
+  constructor(private readonly configService: ConfigService) {}
 
   async renderVideo(data: VideoCompositionInput): Promise<string> {
     this.lastLoggedProgress = 0;
@@ -36,18 +36,20 @@ export class RenderService {
     if (!fs.existsSync(bundleLocation)) {
       throw new Error(
         `❌ Remotion bundle not found at: ${bundleLocation}. ` +
-        `Please run "npm run build:remotion" or check REMOTION_BUNDLE_PATH.`,
+          `Please run "npm run build:remotion" or check REMOTION_BUNDLE_PATH.`,
       );
     }
 
     // Log essential input props for debugging (avoid logging full prompt/text)
-    this.logger.debug(`🎬 Remotion Input Props: ${JSON.stringify({
-      title: data.title?.slice(0, 30),
-      uspsCount: data.usps?.length || 0,
-      hasAudio: !!data.audioUrl,
-      hasMusic: !!data.backgroundMusicUrl,
-      primaryColor: data.primaryColor
-    })}`);
+    this.logger.debug(
+      `🎬 Remotion Input Props: ${JSON.stringify({
+        title: data.title?.slice(0, 30),
+        uspsCount: data.usps?.length || 0,
+        hasAudio: !!data.audioUrl,
+        hasMusic: !!data.backgroundMusicUrl,
+        primaryColor: data.primaryColor,
+      })}`,
+    );
 
     // Select composition
     const composition = await selectComposition({
@@ -65,14 +67,28 @@ export class RenderService {
     const outputFile = path.join(outputDir, fileName);
 
     // Validate and clamp dimensions to sane bounds, handle NaN/invalid inputs
-    const inputWidth = typeof data.width === 'number' && isFinite(data.width) ? data.width : composition.width;
-    const inputHeight = typeof data.height === 'number' && isFinite(data.height) ? data.height : composition.height;
-    const safeWidth = Math.max(this.MIN_DIMENSION, Math.min(this.MAX_DIMENSION, inputWidth));
-    const safeHeight = Math.max(this.MIN_DIMENSION, Math.min(this.MAX_DIMENSION, inputHeight));
+    const inputWidth =
+      typeof data.width === 'number' && isFinite(data.width)
+        ? data.width
+        : composition.width;
+    const inputHeight =
+      typeof data.height === 'number' && isFinite(data.height)
+        ? data.height
+        : composition.height;
+    const safeWidth = Math.max(
+      this.MIN_DIMENSION,
+      Math.min(this.MAX_DIMENSION, inputWidth),
+    );
+    const safeHeight = Math.max(
+      this.MIN_DIMENSION,
+      Math.min(this.MAX_DIMENSION, inputHeight),
+    );
 
     // Log when dimensions are adjusted for debugging
     if (inputWidth !== safeWidth || inputHeight !== safeHeight) {
-      this.logger.warn(`⚠️ Dimensions adjusted: ${inputWidth}x${inputHeight} → ${safeWidth}x${safeHeight}`);
+      this.logger.warn(
+        `⚠️ Dimensions adjusted: ${inputWidth}x${inputHeight} → ${safeWidth}x${safeHeight}`,
+      );
     }
 
     // Render video with properly typed chromiumOptions
@@ -98,7 +114,9 @@ export class RenderService {
         const percent = Math.floor(progress * 10) * 10;
         if (percent > this.lastLoggedProgress) {
           this.lastLoggedProgress = percent;
-          this.logger.log(`Rendering progress: ${(progress * 100).toFixed(0)}%`);
+          this.logger.log(
+            `Rendering progress: ${(progress * 100).toFixed(0)}%`,
+          );
         }
       },
     });

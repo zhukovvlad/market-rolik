@@ -7,7 +7,7 @@ export interface VideoCompositionInput extends Record<string, unknown> {
   mainImage: string;
   usps: string[];
   primaryColor: string;
-  audioUrl?: string | null;       // Ссылка на голос (S3)
+  audioUrl?: string | null; // Ссылка на голос (S3)
   backgroundMusicUrl?: string | null; // Ссылка на музыку
   bgVideoUrl?: string | null; // Ссылка на видео-фон (Kling)
   width?: number;

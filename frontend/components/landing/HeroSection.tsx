@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from "next/link";
+import Image from "next/image";
 
 export default function HeroSection() {
   return (
@@ -52,7 +53,9 @@ export default function HeroSection() {
           </div>
           <div className="relative">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border">
-              <img src="https://images.unsplash.com/photo-1753161021323-3687a18aab50?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvbmxpbmUlMjBzaG9wcGluZyUyMHByb2R1Y3QlMjB2aWRlb3xlbnwxfHx8fDE3NjQzMjk5OTl8MA&amp;ixlib=rb-4.1.0&amp;q=80&amp;w=1080&amp;utm_source=figma&amp;utm_medium=referral" alt="AI Video Card Creation" className="w-full h-auto" />
+              <div className="relative w-full aspect-video">
+                <Image src="https://images.unsplash.com/photo-1753161021323-3687a18aab50?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvbmxpbmUlMjBzaG9wcGluZyUyMHByb2R1Y3QlMjB2aWRlb3xlbnwxfHx8fDE3NjQzMjk5OTl8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" alt="AI Video Card Creation" fill className="object-cover" unoptimized />
+              </div>
               <div className="absolute inset-0 bg-linear-to-t from-primary/30 to-transparent"></div>
               <div className="absolute inset-0 bg-linear-to-tr from-primary/10 via-transparent to-primary/10"></div>
             </div>

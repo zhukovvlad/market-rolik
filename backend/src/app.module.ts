@@ -49,10 +49,12 @@ import { envValidationSchema } from './config/env.validation';
       useFactory: (config: ConfigService) => {
         const ttl = parseInt(config.get('THROTTLE_TTL') ?? '60000', 10);
         const limit = parseInt(config.get('THROTTLE_LIMIT') ?? '10', 10);
-        return [{
-          ttl: Number.isFinite(ttl) ? ttl : 60000,
-          limit: Number.isFinite(limit) ? limit : 10,
-        }];
+        return [
+          {
+            ttl: Number.isFinite(ttl) ? ttl : 60000,
+            limit: Number.isFinite(limit) ? limit : 10,
+          },
+        ];
       },
     }),
 
@@ -66,7 +68,14 @@ import { envValidationSchema } from './config/env.validation';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Project, Asset, Transaction, UploadTracking, RefreshToken],
+        entities: [
+          User,
+          Project,
+          Asset,
+          Transaction,
+          UploadTracking,
+          RefreshToken,
+        ],
         // Only enable auto-sync in development. Defaults to false for safety.
         // In production/staging, always use migrations to avoid data loss.
         synchronize: configService.get<string>('NODE_ENV') === 'development',
@@ -104,4 +113,4 @@ import { envValidationSchema } from './config/env.validation';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

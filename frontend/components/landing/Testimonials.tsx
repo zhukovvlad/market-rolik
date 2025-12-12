@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 export default function Testimonials() {
   return (
@@ -16,7 +17,7 @@ export default function Testimonials() {
               <path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path>
             </svg>
             <div className="flex items-center gap-4 mb-6">
-              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&amp;h=150&amp;fit=crop" alt="Sarah Johnson" className="w-16 h-16 rounded-full object-cover border-2 border-primary/30" />
+              <Image src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop" alt="Sarah Johnson" width={64} height={64} className="rounded-full object-cover border-2 border-primary/30" unoptimized />
               <div>
                 <div className="text-foreground mb-1">Sarah Johnson</div>
                 <div className="text-sm text-muted-foreground">Amazon Seller</div>
@@ -37,7 +38,7 @@ export default function Testimonials() {
               <path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path>
             </svg>
             <div className="flex items-center gap-4 mb-6">
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&amp;h=150&amp;fit=crop" alt="Michael Chen" className="w-16 h-16 rounded-full object-cover border-2 border-primary/30" />
+              <Image src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop" alt="Michael Chen" width={64} height={64} className="rounded-full object-cover border-2 border-primary/30" unoptimized />
               <div>
                 <div className="text-foreground mb-1">Michael Chen</div>
                 <div className="text-sm text-muted-foreground">eBay Power Seller</div>
@@ -58,7 +59,7 @@ export default function Testimonials() {
               <path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path>
             </svg>
             <div className="flex items-center gap-4 mb-6">
-              <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&amp;h=150&amp;fit=crop" alt="Emma Rodriguez" className="w-16 h-16 rounded-full object-cover border-2 border-primary/30" />
+              <Image src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop" alt="Emma Rodriguez" width={64} height={64} className="rounded-full object-cover border-2 border-primary/30" unoptimized />
               <div>
                 <div className="text-foreground mb-1">Emma Rodriguez</div>
                 <div className="text-sm text-muted-foreground">Etsy Shop Owner</div>
@@ -77,9 +78,9 @@ export default function Testimonials() {
         <div className="mt-12 text-center">
           <div className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-card to-background border border-primary/30 rounded-full">
             <div className="flex -space-x-2">
-              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&amp;h=40&amp;fit=crop" alt="User" className="w-8 h-8 rounded-full border-2 border-primary" />
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&amp;h=40&amp;fit=crop" alt="User" className="w-8 h-8 rounded-full border-2 border-primary" />
-              <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&amp;h=40&amp;fit=crop" alt="User" className="w-8 h-8 rounded-full border-2 border-primary" />
+              <Image src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&h=40&fit=crop" alt="User" width={32} height={32} className="rounded-full border-2 border-primary" unoptimized />
+              <Image src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop" alt="User" width={32} height={32} className="rounded-full border-2 border-primary" unoptimized />
+              <Image src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop" alt="User" width={32} height={32} className="rounded-full border-2 border-primary" unoptimized />
             </div>
             <span className="text-card-foreground">Join 10,000+ happy sellers</span>
           </div>

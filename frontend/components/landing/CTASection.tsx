@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function CTASection() {
   return (
@@ -7,7 +8,7 @@ export default function CTASection() {
       <div className="max-w-7xl mx-auto">
         <div className="relative rounded-3xl overflow-hidden border border-primary/30">
           <div className="absolute inset-0">
-            <img src="https://images.unsplash.com/photo-1682579401399-f65e193d6389?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlY29tbWVyY2UlMjBzZWxsZXIlMjB3b3Jrc3BhY2V8ZW58MXx8fHwxNzY0MzI5OTk5fDA&amp;ixlib=rb-4.1.0&amp;q=80&amp;w=1080&amp;utm_source=figma&amp;utm_medium=referral" alt="Get Started" className="w-full h-full object-cover" />
+            <Image src="https://images.unsplash.com/photo-1682579401399-f65e193d6389?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlY29tbWVyY2UlMjBzZWxsZXIlMjB3b3Jrc3BhY2V8ZW58MXx8fHwxNzY0MzI5OTk5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" alt="Get Started" fill className="object-cover" unoptimized />
             <div className="absolute inset-0 bg-linear-to-r from-background/95 via-muted/90 to-background/95"></div>
             <div className="absolute inset-0 bg-linear-to-br from-primary/20 via-transparent to-primary/20"></div>
           </div>

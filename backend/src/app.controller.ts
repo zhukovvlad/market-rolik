@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Logger, UseGuards, Req, ForbiddenException, BadRequestException, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Logger,
+  UseGuards,
+  Req,
+  ForbiddenException,
+  BadRequestException,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
@@ -48,7 +60,7 @@ export class AppController {
     private readonly projectsService: ProjectsService,
     private readonly aiTextService: AiTextService,
     private readonly renderService: RenderService,
-  ) { }
+  ) {}
 
   @Get()
   getHello(): string {
@@ -147,8 +159,11 @@ export class AppController {
   @Post('ai/analyze-image')
   @UseGuards(AuthGuard('jwt'))
   async analyzeImage(@Body() dto: AnalyzeImageDto) {
-    const result = await this.aiTextService.generateProductData(dto.imageUrl, dto.uspCount);
-    
+    const result = await this.aiTextService.generateProductData(
+      dto.imageUrl,
+      dto.uspCount,
+    );
+
     // Map backend field names to frontend expectations
     return {
       title: result.productName,
@@ -166,14 +181,15 @@ export class AppController {
   @UseGuards(AuthGuard('jwt'))
   async testRender() {
     const inputProps: VideoCompositionInput = {
-      title: "Тестовый Рендер",
-      mainImage: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000",
-      usps: ["Работает на сервере", "Без браузера", "MP4 готов"],
-      primaryColor: "#ef4444"
+      title: 'Тестовый Рендер',
+      mainImage:
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000',
+      usps: ['Работает на сервере', 'Без браузера', 'MP4 готов'],
+      primaryColor: '#ef4444',
     };
-    
+
     const videoPath = await this.renderService.renderVideo(inputProps);
-    
+
     return { status: 'success', path: videoPath };
   }
 }

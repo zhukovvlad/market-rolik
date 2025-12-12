@@ -20,7 +20,10 @@ export class AiTextService {
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    this.modelName = this.configService.get<string>('GEMINI_MODEL_TEXT_SERVICE', 'gemini-2.5-flash');
+    this.modelName = this.configService.get<string>(
+      'GEMINI_MODEL_TEXT_SERVICE',
+      'gemini-2.5-flash',
+    );
 
     if (!apiKey) {
       this.logger.warn('GEMINI_API_KEY is not set. AI features will not work.');
@@ -31,12 +34,18 @@ export class AiTextService {
   /**
    * ВАРИАНТ 1: Анализ файла из памяти (для uploadFile контроллера)
    */
-  async analyzeImageBuffer(buffer: Buffer, mimeType: string, uspCount: number = 3): Promise<ProductAnalysis | null> {
+  async analyzeImageBuffer(
+    buffer: Buffer,
+    mimeType: string,
+    uspCount: number = 3,
+  ): Promise<ProductAnalysis | null> {
     try {
       const base64Image = buffer.toString('base64');
       return await this.callGemini(base64Image, mimeType, uspCount);
     } catch (error) {
-      this.logger.error(`Buffer analysis failed: ${error instanceof Error ? error.message : error}`);
+      this.logger.error(
+        `Buffer analysis failed: ${error instanceof Error ? error.message : error}`,
+      );
       return null;
     }
   }
@@ -44,7 +53,10 @@ export class AiTextService {
   /**
    * ВАРИАНТ 2: Анализ по URL (для импорта по ссылке)
    */
-  async generateProductData(imageUrl: string, uspCount: number = 3): Promise<ProductAnalysis> {
+  async generateProductData(
+    imageUrl: string,
+    uspCount: number = 3,
+  ): Promise<ProductAnalysis> {
     this.validateImageUrl(imageUrl);
 
     try {
@@ -53,13 +65,15 @@ export class AiTextService {
       const base64Image = buffer.toString('base64');
       return await this.callGemini(base64Image, mimeType, uspCount);
     } catch (error) {
-       this.logger.error(`URL analysis failed: ${error instanceof Error ? error.message : error}`);
-       return {
+      this.logger.error(
+        `URL analysis failed: ${error instanceof Error ? error.message : error}`,
+      );
+      return {
         productName: 'Новый товар',
         description: 'Описание товара будет сгенерировано позже.',
         usps: ['Быстрая доставка', 'Высокое качество', 'Лучшая цена'],
         scenePrompt: 'professional product photography, studio lighting, 4k',
-        category: 'other'
+        category: 'other',
       };
     }
   }
@@ -67,9 +81,15 @@ export class AiTextService {
   /**
    * Общая приватная логика общения с Gemini
    */
-  private async callGemini(base64Image: string, mimeType: string, uspCount: number = 3): Promise<ProductAnalysis> {
-    this.logger.log(`🤖 Sending request to Gemini (${this.modelName}) for ${uspCount} USPs...`);
-    
+  private async callGemini(
+    base64Image: string,
+    mimeType: string,
+    uspCount: number = 3,
+  ): Promise<ProductAnalysis> {
+    this.logger.log(
+      `🤖 Sending request to Gemini (${this.modelName}) for ${uspCount} USPs...`,
+    );
+
     const prompt = `
       You are a world-class creative director, marketer, and product photographer.
       Analyze the provided IMAGE and generate structured data for a high-end commercial video.
@@ -132,15 +152,20 @@ export class AiTextService {
           { text: prompt },
           { inlineData: { data: base64Image, mimeType: mimeType } },
         ],
-        config: { responseMimeType: 'application/json' }
+        config: { responseMimeType: 'application/json' },
       });
 
       // ИСПРАВЛЕНИЕ: обращаемся как к свойству, без скобок
       const text = response.text;
       this.logger.log(`📝 Gemini Raw Response: ${text}`);
-      
-      const cleanText = text ? text.replace(/```json/g, '').replace(/```/g, '').trim() : '{}';
-      
+
+      const cleanText = text
+        ? text
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim()
+        : '{}';
+
       const parsed = JSON.parse(cleanText);
       this.logger.log(`✅ Parsed JSON: ${JSON.stringify(parsed, null, 2)}`);
 
@@ -148,11 +173,15 @@ export class AiTextService {
         productName: parsed.productName || 'Новый товар',
         description: parsed.description || '',
         usps: Array.isArray(parsed.usps) ? parsed.usps.slice(0, 7) : [],
-        scenePrompt: parsed.scenePrompt || 'professional product photography, studio lighting, 4k',
-        category: parsed.category || 'other'
+        scenePrompt:
+          parsed.scenePrompt ||
+          'professional product photography, studio lighting, 4k',
+        category: parsed.category || 'other',
       };
     } catch (e) {
-      throw new Error(`AI Analysis Failed: ${e instanceof Error ? e.message : e}`);
+      throw new Error(
+        `AI Analysis Failed: ${e instanceof Error ? e.message : e}`,
+      );
     }
   }
 
@@ -169,28 +198,34 @@ export class AiTextService {
     }
   }
 
-  private async downloadImage(url: string): Promise<{ buffer: Buffer; mimeType: string }> {
+  private async downloadImage(
+    url: string,
+  ): Promise<{ buffer: Buffer; mimeType: string }> {
     const controller = new AbortController();
     const timeout = setTimeout(
       () => controller.abort(),
       AiTextService.IMAGE_DOWNLOAD_TIMEOUT_MS,
     );
-    
+
     try {
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`Fetch failed: ${res.statusText}`);
-      
+
       const contentLength = res.headers.get('content-length');
-      if (contentLength && parseInt(contentLength, 10) > AiTextService.MAX_IMAGE_SIZE) {
+      if (
+        contentLength &&
+        parseInt(contentLength, 10) > AiTextService.MAX_IMAGE_SIZE
+      ) {
         throw new Error('Image too large');
       }
-      
+
       const buffer = Buffer.from(await res.arrayBuffer());
-      if (buffer.byteLength > AiTextService.MAX_IMAGE_SIZE) throw new Error('Image too large');
-      
-      return { 
-        buffer, 
-        mimeType: res.headers.get('content-type') || 'image/jpeg' 
+      if (buffer.byteLength > AiTextService.MAX_IMAGE_SIZE)
+        throw new Error('Image too large');
+
+      return {
+        buffer,
+        mimeType: res.headers.get('content-type') || 'image/jpeg',
       };
     } finally {
       clearTimeout(timeout);

@@ -71,7 +71,7 @@ export default function ProjectDetailsPage() {
             });
             toast.success("Проект удален");
             router.push("/dashboard");
-        } catch (e) {
+        } catch {
             toast.error("Ошибка удаления");
         }
     };
@@ -178,11 +178,14 @@ export default function ProjectDetailsPage() {
                                                 <FileVideo className="w-10 h-10 mb-4" />
                                                 <p>Видео еще не готово</p>
                                                 {getPreviewImage() && (
-                                                    <img 
-                                                        src={getPreviewImage()} 
-                                                        alt="Preview" 
-                                                        className="mt-4 max-w-full max-h-48 object-contain rounded"
-                                                    />
+                                                    <div className="mt-4 max-w-full max-h-48 rounded relative w-full">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img 
+                                                            src={getPreviewImage() || ''} 
+                                                            alt="Preview" 
+                                                            className="w-full h-full object-contain rounded"
+                                                        />
+                                                    </div>
                                                 )}
                                             </div>
                                         )}
