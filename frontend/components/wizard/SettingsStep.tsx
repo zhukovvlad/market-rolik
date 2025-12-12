@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Smartphone, Monitor, Square, RectangleVertical, Music, Mic } from "lucide-react";
-import { GenerateSettings, AspectRatio, ASPECT_RATIOS, MusicTheme, TtsVoice, TTS_VOICES } from "@/types/project";
+import { GenerateSettings, AspectRatio, ASPECT_RATIOS, MusicTheme, MUSIC_THEMES, TtsVoice, TTS_VOICES } from "@/types/project";
 
 interface SettingsStepProps {
     imageUrl: string;
@@ -23,7 +23,7 @@ const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: ElementTyp
     "3:4": { label: "Post (3:4)", Icon: RectangleVertical },
 };
 
-const VALID_MUSIC_THEMES = ['energetic', 'calm', 'lofi'] as const;
+const VALID_MUSIC_THEMES = MUSIC_THEMES as readonly string[];
 const VALID_TTS_VOICES = new Set(TTS_VOICES.map(({ value }) => value));
 
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBack }: SettingsStepProps) {
