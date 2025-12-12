@@ -4,6 +4,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth.service';
 import { OAuthDetails } from '../interfaces/oauth-details.interface';
+import { ProxyService } from '../../common/proxy.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -12,6 +13,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     constructor(
         private configService: ConfigService,
         private authService: AuthService,
+        private proxyService: ProxyService,
     ) {
         const clientID = configService.get<string>('GOOGLE_CLIENT_ID');
         const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
@@ -21,14 +23,25 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             throw new Error('Google OAuth configuration is missing. Please check GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_CALLBACK_URL.');
         }
 
+        // Get proxy agent if configured
+        const httpsAgent = proxyService.getHttpsAgent();
+
         super({
             clientID,
             clientSecret,
             callbackURL,
             scope: ['email', 'profile'],
+            ...(httpsAgent && { 
+                proxy: false,
+                agent: httpsAgent,
+            }),
         });
         
-        this.logger.log('GoogleStrategy initialized');
+        if (httpsAgent) {
+            this.logger.log('GoogleStrategy initialized with proxy support');
+        } else {
+            this.logger.log('GoogleStrategy initialized (direct connection)');
+        }
     }
 
     async validate(accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback): Promise<any> {

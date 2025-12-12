@@ -39,6 +39,25 @@ export class ProxyService {
     });
   }
 
+  /**
+   * Get HTTPS proxy agent for use in external libraries (e.g., passport-google-oauth20)
+   * Returns undefined if no proxy is configured
+   */
+  getHttpsAgent(): any {
+    const proxyHost = this.configService.get<string>('PROXY_HOST');
+    const proxyPort = this.configService.get<string>('PROXY_PORT');
+    const proxyUser = this.configService.get<string>('PROXY_USER');
+    const proxyPass = this.configService.get<string>('PROXY_PASSWORD');
+
+    if (proxyHost && proxyPort) {
+      const auth = proxyUser && proxyPass ? `${proxyUser}:${proxyPass}@` : '';
+      const proxyUrl = `http://${auth}${proxyHost}:${proxyPort}`;
+      return new HttpsProxyAgent(proxyUrl);
+    }
+
+    return undefined;
+  }
+
   // Метод-обертка для POST запросов (например, в Kling)
   async post<T>(
     url: string,
