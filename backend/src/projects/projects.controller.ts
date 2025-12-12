@@ -193,7 +193,9 @@ export class ProjectsController {
     // Проверяем статус проекта
     // Important: we allow re-entry if status is already GENERATING_VIDEO (e.g. duplicate clicks)
     if (project.status !== ProjectStatus.IMAGE_READY && project.status !== ProjectStatus.GENERATING_VIDEO) {
-      throw new ForbiddenException(`Project must be in IMAGE_READY status to animate, current: ${project.status}`);
+      throw new ForbiddenException(
+        `Project must be in IMAGE_READY or GENERATING_VIDEO status to animate, current: ${project.status}`,
+      );
     }
     
     // Обновляем animation промпт если предоставлен
@@ -204,9 +206,11 @@ export class ProjectsController {
       };
     }
 
-    // Move project to GENERATING_VIDEO immediately so frontend polling can continue
+    const shouldMoveToGeneratingVideo = project.status === ProjectStatus.IMAGE_READY;
+
+    // Move project to GENERATING_VIDEO immediately so frontend polling can continue.
     // The queue worker will handle the rest.
-    if (project.status === ProjectStatus.IMAGE_READY) {
+    if (shouldMoveToGeneratingVideo) {
       project.status = ProjectStatus.GENERATING_VIDEO;
     }
     await this.projectsService.save(project);
@@ -217,8 +221,10 @@ export class ProjectsController {
 
     if (existingJob) {
       const state = await existingJob.getState();
+      const inFlightStates = new Set<string>(['active', 'waiting', 'delayed', 'paused', 'repeat']);
+
       // If there's already an in-flight job, don't enqueue another one.
-      if (['active', 'waiting', 'delayed', 'paused'].includes(state)) {
+      if (inFlightStates.has(state)) {
         return { message: 'Animation already in progress', projectId: project.id };
       }
 
@@ -228,18 +234,34 @@ export class ProjectsController {
       }
     }
 
-    await this.videoQueue.add(
-      'animate-image',
-      {
-        projectId: project.id,
-      },
-      {
-        jobId,
-        attempts: 1, // Анимация дорогая, не ретраим автоматически
-        removeOnComplete: true,
-        removeOnFail: false,
-      },
-    );
+    try {
+      await this.videoQueue.add(
+        'animate-image',
+        {
+          projectId: project.id,
+        },
+        {
+          jobId,
+          attempts: 1, // Анимация дорогая, не ретраим автоматически
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      // Race: two concurrent requests can pass getJob() before either enqueues.
+      if (/already exists|job.*exists|duplicate|eexist/i.test(message)) {
+        return { message: 'Animation already in progress', projectId: project.id };
+      }
+
+      // If enqueue failed for real (e.g. Redis down), don't leave project stuck in GENERATING_VIDEO.
+      if (shouldMoveToGeneratingVideo) {
+        project.status = ProjectStatus.IMAGE_READY;
+        await this.projectsService.save(project);
+      }
+
+      throw error;
+    }
 
     return { message: 'Animation started', projectId: project.id };
   }

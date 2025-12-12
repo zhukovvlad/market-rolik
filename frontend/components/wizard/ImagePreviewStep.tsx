@@ -157,7 +157,6 @@ export default function ImagePreviewStep({
                 fill
                 className="object-contain"
                 priority
-                unoptimized
                 onError={(e) => {
                   console.error('Failed to load image:', activeScene.storageUrl);
                   toast.error('Ошибка загрузки изображения');
@@ -191,7 +190,6 @@ export default function ImagePreviewStep({
                       alt={`Version ${sceneAssets.indexOf(asset) + 1}`}
                       fill
                       className="object-cover"
-                      unoptimized
                     />
                   </button>
                 ))}
