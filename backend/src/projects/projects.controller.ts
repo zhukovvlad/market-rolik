@@ -190,7 +190,6 @@ export class ProjectsController {
     @Req() req: AuthenticatedRequest
   ) {
     const project = await this.projectsService.findOne(id, req.user.id);
-    const originalStatus = project.status;
     
     // Проверяем статус проекта
     // Important: we allow re-entry if status is already GENERATING_VIDEO (e.g. duplicate clicks)
@@ -243,18 +242,6 @@ export class ProjectsController {
 
     // Note: do not persist dto.prompt here to avoid TOCTOU clobbering with concurrent requests.
     // The processor will persist the prompt atomically for the winning job (see AnimationProcessor).
-    let didChangeProject = false;
-
-    const didMoveToGeneratingVideo = project.status === ProjectStatus.IMAGE_READY;
-    if (didMoveToGeneratingVideo) {
-      project.status = ProjectStatus.GENERATING_VIDEO;
-      didChangeProject = true;
-    }
-
-    if (didChangeProject) {
-      await this.projectsService.save(project);
-    }
-
     try {
       const requestId = randomUUID();
       const job = await this.videoQueue.add(
@@ -272,6 +259,12 @@ export class ProjectsController {
         },
       );
 
+      // Move project to GENERATING_VIDEO after we know the job exists, so UI polling can continue.
+      if (project.status === ProjectStatus.IMAGE_READY) {
+        project.status = ProjectStatus.GENERATING_VIDEO;
+        await this.projectsService.save(project);
+      }
+
       // Bull may return the existing job silently if jobId already exists.
       // Use requestId marker to detect that and respond idempotently.
       if (job.data?.requestId && job.data.requestId !== requestId) {
@@ -283,25 +276,14 @@ export class ProjectsController {
       try {
         const maybeJob = await this.videoQueue.getJob(jobId);
         if (maybeJob) {
+          if (project.status === ProjectStatus.IMAGE_READY) {
+            project.status = ProjectStatus.GENERATING_VIDEO;
+            await this.projectsService.save(project);
+          }
           return { message: 'Animation already in progress', projectId: project.id };
         }
       } catch {
         // ignore, will rollback status below if needed and rethrow
-      }
-
-      // If enqueue failed for real (e.g. Redis down), don't leave project stuck in GENERATING_VIDEO.
-      // This also covers the case where the request started in GENERATING_VIDEO (allowed re-entry)
-      // but no job exists yet/anymore.
-      if (
-        project.status === ProjectStatus.GENERATING_VIDEO &&
-        (originalStatus === ProjectStatus.IMAGE_READY || originalStatus === ProjectStatus.GENERATING_VIDEO)
-      ) {
-        project.status = ProjectStatus.IMAGE_READY;
-        await this.projectsService.save(project);
-      } else if (didMoveToGeneratingVideo) {
-        // Fallback safeguard (should be unreachable given the guard above).
-        project.status = ProjectStatus.IMAGE_READY;
-        await this.projectsService.save(project);
       }
 
       throw error;

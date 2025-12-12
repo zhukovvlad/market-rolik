@@ -38,6 +38,7 @@ export default function CreatePage() {
     
     // Когда фон готов - переходим на превью
     if (project.status === 'IMAGE_READY' && step === 'product') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStep('preview');
       toast.success('Фон готов! Проверьте результат');
     }
@@ -52,8 +53,12 @@ export default function CreatePage() {
     if (project.status === 'FAILED') {
       console.log('❌ Project failed. Settings:', project.settings);
       
-      const settings = project.settings || {};
-      const errorMsg = (settings as any)?.lastError || 'Ошибка генерации проекта';
+      const settings = project.settings;
+      const lastError =
+        settings && typeof settings === 'object' && 'lastError' in settings
+          ? (settings as { lastError?: unknown }).lastError
+          : undefined;
+      const errorMsg = typeof lastError === 'string' ? lastError : 'Ошибка генерации проекта';
       
       let userFriendlyMsg = 'Ошибка генерации проекта';
       
@@ -141,6 +146,7 @@ export default function CreatePage() {
       toast.success('Анимация запущена! Это займет ~3-4 минуты');
     } catch (error) {
       console.error('Animation failed', error);
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       toast.error('Ошибка запуска анимации');
     }
   };

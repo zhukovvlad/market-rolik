@@ -95,16 +95,21 @@ export class AnimationProcessor {
         await this.projectsService.save(project);
       }
 
-      const settings = project.settings || {};
+      let settings = project.settings || {};
+
+      const normalizedJobPrompt = typeof prompt === 'string' ? prompt.trim() : '';
+      const normalizedSettingsPrompt = typeof settings.prompt === 'string' ? settings.prompt.trim() : '';
 
       // Persist prompt from job payload (if provided) so the job is self-contained and
       // concurrent API requests cannot clobber the prompt used for this animation.
-      if (typeof prompt === 'string' && prompt.trim().length > 0 && prompt !== settings.prompt) {
+      // Normalize values to avoid unnecessary writes due to whitespace-only differences.
+      if (normalizedJobPrompt.length > 0 && normalizedJobPrompt !== normalizedSettingsPrompt) {
         project.settings = {
           ...settings,
-          prompt,
+          prompt: normalizedJobPrompt,
         };
         await this.projectsService.save(project);
+        settings = project.settings || {};
       }
 
       const { width, height } = getDimensions(settings.aspectRatio);
@@ -157,7 +162,8 @@ export class AnimationProcessor {
       this.logger.log('🎬 Generating animation with Kling AI...');
       
       const klingPrompt =
-        (typeof prompt === 'string' && prompt.trim().length > 0 ? prompt : settings.prompt) ||
+        normalizedJobPrompt ||
+        (typeof settings.prompt === 'string' && settings.prompt.trim().length > 0 ? settings.prompt.trim() : '') ||
         'slow cinematic camera zoom in, floating dust particles, high quality, 4k';
       let s3VideoUrl: string | null = null;
 
