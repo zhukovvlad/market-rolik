@@ -33,11 +33,16 @@ export class ProxyService {
 
     if (!proxyHost || !proxyPort) return undefined;
 
-    const url = new URL(`http://${proxyHost}:${proxyPort}`);
-    // URL will percent-encode credentials safely when stringified
-    if (proxyUser) url.username = proxyUser;
-    if (proxyPass) url.password = proxyPass;
-    return url.toString();
+    try {
+      const url = new URL(`http://${proxyHost}:${proxyPort}`);
+      // URL will percent-encode credentials safely when stringified
+      if (proxyUser) url.username = proxyUser;
+      if (proxyPass) url.password = proxyPass;
+      return url.toString();
+    } catch (e) {
+      this.logger.warn(`Invalid proxy configuration (host/port). Falling back to direct connection.`);
+      return undefined;
+    }
   }
 
   /**
@@ -48,14 +53,16 @@ export class ProxyService {
     const proxyUrl = this.buildProxyUrl();
     if (!proxyUrl) {
       if (!this.httpsAgentInitialized) {
-        this.logger.log('🌍 Using Direct Connection (No Proxy configured)');
+        this.logger.log('Using Direct Connection (No Proxy configured)');
         this.httpsAgentInitialized = true;
       }
       return undefined;
     }
 
     if (!this.httpsAgent) {
-      this.logger.log(`🔌 Initializing Proxy Agent: ${proxyUrl}`);
+      const parsed = new URL(proxyUrl);
+      const authHint = parsed.username ? ' (auth)' : '';
+      this.logger.log(`Initializing Proxy Agent: ${parsed.hostname}:${parsed.port}${authHint}`);
       this.httpsAgent = new HttpsProxyAgent(proxyUrl);
       this.httpsAgentInitialized = true;
     }
