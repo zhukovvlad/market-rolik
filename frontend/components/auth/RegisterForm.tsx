@@ -71,8 +71,9 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             login(data.user);
             toast.success("Регистрация успешна! Добро пожаловать!");
             onSuccess?.();
-        } catch (error: any) {
-            toast.error(error.message || "Не удалось зарегистрироваться");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Не удалось зарегистрироваться";
+            toast.error(message);
         } finally {
             setLoading(false);
         }

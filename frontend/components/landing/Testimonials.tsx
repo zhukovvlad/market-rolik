@@ -71,7 +71,7 @@ export default function Testimonials() {
                 </svg>
               ))}
             </div>
-            <p className="text-card-foreground leading-relaxed">As a small business owner, I don't have time for video editing. VideoCard AI makes it so easy to create professional videos that match my brand perfectly.</p>
+            <p className="text-card-foreground leading-relaxed">As a small business owner, I don&apos;t have time for video editing. VideoCard AI makes it so easy to create professional videos that match my brand perfectly.</p>
           </div>
         </div>
         <div className="mt-12 text-center">

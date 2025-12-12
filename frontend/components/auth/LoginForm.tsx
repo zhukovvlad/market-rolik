@@ -42,8 +42,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             login(data.user);
             toast.success("Вход выполнен успешно!");
             onSuccess?.();
-        } catch (error: any) {
-            toast.error(error.message || "Не удалось войти");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Не удалось войти";
+            toast.error(message);
         } finally {
             setLoading(false);
         }

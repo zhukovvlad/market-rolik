@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,18 +25,14 @@ const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: React.Elem
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBack }: SettingsStepProps) {
     const [prompt, setPrompt] = useState("");
     const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
-    const [imageError, setImageError] = useState(false);
+    const [imageErrorUrl, setImageErrorUrl] = useState<string | null>(null);
+    const imageError = imageErrorUrl === imageUrl;
     
     // Audio settings
     const [musicTheme, setMusicTheme] = useState<MusicTheme>('energetic');
     const [ttsEnabled, setTtsEnabled] = useState(true);
     const [ttsText, setTtsText] = useState("");
     const [ttsVoice, setTtsVoice] = useState<TtsVoice>('ermil');
-
-    // Reset error state when imageUrl changes
-    useEffect(() => {
-        setImageError(false);
-    }, [imageUrl]);
 
     const handleGenerate = () => {
         onGenerate({ 
@@ -72,8 +68,8 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                         src={imageUrl} 
                         alt="Preview" 
                         className="w-full h-full object-cover opacity-80" 
-                        onLoad={() => setImageError(false)}
-                        onError={() => setImageError(true)}
+                        onLoad={() => setImageErrorUrl(null)}
+                        onError={() => setImageErrorUrl(imageUrl)}
                     />
                     {imageError && (
                         <div className="absolute inset-0 flex items-center justify-center bg-muted">

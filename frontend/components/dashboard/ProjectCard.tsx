@@ -101,7 +101,7 @@ export function ProjectCard({ project, onDelete }: ProjectCardProps) {
                         <AlertDialogHeader>
                             <AlertDialogTitle>Удалить проект?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Это действие нельзя отменить. Проект "{project.title}" и все сгенерированные файлы будут удалены.
+                                Это действие нельзя отменить. Проект &quot;{project.title}&quot; и все сгенерированные файлы будут удалены.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

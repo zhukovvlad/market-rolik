@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Check authentication status on mount
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         refreshAuth().finally(() => setIsLoading(false));
     }, [refreshAuth]);
 
