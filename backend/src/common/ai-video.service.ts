@@ -71,7 +71,9 @@ export class AiVideoService {
 
       return response.data.task_id;
     } catch (error) {
-      this.logger.error(`Failed to start video gen: ${error.message}`);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to start video gen: ${errorMessage}`);
       throw error;
     }
   }

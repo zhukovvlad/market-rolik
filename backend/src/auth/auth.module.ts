@@ -17,7 +17,7 @@ import { validateJwtSecret } from '../config/jwt-validation.constants';
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
 
         // Runtime validation using centralized validation logic

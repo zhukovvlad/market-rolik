@@ -11,10 +11,8 @@
  * - Редактировать промпт без затрат на дорогую генерацию видео
  * - Прослушать озвучку и исправить текст/ударения
  * - Выбрать музыкальную тему
- *
- * @module BackgroundProcessor
- * @requires @nestjs/bull
  */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
@@ -31,8 +29,6 @@ import { Asset } from '../../projects/asset.entity';
 import axios from 'axios';
 import FormData from 'form-data';
 import sharp from 'sharp';
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function getDimensions(ratio: string = '9:16'): {
   width: number;

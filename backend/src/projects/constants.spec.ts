@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { ASPECT_RATIOS } from './constants';
 import * as fs from 'fs';
 import * as path from 'path';

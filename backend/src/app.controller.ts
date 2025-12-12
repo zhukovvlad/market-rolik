@@ -1,28 +1,15 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Logger,
-  UseGuards,
-  Req,
-  ForbiddenException,
-  BadRequestException,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Logger, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { ProxyService } from './common/proxy.service';
 import { StorageService } from './storage/storage.service';
-import { IsOptional, IsUrl, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsUrl, IsUUID } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './users/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { ProjectsService } from './projects/projects.service';
-import { AssetType } from './projects/asset.entity';
 import { Request } from 'express';
 import { AiTextService } from './common/ai-text.service';
 import { AnalyzeImageDto } from './dto/analyze-image.dto';

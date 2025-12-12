@@ -9,9 +9,10 @@
  * 5. Финальный рендер (Remotion)
  *
  * @module VideoProcessor
- * @requires @nestjs/bull
- * @requires bull
  */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
@@ -408,7 +409,6 @@ export class VideoProcessor {
   @Process('generate-kling')
   async handleGenerateKling(job: Job<{ projectId: string; userId?: string }>) {
     const { projectId, userId } = job.data;
-    const pipelineStartTime = Date.now();
     this.logger.log(`🎬 START Pipeline for Project ${projectId}`);
 
     try {
@@ -518,7 +518,9 @@ export class VideoProcessor {
 
       try {
         fs.unlinkSync(outputFilePath);
-      } catch (e) {}
+      } catch {
+        // Ignore file deletion errors
+      }
 
       project.status = ProjectStatus.COMPLETED;
       project.resultVideoUrl = finalS3Url;
