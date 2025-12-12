@@ -7,14 +7,16 @@ import { Project } from '@/types/project';
 /**
  * Hook для мониторинга статуса проекта с автоматическим polling
  * 
- * Опрашивает сервер каждые 3 секунды пока проект в статусах:
+ * Опрашивает сервер каждые 3 секунды пока проект в "processing" статусах:
+ * - DRAFT
  * - GENERATING_IMAGE
  * - GENERATING_VIDEO
+ * - QUEUED
+ * - PROCESSING
+ * - RENDERING
  * 
- * Останавливает polling когда проект достигает:
- * - IMAGE_READY (ждет действия пользователя)
- * - COMPLETED
- * - FAILED
+ * После выхода из processing-статуса делает один быстрый refetch (через 500ms),
+ * чтобы быстрее поймать финальный статус.
  */
 export function useProjectStatus(projectId: string | null, enabled: boolean = true) {
   const previousStatusRef = useRef<string | undefined>(undefined);

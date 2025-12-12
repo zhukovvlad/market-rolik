@@ -212,13 +212,34 @@ export class ProjectsController {
     await this.projectsService.save(project);
 
     // Запускаем Этап 2: Анимация
-    await this.videoQueue.add('animate-image', {
-      projectId: project.id,
-    }, {
-      attempts: 1, // Анимация дорогая, не ретраим автоматически
-      removeOnComplete: true,
-      removeOnFail: false,
-    });
+    const jobId = `animate-${project.id}`;
+    const existingJob = await this.videoQueue.getJob(jobId);
+
+    if (existingJob) {
+      const state = await existingJob.getState();
+      // If there's already an in-flight job, don't enqueue another one.
+      if (['active', 'waiting', 'delayed', 'paused'].includes(state)) {
+        return { message: 'Animation already in progress', projectId: project.id };
+      }
+
+      // Allow re-run after completion/failure by removing the old job with the same id.
+      if (['completed', 'failed'].includes(state)) {
+        await existingJob.remove();
+      }
+    }
+
+    await this.videoQueue.add(
+      'animate-image',
+      {
+        projectId: project.id,
+      },
+      {
+        jobId,
+        attempts: 1, // Анимация дорогая, не ретраим автоматически
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
 
     return { message: 'Animation started', projectId: project.id };
   }

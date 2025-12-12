@@ -135,7 +135,7 @@ export default function CreatePage() {
         if (!prev) return prev;
         return { ...prev, status: 'GENERATING_VIDEO' };
       });
-      await queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
       
       setStep('animating');
       toast.success('Анимация запущена! Это займет ~3-4 минуты');

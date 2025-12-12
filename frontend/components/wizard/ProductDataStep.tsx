@@ -250,16 +250,21 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
                     <Label className="text-base">Формат обложки</Label>
                     <RadioGroup
                         value={aspectRatio}
-                        onValueChange={(v) => setAspectRatio(v as AspectRatio)}
+                        onValueChange={(v) => {
+                            if ((ASPECT_RATIOS as readonly string[]).includes(v)) {
+                                setAspectRatio(v as AspectRatio);
+                            }
+                        }}
                         className="grid grid-cols-2 gap-4"
                     >
                         {ASPECT_RATIOS.map((ratio) => {
                             const { label, Icon } = ASPECT_RATIO_CONFIG[ratio];
+                            const safeId = `cover-r-${ratio.replace(':', '-')}`;
                             return (
                                 <div key={ratio}>
-                                    <RadioGroupItem value={ratio} id={`cover-r-${ratio}`} className="peer sr-only" />
+                                    <RadioGroupItem value={ratio} id={safeId} className="peer sr-only" />
                                     <Label
-                                        htmlFor={`cover-r-${ratio}`}
+                                        htmlFor={safeId}
                                         className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
                                     >
                                         <Icon className="mb-3 h-6 w-6" />
