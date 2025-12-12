@@ -15,6 +15,7 @@ interface SettingsStepProps {
     onBack?: () => void;
 }
 
+// Order matches ASPECT_RATIOS constant for consistency
 const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: React.ElementType }> = {
     "9:16": { label: "Stories (9:16)", Icon: Smartphone },
     "16:9": { label: "Landscape (16:9)", Icon: Monitor },

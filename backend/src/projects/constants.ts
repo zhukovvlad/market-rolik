@@ -1,5 +1,5 @@
 // IMPORTANT: Keep this in sync with frontend/types/project.ts
-export const ASPECT_RATIOS = ['16:9', '9:16', '1:1', '3:4'] as const;
+export const ASPECT_RATIOS = ['9:16', '16:9', '1:1', '3:4'] as const;
 export type AspectRatio = typeof ASPECT_RATIOS[number];
 
 export const MUSIC_THEMES = ['energetic', 'calm', 'lofi'] as const;

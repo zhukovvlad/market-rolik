@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import axios from 'axios';
 import { API_URL } from '@/lib/utils';
 import { Project } from '@/types/project';
@@ -35,7 +35,7 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
     }
   };
   
-  return useQuery({
+  const query = useQuery({
     queryKey: ['project', projectId],
     queryFn: async () => {
       if (!projectId) throw new Error('Project ID is required');
@@ -47,15 +47,6 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
       });
 
       return response.data;
-    },
-    onSuccess: (data) => {
-      resetRefsIfProjectChanged(projectId);
-
-      const prevStatus = previousNotifiedStatusRef.current;
-      if (data.status !== prevStatus) {
-        options?.onStatusChange?.(data, prevStatus);
-        previousNotifiedStatusRef.current = data.status;
-      }
     },
     enabled: enabled && !!projectId,
     // Опрашивать каждые 3 сек, если статус в процессе генерации
@@ -96,4 +87,19 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
     // Не показывать старые данные из кеша
     staleTime: 0,
   });
+
+  // Handle status change callback using useEffect instead of deprecated onSuccess
+  useEffect(() => {
+    if (query.data) {
+      resetRefsIfProjectChanged(projectId);
+
+      const prevStatus = previousNotifiedStatusRef.current;
+      if (query.data.status !== prevStatus) {
+        options?.onStatusChange?.(query.data, prevStatus);
+        previousNotifiedStatusRef.current = query.data.status;
+      }
+    }
+  }, [query.data, projectId, options]);
+
+  return query;
 }

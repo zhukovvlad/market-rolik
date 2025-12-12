@@ -21,9 +21,10 @@ interface ProductDataStepProps {
     initialProductData?: ProductData | null;
 }
 
+// Order matches ASPECT_RATIOS constant for consistency
 const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: React.ElementType }> = {
-    "16:9": { label: "Landscape (16:9)", Icon: Monitor },
     "9:16": { label: "Stories (9:16)", Icon: Smartphone },
+    "16:9": { label: "Landscape (16:9)", Icon: Monitor },
     "1:1": { label: "Square (1:1)", Icon: Square },
     "3:4": { label: "Post (3:4)", Icon: RectangleVertical },
 };

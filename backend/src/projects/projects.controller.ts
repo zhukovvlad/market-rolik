@@ -212,13 +212,6 @@ export class ProjectsController {
         } catch {
           // ignore
         }
-      } else if (state === 'stuck') {
-        // Stuck jobs can block forever; remove to allow re-run.
-        try {
-          await existingJob.remove();
-        } catch {
-          // ignore
-        }
       } else {
         const inFlightStates = new Set<string>(['active', 'waiting', 'delayed', 'paused']);
 
@@ -276,14 +269,10 @@ export class ProjectsController {
       try {
         const maybeJob = await this.videoQueue.getJob(jobId);
         if (maybeJob) {
-          if (project.status === ProjectStatus.IMAGE_READY) {
-            project.status = ProjectStatus.GENERATING_VIDEO;
-            await this.projectsService.save(project);
-          }
           return { message: 'Animation already in progress', projectId: project.id };
         }
       } catch {
-        // ignore, will rollback status below if needed and rethrow
+        // ignore, will rethrow original error
       }
 
       throw error;
