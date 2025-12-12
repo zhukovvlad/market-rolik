@@ -40,7 +40,10 @@ export class ProxyService {
       if (proxyPass) url.password = proxyPass;
       return url.toString();
     } catch (e) {
-      this.logger.warn(`Invalid proxy configuration (host/port). Falling back to direct connection.`);
+      const msg = e instanceof Error ? e.message : String(e);
+      this.logger.warn(
+        `Invalid proxy configuration (host/port). Falling back to direct connection. Reason: ${msg}`,
+      );
       return undefined;
     }
   }
@@ -61,7 +64,7 @@ export class ProxyService {
 
     if (!this.httpsAgent) {
       const parsed = new URL(proxyUrl);
-      const authHint = parsed.username ? ' (auth)' : '';
+      const authHint = (parsed.username || parsed.password) ? ' (auth)' : '';
       this.logger.log(`Initializing Proxy Agent: ${parsed.hostname}:${parsed.port}${authHint}`);
       this.httpsAgent = new HttpsProxyAgent(proxyUrl);
       this.httpsAgentInitialized = true;
@@ -98,12 +101,12 @@ export class ProxyService {
 
   private handleError(error: any, url: string) {
     if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
       this.logger.error(
-        `❌ Request failed to ${url}: ${error.message}`,
-        error.response?.data,
+        `Request failed to ${url}: ${error.message}${status ? ` (status=${status})` : ''}`,
       );
     } else {
-      this.logger.error(`❌ Unexpected error: ${error}`);
+      this.logger.error(`Unexpected error: ${String(error)}`);
     }
   }
 }
