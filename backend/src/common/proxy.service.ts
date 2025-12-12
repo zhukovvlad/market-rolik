@@ -2,35 +2,21 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
+import { URL } from 'node:url';
 
 @Injectable()
 export class ProxyService {
   private readonly logger = new Logger(ProxyService.name);
   private axiosInstance: AxiosInstance;
+  private httpsAgent?: HttpsProxyAgent<string>;
+  private httpsAgentInitialized = false;
 
   constructor(private configService: ConfigService) {
     this.axiosInstance = this.createAxiosInstance();
   }
 
   private createAxiosInstance(): AxiosInstance {
-    const proxyHost = this.configService.get<string>('PROXY_HOST');
-    const proxyPort = this.configService.get<string>('PROXY_PORT');
-    const proxyUser = this.configService.get<string>('PROXY_USER');
-    const proxyPass = this.configService.get<string>('PROXY_PASSWORD');
-
-    // ИСПРАВЛЕНИЕ: Явно указываем тип any, чтобы TypeScript разрешил переопределение
-    let httpsAgent: any = undefined;
-
-    // Если в .env задан прокси — настраиваем агент
-    if (proxyHost && proxyPort) {
-      const auth = proxyUser && proxyPass ? `${proxyUser}:${proxyPass}@` : '';
-      const proxyUrl = `http://${auth}${proxyHost}:${proxyPort}`;
-
-      this.logger.log(`🔌 Initializing Proxy Agent: ${proxyHost}:${proxyPort}`);
-      httpsAgent = new HttpsProxyAgent(proxyUrl);
-    } else {
-      this.logger.log('🌍 Using Direct Connection (No Proxy configured)');
-    }
+    const httpsAgent = this.getHttpsAgent();
 
     return axios.create({
       httpsAgent,
@@ -39,23 +25,42 @@ export class ProxyService {
     });
   }
 
-  /**
-   * Get HTTPS proxy agent for use in external libraries (e.g., passport-google-oauth20)
-   * Returns undefined if no proxy is configured
-   */
-  getHttpsAgent(): any {
+  private buildProxyUrl(): string | undefined {
     const proxyHost = this.configService.get<string>('PROXY_HOST');
     const proxyPort = this.configService.get<string>('PROXY_PORT');
     const proxyUser = this.configService.get<string>('PROXY_USER');
     const proxyPass = this.configService.get<string>('PROXY_PASSWORD');
 
-    if (proxyHost && proxyPort) {
-      const auth = proxyUser && proxyPass ? `${proxyUser}:${proxyPass}@` : '';
-      const proxyUrl = `http://${auth}${proxyHost}:${proxyPort}`;
-      return new HttpsProxyAgent(proxyUrl);
+    if (!proxyHost || !proxyPort) return undefined;
+
+    const url = new URL(`http://${proxyHost}:${proxyPort}`);
+    // URL will percent-encode credentials safely when stringified
+    if (proxyUser) url.username = proxyUser;
+    if (proxyPass) url.password = proxyPass;
+    return url.toString();
+  }
+
+  /**
+   * Get HTTPS proxy agent for use in external libraries (e.g., passport-google-oauth20)
+   * Returns undefined if no proxy is configured
+   */
+  getHttpsAgent(): HttpsProxyAgent<string> | undefined {
+    const proxyUrl = this.buildProxyUrl();
+    if (!proxyUrl) {
+      if (!this.httpsAgentInitialized) {
+        this.logger.log('🌍 Using Direct Connection (No Proxy configured)');
+        this.httpsAgentInitialized = true;
+      }
+      return undefined;
     }
 
-    return undefined;
+    if (!this.httpsAgent) {
+      this.logger.log(`🔌 Initializing Proxy Agent: ${proxyUrl}`);
+      this.httpsAgent = new HttpsProxyAgent(proxyUrl);
+      this.httpsAgentInitialized = true;
+    }
+
+    return this.httpsAgent;
   }
 
   // Метод-обертка для POST запросов (например, в Kling)

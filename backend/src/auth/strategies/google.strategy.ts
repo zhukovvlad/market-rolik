@@ -23,21 +23,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             throw new Error('Google OAuth configuration is missing. Please check GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_CALLBACK_URL.');
         }
 
-        // Get proxy agent if configured
-        const httpsAgent = proxyService.getHttpsAgent();
-
         super({
             clientID,
             clientSecret,
             callbackURL,
             scope: ['email', 'profile'],
-            ...(httpsAgent && { 
-                proxy: false,
-                agent: httpsAgent,
-            }),
         });
         
+        // Set proxy agent on underlying OAuth2 instance after instantiation
+        // passport-google-oauth20 doesn't support agent in constructor options
+        const httpsAgent = proxyService.getHttpsAgent();
         if (httpsAgent) {
+            this._oauth2.setAgent(httpsAgent);
             this.logger.log('GoogleStrategy initialized with proxy support');
         } else {
             this.logger.log('GoogleStrategy initialized (direct connection)');
