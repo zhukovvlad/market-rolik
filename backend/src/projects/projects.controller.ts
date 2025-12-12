@@ -189,6 +189,7 @@ export class ProjectsController {
     @Req() req: AuthenticatedRequest
   ) {
     const project = await this.projectsService.findOne(id, req.user.id);
+    const originalStatus = project.status;
     
     // Проверяем статус проекта
     // Important: we allow re-entry if status is already GENERATING_VIDEO (e.g. duplicate clicks)
@@ -203,22 +204,39 @@ export class ProjectsController {
 
     if (existingJob) {
       const state = await existingJob.getState();
-      const inFlightStates = new Set<string>(['active', 'waiting', 'delayed', 'paused', 'stuck']);
 
-      // If there's already an in-flight job, don't enqueue another one.
-      if (inFlightStates.has(state)) {
-        // Do not mutate prompt/settings for in-flight job.
-        // But if the status lagged behind (still IMAGE_READY), bump it so UI polling can continue.
-        if (project.status === ProjectStatus.IMAGE_READY) {
-          project.status = ProjectStatus.GENERATING_VIDEO;
-          await this.projectsService.save(project);
+      // Bull may return null in edge cases; prefer enabling retry by clearing the record.
+      if (!state) {
+        try {
+          await existingJob.remove();
+        } catch {
+          // ignore
         }
-        return { message: 'Animation already in progress', projectId: project.id };
-      }
+      } else if (state === 'stuck') {
+        // Stuck jobs can block forever; remove to allow re-run.
+        try {
+          await existingJob.remove();
+        } catch {
+          // ignore
+        }
+      } else {
+        const inFlightStates = new Set<string>(['active', 'waiting', 'delayed', 'paused']);
 
-      // Allow re-run after completion/failure by removing the old job with the same id.
-      if (['completed', 'failed'].includes(state)) {
-        await existingJob.remove();
+        // If there's already an in-flight job, don't enqueue another one.
+        if (inFlightStates.has(state)) {
+          // Do not mutate prompt/settings for in-flight job.
+          // But if the status lagged behind (still IMAGE_READY), bump it so UI polling can continue.
+          if (project.status === ProjectStatus.IMAGE_READY) {
+            project.status = ProjectStatus.GENERATING_VIDEO;
+            await this.projectsService.save(project);
+          }
+          return { message: 'Animation already in progress', projectId: project.id };
+        }
+
+        // Allow re-run after completion/failure by removing the old job with the same id.
+        if (['completed', 'failed'].includes(state)) {
+          await existingJob.remove();
+        }
       }
     }
 
@@ -269,7 +287,16 @@ export class ProjectsController {
       }
 
       // If enqueue failed for real (e.g. Redis down), don't leave project stuck in GENERATING_VIDEO.
-      if (didMoveToGeneratingVideo) {
+      // This also covers the case where the request started in GENERATING_VIDEO (allowed re-entry)
+      // but no job exists yet/anymore.
+      if (
+        project.status === ProjectStatus.GENERATING_VIDEO &&
+        (originalStatus === ProjectStatus.IMAGE_READY || originalStatus === ProjectStatus.GENERATING_VIDEO)
+      ) {
+        project.status = ProjectStatus.IMAGE_READY;
+        await this.projectsService.save(project);
+      } else if (didMoveToGeneratingVideo) {
+        // Fallback safeguard (should be unreachable given the guard above).
         project.status = ProjectStatus.IMAGE_READY;
         await this.projectsService.save(project);
       }
