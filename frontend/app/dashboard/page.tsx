@@ -7,7 +7,6 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/dashboard/ProjectCard"; // <--- Используем компонент
 import { Plus, Video } from "lucide-react";
-import { API_URL } from "@/lib/utils";
 import Navbar from "@/components/landing/Navbar";
 import { toast } from "sonner";
 import { Project } from "@/lib/types";
@@ -56,7 +55,7 @@ export default function DashboardPage() {
             await api.delete(`/projects/${projectId}`);
 
             toast.success("Проект удален");
-        } catch (error) {
+        } catch {
             setProjects(oldProjects);
             toast.error("Не удалось удалить проект");
         }

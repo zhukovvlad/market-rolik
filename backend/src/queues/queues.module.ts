@@ -16,7 +16,7 @@ import { Asset } from '../projects/asset.entity';
     StorageModule,
     ProjectsModule,
     TypeOrmModule.forFeature([Asset]), // Для доступа к Asset в процессорах
-    
+
     BullModule.registerQueue({ name: 'image-processing' }),
     BullModule.registerQueue({ name: 'video-generation' }),
   ],
@@ -24,7 +24,7 @@ import { Asset } from '../projects/asset.entity';
     ImageProcessor,
     VideoProcessor,
     BackgroundProcessor, // Этап 1: Генерация фона
-    AnimationProcessor,  // Этап 2: Анимация видео
+    AnimationProcessor, // Этап 2: Анимация видео
   ],
   exports: [BullModule],
 })

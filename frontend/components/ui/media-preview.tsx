@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from "react";
-import { ImageOff, Video, FileVideo } from "lucide-react";
+import { ImageOff, FileVideo } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MediaPreviewProps {
@@ -65,6 +65,7 @@ export function MediaPreview({ src, alt, type, className }: MediaPreviewProps) {
     }
 
     return (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
             src={src}
             alt={alt}

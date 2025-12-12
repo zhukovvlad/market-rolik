@@ -17,11 +17,15 @@ export class CleanupService implements OnModuleInit {
     private uploadTrackingRepository: Repository<UploadTracking>,
     private storageService: StorageService,
   ) {
-    this.logger.log('CleanupService initialized. Cron job will run every 20 minutes.');
+    this.logger.log(
+      'CleanupService initialized. Cron job will run every 20 minutes.',
+    );
   }
 
   async onModuleInit() {
-    this.logger.log('CleanupService module initialized - running initial cleanup check...');
+    this.logger.log(
+      'CleanupService module initialized - running initial cleanup check...',
+    );
     await this.cleanupOrphanedFiles();
   }
 
@@ -44,7 +48,7 @@ export class CleanupService implements OnModuleInit {
   async untrackFile(url: string): Promise<void> {
     await this.uploadTrackingRepository.update(
       { fileUrl: url },
-      { claimed: true }
+      { claimed: true },
     );
     this.logger.debug(`Marked file as claimed: ${url}`);
   }
@@ -69,7 +73,9 @@ export class CleanupService implements OnModuleInit {
       },
     });
 
-    this.logger.log(`Found ${orphanedUploads.length} unclaimed uploads older than 20 minutes`);
+    this.logger.log(
+      `Found ${orphanedUploads.length} unclaimed uploads older than 20 minutes`,
+    );
 
     // Delete orphaned files from S3 and tracking table
     for (const upload of orphanedUploads) {
@@ -84,24 +90,33 @@ export class CleanupService implements OnModuleInit {
           await this.storageService.deleteFile(upload.fileUrl);
           // Delete tracking record
           await this.uploadTrackingRepository.remove(upload);
-          this.logger.log(`Deleted orphaned file: ${upload.fileUrl} (uploaded at ${upload.uploadedAt})`);
+          this.logger.log(
+            `Deleted orphaned file: ${upload.fileUrl} (uploaded at ${upload.uploadedAt})`,
+          );
           deleted++;
         } else {
           // File exists in assets but wasn't marked as claimed - fix it
           upload.claimed = true;
           await this.uploadTrackingRepository.save(upload);
-          this.logger.log(`File found in assets, marked as claimed: ${upload.fileUrl}`);
+          this.logger.log(
+            `File found in assets, marked as claimed: ${upload.fileUrl}`,
+          );
           claimed++;
         }
       } catch (error) {
-        this.logger.error(`Failed to process orphaned file ${upload.fileUrl}:`, error);
+        this.logger.error(
+          `Failed to process orphaned file ${upload.fileUrl}:`,
+          error,
+        );
       }
     }
 
     if (orphanedUploads.length === 0) {
       this.logger.log('No orphaned files found');
     } else {
-      this.logger.log(`Cleanup completed: deleted ${deleted}, claimed ${claimed}`);
+      this.logger.log(
+        `Cleanup completed: deleted ${deleted}, claimed ${claimed}`,
+      );
     }
 
     return { deleted, claimed };
@@ -110,7 +125,11 @@ export class CleanupService implements OnModuleInit {
   /**
    * Manual cleanup trigger (for testing)
    */
-  async runCleanupNow(): Promise<{ deleted: number; tracked: number; claimed: number }> {
+  async runCleanupNow(): Promise<{
+    deleted: number;
+    tracked: number;
+    claimed: number;
+  }> {
     const { deleted, claimed } = await this.cleanupOrphanedFiles();
     const trackedCount = await this.uploadTrackingRepository.count({
       where: { claimed: false },

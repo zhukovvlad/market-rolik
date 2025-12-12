@@ -7,28 +7,28 @@ import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor(configService: ConfigService) {
-        const secret = configService.get<string>('JWT_SECRET');
-        if (!secret) {
-            throw new Error('JWT_SECRET is not defined');
-        }
-        super({
-            jwtFromRequest: ExtractJwt.fromExtractors([
-                // Try to extract from cookie first
-                (request: Request) => {
-                    return request?.cookies?.access_token;
-                },
-                // Fallback to Authorization header for backward compatibility
-                ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ]),
-            ignoreExpiration: false,
-            secretOrKey: secret,
-            audience: configService.get<string>('JWT_AUDIENCE') || 'market-rolik-app',
-            issuer: configService.get<string>('JWT_ISSUER') || 'market-rolik-api',
-        });
+  constructor(configService: ConfigService) {
+    const secret = configService.get<string>('JWT_SECRET');
+    if (!secret) {
+      throw new Error('JWT_SECRET is not defined');
     }
+    super({
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        // Try to extract from cookie first
+        (request: Request) => {
+          return request?.cookies?.access_token;
+        },
+        // Fallback to Authorization header for backward compatibility
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ]),
+      ignoreExpiration: false,
+      secretOrKey: secret,
+      audience: configService.get<string>('JWT_AUDIENCE') || 'market-rolik-app',
+      issuer: configService.get<string>('JWT_ISSUER') || 'market-rolik-api',
+    });
+  }
 
-    async validate(payload: JwtPayload) {
-        return { id: payload.sub, email: payload.email, role: payload.role };
-    }
+  async validate(payload: JwtPayload) {
+    return { id: payload.sub, email: payload.email, role: payload.role };
+  }
 }

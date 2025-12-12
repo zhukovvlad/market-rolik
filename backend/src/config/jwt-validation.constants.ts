@@ -58,7 +58,7 @@ export const JWT_SECRET_GENERATION_COMMAND_ALT =
 export function isPlaceholderSecret(secret: string): boolean {
   const lowerSecret = secret.toLowerCase();
   return JWT_SECRET_PLACEHOLDER_KEYWORDS.some((keyword) =>
-    lowerSecret.includes(keyword.toLowerCase())
+    lowerSecret.includes(keyword.toLowerCase()),
   );
 }
 

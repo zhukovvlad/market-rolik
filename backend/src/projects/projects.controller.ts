@@ -1,4 +1,20 @@
-import { Controller, Post, Body, Get, Param, Delete, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards, Req, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  UseGuards,
+  Req,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
@@ -29,7 +45,7 @@ export class ProjectsController {
     private readonly storageService: StorageService,
     private readonly cleanupService: CleanupService,
     @InjectQueue('video-generation') private readonly videoQueue: Queue,
-  ) { }
+  ) {}
 
   @Get()
   @UseGuards(AuthGuard('jwt'))
@@ -58,11 +74,14 @@ export class ProjectsController {
     @Req() req: AuthenticatedRequest,
     @Body('projectId') projectId?: string,
   ) {
-    const url = await this.storageService.uploadFile(file.buffer, file.mimetype);
-    
+    const url = await this.storageService.uploadFile(
+      file.buffer,
+      file.mimetype,
+    );
+
     // Track this upload for cleanup
     await this.cleanupService.trackUploadedFile(url, req.user.id);
-    
+
     // If projectId is provided, save the image as an asset
     if (projectId && req.user.id) {
       await this.projectsService.addAsset(
@@ -74,27 +93,32 @@ export class ProjectsController {
           originalName: file.originalname,
           mimeType: file.mimetype,
           size: file.size,
-        }
+        },
       );
-      
+
       // File is now saved, stop tracking for cleanup
       await this.cleanupService.untrackFile(url);
     }
-    
+
     return { url };
   }
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // Max 10 projects per minute
-  async create(@Body() createProjectDto: CreateProjectDto, @Req() req: AuthenticatedRequest) {
+  async create(
+    @Body() createProjectDto: CreateProjectDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
     // Логируем что пришло от фронтенда
-    this.logger.log(`📦 Creating project with settings: ${JSON.stringify(createProjectDto.settings)}`);
-    
+    this.logger.log(
+      `📦 Creating project with settings: ${JSON.stringify(createProjectDto.settings)}`,
+    );
+
     const project = await this.projectsService.createProject(
       req.user.id,
       createProjectDto.title,
-      createProjectDto.settings as ProjectSettings
+      createProjectDto.settings as ProjectSettings,
     );
 
     // Save mainImage as asset if provided
@@ -108,7 +132,7 @@ export class ProjectsController {
           {
             uploadedAt: new Date().toISOString(),
             source: 'user_upload',
-          }
+          },
         );
       } catch (error) {
         // If asset already exists or other error, log but continue
@@ -122,17 +146,21 @@ export class ProjectsController {
 
     // Security: Pass userId to queue for ownership verification
     // Запускаем Этап 1: Генерация фона + TTS
-    await this.videoQueue.add('generate-background', {
-      projectId: project.id,
-    }, {
-      attempts: 2,
-      backoff: {
-        type: 'exponential',
-        delay: 5000,
+    await this.videoQueue.add(
+      'generate-background',
+      {
+        projectId: project.id,
       },
-      removeOnComplete: true, 
-      removeOnFail: false,
-    });
+      {
+        attempts: 2,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
 
     return project;
   }
@@ -141,7 +169,9 @@ export class ProjectsController {
   @UseGuards(AuthGuard('jwt'))
   async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     const project = await this.projectsService.findOne(id, req.user.id);
-    this.logger.log(`📤 Returning project ${id}: status=${project.status}, assetsCount=${project.assets?.length || 0}`);
+    this.logger.log(
+      `📤 Returning project ${id}: status=${project.status}, assetsCount=${project.assets?.length || 0}`,
+    );
     return project;
   }
 
@@ -154,10 +184,10 @@ export class ProjectsController {
   async regenerateBackground(
     @Param('id') id: string,
     @Body() dto: RegenerateBackgroundDto,
-    @Req() req: AuthenticatedRequest
+    @Req() req: AuthenticatedRequest,
   ) {
     const project = await this.projectsService.findOne(id, req.user.id);
-    
+
     // Обновляем промпт в настройках
     project.settings = {
       ...project.settings,
@@ -166,16 +196,23 @@ export class ProjectsController {
     await this.projectsService.save(project);
 
     // Запускаем генерацию фона заново
-    await this.videoQueue.add('generate-background', {
-      projectId: project.id,
-    }, {
-      attempts: 2,
-      backoff: { type: 'exponential', delay: 5000 },
-      removeOnComplete: true,
-      removeOnFail: false,
-    });
+    await this.videoQueue.add(
+      'generate-background',
+      {
+        projectId: project.id,
+      },
+      {
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
 
-    return { message: 'Background regeneration started', projectId: project.id };
+    return {
+      message: 'Background regeneration started',
+      projectId: project.id,
+    };
   }
 
   /**
@@ -187,18 +224,21 @@ export class ProjectsController {
   async animateVideo(
     @Param('id') id: string,
     @Body() dto: AnimateVideoDto,
-    @Req() req: AuthenticatedRequest
+    @Req() req: AuthenticatedRequest,
   ) {
     const project = await this.projectsService.findOne(id, req.user.id);
-    
+
     // Проверяем статус проекта
     // Important: we allow re-entry if status is already GENERATING_VIDEO (e.g. duplicate clicks)
-    if (project.status !== ProjectStatus.IMAGE_READY && project.status !== ProjectStatus.GENERATING_VIDEO) {
+    if (
+      project.status !== ProjectStatus.IMAGE_READY &&
+      project.status !== ProjectStatus.GENERATING_VIDEO
+    ) {
       throw new ForbiddenException(
         `Project must be in IMAGE_READY or GENERATING_VIDEO status to animate, current: ${project.status}`,
       );
     }
-    
+
     const jobId = `animate-${project.id}`;
     const existingJob = await this.videoQueue.getJob(jobId);
 
@@ -213,7 +253,12 @@ export class ProjectsController {
           // ignore
         }
       } else {
-        const inFlightStates = new Set<string>(['active', 'waiting', 'delayed', 'paused']);
+        const inFlightStates = new Set<string>([
+          'active',
+          'waiting',
+          'delayed',
+          'paused',
+        ]);
 
         // If there's already an in-flight job, don't enqueue another one.
         if (inFlightStates.has(state)) {
@@ -223,7 +268,10 @@ export class ProjectsController {
             project.status = ProjectStatus.GENERATING_VIDEO;
             await this.projectsService.save(project);
           }
-          return { message: 'Animation already in progress', projectId: project.id };
+          return {
+            message: 'Animation already in progress',
+            projectId: project.id,
+          };
         }
 
         // Allow re-run after completion/failure by removing the old job with the same id.
@@ -261,7 +309,10 @@ export class ProjectsController {
       // Bull may return the existing job silently if jobId already exists.
       // Use requestId marker to detect that and respond idempotently.
       if (job.data?.requestId && job.data.requestId !== requestId) {
-        return { message: 'Animation already in progress', projectId: project.id };
+        return {
+          message: 'Animation already in progress',
+          projectId: project.id,
+        };
       }
     } catch (error) {
       // If enqueue failed due to a race/duplicate, Bull may still have the job recorded.
@@ -269,7 +320,10 @@ export class ProjectsController {
       try {
         const maybeJob = await this.videoQueue.getJob(jobId);
         if (maybeJob) {
-          return { message: 'Animation already in progress', projectId: project.id };
+          return {
+            message: 'Animation already in progress',
+            projectId: project.id,
+          };
         }
       } catch {
         // ignore, will rethrow original error
@@ -296,11 +350,11 @@ export class ProjectsController {
   async selectScene(
     @Param('id') id: string,
     @Body('assetId') assetId: string,
-    @Req() req: AuthenticatedRequest
+    @Req() req: AuthenticatedRequest,
   ) {
     return this.projectsService.setActiveScene(id, assetId, req.user.id);
   }
-  
+
   @Get('cleanup/run-now')
   @UseGuards(AuthGuard('jwt'))
   async runCleanup(@Req() req: AuthenticatedRequest) {
@@ -308,14 +362,14 @@ export class ProjectsController {
     if (req.user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Only admins can run cleanup manually');
     }
-    
+
     const result = await this.cleanupService.runCleanupNow();
     return {
       message: 'Cleanup completed',
       ...result,
     };
   }
-  
+
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
   async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {

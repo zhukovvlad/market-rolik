@@ -159,7 +159,9 @@ export class ImageProcessor {
         AssetType.IMAGE_CLEAN, // Указываем тип ассета
         isMock ? 'mock-ai' : 'photoroom', // Провайдер
       );
-      this.logger.log(`💾 Ассет сохранен в БД для проекта ${job.data.projectId}`);
+      this.logger.log(
+        `💾 Ассет сохранен в БД для проекта ${job.data.projectId}`,
+      );
     }
 
     return {

@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsInt, IsOptional, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsInt,
+  IsOptional,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class AnalyzeImageDto {
   @IsString()

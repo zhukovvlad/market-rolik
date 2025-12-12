@@ -1,6 +1,10 @@
 // src/storage/storage.service.ts
 import { Injectable, Logger } from '@nestjs/common';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -113,7 +117,7 @@ export class StorageService {
       // Example: https://s3.timeweb.com/bucket/uploads/file.jpg -> uploads/file.jpg
       const endpoint = this.configService.getOrThrow<string>('S3_ENDPOINT');
       const prefix = `${endpoint}/${this.bucket}/`;
-      
+
       if (!fileUrl.startsWith(prefix)) {
         throw new Error(`Invalid file URL: ${fileUrl}`);
       }

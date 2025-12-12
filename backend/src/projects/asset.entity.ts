@@ -23,7 +23,9 @@ export class Asset {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Project, (project) => project.assets, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Project, (project) => project.assets, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'projectId' })
   project: Project;
 

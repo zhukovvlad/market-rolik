@@ -56,7 +56,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
             case '1:1': return "aspect-square max-w-sm mx-auto";
             case '3:4': return "aspect-[3/4] max-w-sm mx-auto";
             default: {
-                const _exhaustive: never = ratio;
+                ratio satisfies never;
                 return "aspect-[9/16] max-w-xs mx-auto";
             }
         }
@@ -68,6 +68,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
             <div className="flex flex-col gap-4">
                 <h3 className="text-xl font-bold font-heading">Превью</h3>
                 <div className={`relative rounded-xl overflow-hidden border border-border bg-black/50 shadow-2xl transition-all duration-500 ${getPreviewStyle(aspectRatio)}`}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                         src={imageUrl} 
                         alt="Preview" 
@@ -156,7 +157,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                             Фоновая музыка
                         </Label>
                         <Select value={musicTheme} onValueChange={(v) => {
-                            if ((VALID_MUSIC_THEMES as readonly string[]).includes(v)) {
+                            if (VALID_MUSIC_THEMES.includes(v)) {
                                 setMusicTheme(v as MusicTheme);
                             }
                         }}>

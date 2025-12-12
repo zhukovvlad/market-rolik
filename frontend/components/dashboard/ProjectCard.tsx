@@ -1,9 +1,8 @@
-import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Trash2, Video, ImageOff } from "lucide-react";
+import { Calendar, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import { MediaPreview } from "@/components/ui/media-preview";

@@ -15,22 +15,24 @@ async function bootstrap() {
   // This prevents IP spoofing attacks and enables correct rate limiting
   const trustProxy = process.env.TRUST_PROXY || 'loopback';
   const trustProxyIps = process.env.TRUST_PROXY_IPS;
-  
+
   if (trustProxyIps) {
     // Use custom proxy IPs/CIDRs (comma-separated)
     // This takes precedence over TRUST_PROXY preset if both are set
     const proxyList = trustProxyIps
       .split(',')
-      .map(ip => ip.trim())
-      .filter(ip => ip.length > 0);
-    
+      .map((ip) => ip.trim())
+      .filter((ip) => ip.length > 0);
+
     if (proxyList.length === 0) {
-      logger.warn('⚠️  TRUST_PROXY_IPS is set but empty. Falling back to loopback.');
+      logger.warn(
+        '⚠️  TRUST_PROXY_IPS is set but empty. Falling back to loopback.',
+      );
       app.set('trust proxy', 'loopback');
     } else {
       app.set('trust proxy', proxyList);
       logger.log(
-        `Trust proxy configured with custom IP list (overriding TRUST_PROXY): ${proxyList.join(', ')}`
+        `Trust proxy configured with custom IP list (overriding TRUST_PROXY): ${proxyList.join(', ')}`,
       );
     }
   } else if (trustProxy === 'true') {
@@ -38,7 +40,7 @@ async function bootstrap() {
     if (process.env.NODE_ENV === 'production') {
       logger.warn(
         '⚠️  TRUST_PROXY=true trusts the first proxy unconditionally. ' +
-        'Consider using TRUST_PROXY_IPS for explicit IP configuration in production.'
+          'Consider using TRUST_PROXY_IPS for explicit IP configuration in production.',
       );
     }
     app.set('trust proxy', true);
@@ -47,7 +49,7 @@ async function bootstrap() {
     app.set('trust proxy', false);
     logger.warn(
       '⚠️  Trust proxy is disabled. Only use this if the app is directly exposed to the internet ' +
-      'without any reverse proxy. Rate limiting will use socket IP addresses.'
+        'without any reverse proxy. Rate limiting will use socket IP addresses.',
     );
   } else if (trustProxy === 'cloudflare') {
     // Trust Cloudflare IPs
@@ -77,7 +79,6 @@ async function bootstrap() {
     origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
     credentials: true,
   });
-
 
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
   if (isNaN(port) || port <= 0) {

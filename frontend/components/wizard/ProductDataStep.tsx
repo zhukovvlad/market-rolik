@@ -7,7 +7,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Upload, Sparkles, X, Image as ImageIcon, Loader2, Pencil, Smartphone, Monitor, Square, RectangleVertical } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { API_URL } from "@/lib/utils";
 import { ProductData } from "@/types/product";
 import { ASPECT_RATIOS, AspectRatio } from "@/types/project";
 
@@ -293,6 +292,7 @@ export default function ProductDataStep({ onNext, projectTitle, setProjectTitle,
                 >
                     {previewUrl ? (
                         <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={previewUrl} alt="Preview" className="w-full h-full object-contain" />
                             <Button
                                 variant="destructive"

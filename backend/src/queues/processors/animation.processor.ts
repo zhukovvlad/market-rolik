@@ -1,13 +1,13 @@
 /**
  * @fileoverview Animation Processor - Этап 2: Генерация видео и финальный рендер
- * 
+ *
  * Этот процессор отвечает за второй этап пайплайна (запускается после одобрения фона пользователем):
  * 1. Генерация видео-анимации (Kling AI Image-to-Video)
  * 2. Композиция финального видео через Remotion (видео + TTS + музыка + УТП)
- * 
+ *
  * Запускается только когда пользователь подтвердил, что фон и TTS его устраивают.
  * Это самый дорогой этап (~20-30₽), поэтому важно не запускать его зря.
- * 
+ *
  * @module AnimationProcessor
  * @requires @nestjs/bull
  */
@@ -32,14 +32,23 @@ import * as fs from 'fs';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function getDimensions(ratio: string = '9:16'): { width: number; height: number } {
+function getDimensions(ratio: string = '9:16'): {
+  width: number;
+  height: number;
+} {
   switch (ratio) {
-    case '16:9': return { width: 1024, height: 576 };
-    case '9:16': return { width: 576, height: 1024 };
-    case '1:1':  return { width: 1024, height: 1024 };
-    case '4:3':  return { width: 1024, height: 768 };
-    case '3:4':  return { width: 768, height: 1024 };
-    default:     return { width: 576, height: 1024 };
+    case '16:9':
+      return { width: 1024, height: 576 };
+    case '9:16':
+      return { width: 576, height: 1024 };
+    case '1:1':
+      return { width: 1024, height: 1024 };
+    case '4:3':
+      return { width: 1024, height: 768 };
+    case '3:4':
+      return { width: 768, height: 1024 };
+    default:
+      return { width: 576, height: 1024 };
   }
 }
 
@@ -64,30 +73,48 @@ export class AnimationProcessor {
     @InjectRepository(Asset)
     private readonly assetRepository: Repository<Asset>,
   ) {
-    this.pollDelayMs = parseInt(this.configService.get<string>('VIDEO_POLL_DELAY_MS', '10000'), 10);
-    this.maxPollAttempts = parseInt(this.configService.get<string>('VIDEO_MAX_POLL_ATTEMPTS', '30'), 10);
-    this.videoDownloadTimeoutMs = parseInt(this.configService.get<string>('VIDEO_DOWNLOAD_TIMEOUT_MS', '120000'), 10);
+    this.pollDelayMs = parseInt(
+      this.configService.get<string>('VIDEO_POLL_DELAY_MS', '10000'),
+      10,
+    );
+    this.maxPollAttempts = parseInt(
+      this.configService.get<string>('VIDEO_MAX_POLL_ATTEMPTS', '30'),
+      10,
+    );
+    this.videoDownloadTimeoutMs = parseInt(
+      this.configService.get<string>('VIDEO_DOWNLOAD_TIMEOUT_MS', '120000'),
+      10,
+    );
   }
 
   /**
    * Этап 2: Анимация видео + Финальный рендер
-   * 
+   *
    * Джоб: animate-image
    * Вход: { projectId: string, prompt?: string, requestId?: string }
    * Предусловие: Проект в статусе IMAGE_READY (фон одобрен пользователем)
    * Выход: Статус COMPLETED + финальное видео
    */
   @Process('animate-image')
-  async handleAnimateImage(job: Job<{ projectId: string; prompt?: string; requestId?: string }>) {
+  async handleAnimateImage(
+    job: Job<{ projectId: string; prompt?: string; requestId?: string }>,
+  ) {
     const { projectId, prompt, requestId } = job.data;
-    this.logger.log(`🎬 START Animation for Project ${projectId}${requestId ? ` (requestId=${requestId})` : ''}`);
+    this.logger.log(
+      `🎬 START Animation for Project ${projectId}${requestId ? ` (requestId=${requestId})` : ''}`,
+    );
 
     try {
       const project = await this.projectsService.findOne(projectId);
-      
+
       // Проверка статуса
-      if (project.status !== ProjectStatus.IMAGE_READY && project.status !== ProjectStatus.GENERATING_VIDEO) {
-        throw new Error(`Project must be in IMAGE_READY or GENERATING_VIDEO status, current: ${project.status}`);
+      if (
+        project.status !== ProjectStatus.IMAGE_READY &&
+        project.status !== ProjectStatus.GENERATING_VIDEO
+      ) {
+        throw new Error(
+          `Project must be in IMAGE_READY or GENERATING_VIDEO status, current: ${project.status}`,
+        );
       }
 
       if (project.status === ProjectStatus.IMAGE_READY) {
@@ -97,13 +124,18 @@ export class AnimationProcessor {
 
       let settings = project.settings || {};
 
-      const normalizedJobPrompt = typeof prompt === 'string' ? prompt.trim() : '';
-      const normalizedSettingsPrompt = typeof settings.prompt === 'string' ? settings.prompt.trim() : '';
+      const normalizedJobPrompt =
+        typeof prompt === 'string' ? prompt.trim() : '';
+      const normalizedSettingsPrompt =
+        typeof settings.prompt === 'string' ? settings.prompt.trim() : '';
 
       // Persist prompt from job payload (if provided) so the job is self-contained and
       // concurrent API requests cannot clobber the prompt used for this animation.
       // Normalize values to avoid unnecessary writes due to whitespace-only differences.
-      if (normalizedJobPrompt.length > 0 && normalizedJobPrompt !== normalizedSettingsPrompt) {
+      if (
+        normalizedJobPrompt.length > 0 &&
+        normalizedJobPrompt !== normalizedSettingsPrompt
+      ) {
         const updatedSettings = {
           ...settings,
           prompt: normalizedJobPrompt,
@@ -119,32 +151,36 @@ export class AnimationProcessor {
       // --- 1. ПОЛУЧАЕМ АКТИВНУЮ СЦЕНУ ---
       // Используем activeSceneAssetId если указан, иначе fallback на последнюю сцену
       let sceneAsset: Asset | null = null;
-      
+
       if (settings.activeSceneAssetId) {
         sceneAsset = await this.assetRepository.findOne({
-          where: { 
+          where: {
             id: settings.activeSceneAssetId,
             project: { id: projectId },
-            type: AssetType.IMAGE_SCENE 
-          }
+            type: AssetType.IMAGE_SCENE,
+          },
         });
-        this.logger.log(`✅ Using selected scene: ${settings.activeSceneAssetId}`);
+        this.logger.log(
+          `✅ Using selected scene: ${settings.activeSceneAssetId}`,
+        );
       }
-      
+
       // Fallback: если активная сцена не найдена, берем последнюю
       if (!sceneAsset) {
         sceneAsset = await this.assetRepository.findOne({
-          where: { 
-            project: { id: projectId }, 
-            type: AssetType.IMAGE_SCENE 
+          where: {
+            project: { id: projectId },
+            type: AssetType.IMAGE_SCENE,
           },
-          order: { createdAt: 'DESC' }
+          order: { createdAt: 'DESC' },
         });
         this.logger.warn(`⚠️ Active scene not found, using latest scene`);
       }
 
       if (!sceneAsset) {
-        throw new Error('Scene asset not found. Did you run generate-background first?');
+        throw new Error(
+          'Scene asset not found. Did you run generate-background first?',
+        );
       }
 
       const highResUrl = sceneAsset.storageUrl;
@@ -152,25 +188,31 @@ export class AnimationProcessor {
 
       // TTS (может быть null, если пользователь отключил озвучку)
       const ttsAsset = await this.assetRepository.findOne({
-        where: { 
-          project: { id: projectId }, 
-          type: AssetType.AUDIO_TTS 
+        where: {
+          project: { id: projectId },
+          type: AssetType.AUDIO_TTS,
         },
-        order: { createdAt: 'DESC' }
+        order: { createdAt: 'DESC' },
       });
       const ttsUrl = ttsAsset?.storageUrl || null;
 
       // --- 2. ГЕНЕРАЦИЯ ВИДЕО (Kling AI) ---
       this.logger.log('🎬 Generating animation with Kling AI...');
-      
+
       const klingPrompt =
         normalizedJobPrompt ||
-        (typeof settings.prompt === 'string' && settings.prompt.trim().length > 0 ? settings.prompt.trim() : '') ||
+        (typeof settings.prompt === 'string' &&
+        settings.prompt.trim().length > 0
+          ? settings.prompt.trim()
+          : '') ||
         'slow cinematic camera zoom in, floating dust particles, high quality, 4k';
       let s3VideoUrl: string | null = null;
 
       try {
-        s3VideoUrl = await this.generateKlingVideoInternal(highResUrl, klingPrompt);
+        s3VideoUrl = await this.generateKlingVideoInternal(
+          highResUrl,
+          klingPrompt,
+        );
         this.logger.log(`✅ Kling animation ready: ${s3VideoUrl}`);
 
         // Сохраняем как Asset
@@ -184,73 +226,101 @@ export class AnimationProcessor {
         await this.assetRepository.save(videoAsset);
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err);
-        this.logger.error(`❌ Kling failed${requestId ? ` (requestId=${requestId})` : ''}: ${errMsg}. Will use static image in video.`);
+        this.logger.error(
+          `❌ Kling failed${requestId ? ` (requestId=${requestId})` : ''}: ${errMsg}. Will use static image in video.`,
+        );
         s3VideoUrl = null; // Remotion будет использовать статическую картинку
       }
 
       // --- 3. МУЗЫКА (Берем из библиотеки) ---
-      const musicUrl = this.ttsService.getBackgroundMusicUrl(settings.musicTheme);
+      const musicUrl = this.ttsService.getBackgroundMusicUrl(
+        settings.musicTheme,
+      );
 
       // --- 4. ФИНАЛЬНЫЙ РЕНДЕР (Remotion) ---
       this.logger.log('🎞️ Rendering final video with Remotion...');
 
       const inputProps: VideoCompositionInput = {
         title: settings.productName || 'Новинка',
-        mainImage: highResUrl, 
+        mainImage: highResUrl,
         bgVideoUrl: s3VideoUrl,
         usps: settings.usps || [],
         primaryColor: '#4f46e5',
         audioUrl: ttsUrl,
         backgroundMusicUrl: musicUrl,
-        width: width * 2, 
+        width: width * 2,
         height: height * 2,
       };
 
       const outputFilePath = await this.renderService.renderVideo(inputProps);
-      
+
       const fileBuffer = fs.readFileSync(outputFilePath);
-      const finalS3Url = await this.storageService.uploadFile(fileBuffer, 'video/mp4', 'renders');
-      
-      try { fs.unlinkSync(outputFilePath); } catch (e) {}
+      const finalS3Url = await this.storageService.uploadFile(
+        fileBuffer,
+        'video/mp4',
+        'renders',
+      );
+
+      try {
+        fs.unlinkSync(outputFilePath);
+      } catch (e) {}
 
       // --- 5. ЗАВЕРШЕНИЕ ---
       project.status = ProjectStatus.COMPLETED;
       project.resultVideoUrl = finalS3Url;
       await this.projectsService.save(project);
 
-      this.logger.log(`🎉 ANIMATION COMPLETE${requestId ? ` (requestId=${requestId})` : ''}! Final video: ${finalS3Url}`);
+      this.logger.log(
+        `🎉 ANIMATION COMPLETE${requestId ? ` (requestId=${requestId})` : ''}! Final video: ${finalS3Url}`,
+      );
       return { result: finalS3Url };
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.stack || error.message : String(error);
-      
+      const errorMessage =
+        error instanceof Error ? error.stack || error.message : String(error);
+
       // attemptsMade начинается с 0, поэтому добавляем +1 для отображения
       const currentAttempt = job.attemptsMade + 1;
       const maxAttempts = job.opts.attempts || 1;
-      
-      this.logger.error(`❌ Animation FAILED for Project ${projectId}${requestId ? ` (requestId=${requestId})` : ''} (attempt ${currentAttempt}/${maxAttempts})`, errorMessage);
-      
+
+      this.logger.error(
+        `❌ Animation FAILED for Project ${projectId}${requestId ? ` (requestId=${requestId})` : ''} (attempt ${currentAttempt}/${maxAttempts})`,
+        errorMessage,
+      );
+
       // Меняем статус на FAILED только если исчерпаны все попытки
       const isLastAttempt = currentAttempt >= maxAttempts;
-      
+
       if (isLastAttempt) {
-        this.logger.error(`❌ All retry attempts exhausted${requestId ? ` (requestId=${requestId})` : ''}. Marking project as FAILED.`);
+        this.logger.error(
+          `❌ All retry attempts exhausted${requestId ? ` (requestId=${requestId})` : ''}. Marking project as FAILED.`,
+        );
         try {
           const newSettings = {
             lastError: error instanceof Error ? error.message : String(error),
             failedAt: new Date().toISOString(),
           };
-          
-          this.logger.log(`💾 Updating project to FAILED status${requestId ? ` (requestId=${requestId})` : ''}. Settings: ${JSON.stringify(newSettings)}`);
-          await this.projectsService.updateStatusAndSettings(projectId, ProjectStatus.FAILED, newSettings);
-          this.logger.log(`✅ Project marked as FAILED successfully${requestId ? ` (requestId=${requestId})` : ''}`);
+
+          this.logger.log(
+            `💾 Updating project to FAILED status${requestId ? ` (requestId=${requestId})` : ''}. Settings: ${JSON.stringify(newSettings)}`,
+          );
+          await this.projectsService.updateStatusAndSettings(
+            projectId,
+            ProjectStatus.FAILED,
+            newSettings,
+          );
+          this.logger.log(
+            `✅ Project marked as FAILED successfully${requestId ? ` (requestId=${requestId})` : ''}`,
+          );
         } catch (dbError) {
-          this.logger.error(`❌ Failed to update project status to FAILED`, dbError);
+          this.logger.error(
+            `❌ Failed to update project status to FAILED`,
+            dbError,
+          );
         }
       } else {
         this.logger.warn(`⚠️ Attempt ${currentAttempt} failed. Will retry...`);
       }
-      
+
       throw error;
     }
   }
@@ -258,8 +328,14 @@ export class AnimationProcessor {
   /**
    * Генерация видео через Kling AI с polling механизмом
    */
-  private async generateKlingVideoInternal(imageUrl: string, prompt: string): Promise<string> {
-    const taskId = await this.aiVideoService.generateKlingVideo(imageUrl, prompt);
+  private async generateKlingVideoInternal(
+    imageUrl: string,
+    prompt: string,
+  ): Promise<string> {
+    const taskId = await this.aiVideoService.generateKlingVideo(
+      imageUrl,
+      prompt,
+    );
     this.logger.log(`🎬 Kling Task ID: ${taskId}`);
 
     for (let i = 0; i < this.maxPollAttempts; i++) {
@@ -268,23 +344,30 @@ export class AnimationProcessor {
 
       if (result.status === 'completed') {
         this.logger.log(`✅ Kling Success!`);
-        if (!result.videoUrl) throw new Error('Kling completed but no videoUrl provided');
-        
+        if (!result.videoUrl)
+          throw new Error('Kling completed but no videoUrl provided');
+
         // Скачиваем и пересохраняем в S3
-        const videoData = await this.proxyService.get<Buffer>(result.videoUrl, { 
+        const videoData = await this.proxyService.get<Buffer>(result.videoUrl, {
           responseType: 'arraybuffer',
           timeout: this.videoDownloadTimeoutMs,
         });
-        return await this.storageService.uploadFile(Buffer.from(videoData), 'video/mp4', 'videos');
+        return await this.storageService.uploadFile(
+          Buffer.from(videoData),
+          'video/mp4',
+          'videos',
+        );
       }
-      
+
       if (result.status === 'failed') {
         throw new Error(`Kling generation failed`);
       }
 
-      this.logger.log(`⏳ Kling still processing... (attempt ${i + 1}/${this.maxPollAttempts})`);
+      this.logger.log(
+        `⏳ Kling still processing... (attempt ${i + 1}/${this.maxPollAttempts})`,
+      );
     }
-    
+
     throw new Error(`Kling timeout after ${this.maxPollAttempts} attempts`);
   }
 }

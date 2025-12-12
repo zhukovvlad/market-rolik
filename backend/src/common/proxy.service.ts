@@ -64,8 +64,10 @@ export class ProxyService {
 
     if (!this.httpsAgent) {
       const parsed = new URL(proxyUrl);
-      const authHint = (parsed.username || parsed.password) ? ' (auth)' : '';
-      this.logger.log(`Initializing Proxy Agent: ${parsed.hostname}:${parsed.port}${authHint}`);
+      const authHint = parsed.username || parsed.password ? ' (auth)' : '';
+      this.logger.log(
+        `Initializing Proxy Agent: ${parsed.hostname}:${parsed.port}${authHint}`,
+      );
       this.httpsAgent = new HttpsProxyAgent(proxyUrl);
       this.httpsAgentInitialized = true;
     }

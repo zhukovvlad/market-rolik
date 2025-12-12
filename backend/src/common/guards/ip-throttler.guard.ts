@@ -19,14 +19,14 @@ export class IpThrottlerGuard extends ThrottlerGuard {
     // Use req.ip which Express populates from trusted proxy headers
     // Trust proxy must be configured in main.ts for this to work correctly
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
-    
+
     if (ip === 'unknown') {
       this.logger.warn(
         'Unable to extract client IP address. Check trust proxy configuration in main.ts. ' +
-        'Rate limiting may not work correctly.'
+          'Rate limiting may not work correctly.',
       );
     }
-    
+
     return ip;
   }
 }
