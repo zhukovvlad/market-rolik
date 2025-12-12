@@ -68,8 +68,18 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                         src={imageUrl} 
                         alt="Preview" 
                         className="w-full h-full object-cover opacity-80" 
-                        onLoad={() => setImageErrorUrl(null)}
-                        onError={() => setImageErrorUrl(imageUrl)}
+                        onLoad={(e) => {
+                            const attemptedSrc = e.currentTarget.getAttribute('src');
+                            if (attemptedSrc === imageUrl) {
+                                setImageErrorUrl(null);
+                            }
+                        }}
+                        onError={(e) => {
+                            const attemptedSrc = e.currentTarget.getAttribute('src');
+                            if (attemptedSrc === imageUrl) {
+                                setImageErrorUrl(imageUrl);
+                            }
+                        }}
                     />
                     {imageError && (
                         <div className="absolute inset-0 flex items-center justify-center bg-muted">
@@ -91,14 +101,23 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
 
                     <div className="space-y-3">
                         <Label className="text-base">Формат видео</Label>
-                        <RadioGroup value={aspectRatio} onValueChange={(v) => setAspectRatio(v as AspectRatio)} className="grid grid-cols-2 gap-4">
+                        <RadioGroup
+                            value={aspectRatio}
+                            onValueChange={(v) => {
+                                if ((ASPECT_RATIOS as readonly string[]).includes(v)) {
+                                    setAspectRatio(v as AspectRatio);
+                                }
+                            }}
+                            className="grid grid-cols-2 gap-4"
+                        >
                             {ASPECT_RATIOS.map((ratio) => {
                                 const { label, Icon } = ASPECT_RATIO_CONFIG[ratio];
+                                const safeId = `r-${ratio.replace(':', '-')}`;
                                 return (
                                     <div key={ratio}>
-                                        <RadioGroupItem value={ratio} id={`r-${ratio}`} className="peer sr-only" />
+                                        <RadioGroupItem value={ratio} id={safeId} className="peer sr-only" />
                                         <Label
-                                            htmlFor={`r-${ratio}`}
+                                            htmlFor={safeId}
                                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
                                         >
                                             <Icon className="mb-3 h-6 w-6" />
