@@ -198,33 +198,21 @@ export class ProjectsController {
       );
     }
     
-    // Обновляем animation промпт если предоставлен
-    if (dto.prompt) {
-      project.settings = {
-        ...project.settings,
-        prompt: dto.prompt,
-      };
-    }
-
-    const shouldMoveToGeneratingVideo = project.status === ProjectStatus.IMAGE_READY;
-
-    // Move project to GENERATING_VIDEO immediately so frontend polling can continue.
-    // The queue worker will handle the rest.
-    if (shouldMoveToGeneratingVideo) {
-      project.status = ProjectStatus.GENERATING_VIDEO;
-    }
-    await this.projectsService.save(project);
-
-    // Запускаем Этап 2: Анимация
     const jobId = `animate-${project.id}`;
     const existingJob = await this.videoQueue.getJob(jobId);
 
     if (existingJob) {
       const state = await existingJob.getState();
-      const inFlightStates = new Set<string>(['active', 'waiting', 'delayed', 'paused', 'repeat']);
+      const inFlightStates = new Set<string>(['active', 'waiting', 'delayed', 'paused', 'stuck']);
 
       // If there's already an in-flight job, don't enqueue another one.
       if (inFlightStates.has(state)) {
+        // Do not mutate prompt/settings for in-flight job.
+        // But if the status lagged behind (still IMAGE_READY), bump it so UI polling can continue.
+        if (project.status === ProjectStatus.IMAGE_READY) {
+          project.status = ProjectStatus.GENERATING_VIDEO;
+          await this.projectsService.save(project);
+        }
         return { message: 'Animation already in progress', projectId: project.id };
       }
 
@@ -232,6 +220,27 @@ export class ProjectsController {
       if (['completed', 'failed'].includes(state)) {
         await existingJob.remove();
       }
+    }
+
+    // Apply prompt update only when we're actually going to (re)enqueue.
+    let didChangeProject = false;
+
+    if (dto.prompt) {
+      project.settings = {
+        ...project.settings,
+        prompt: dto.prompt,
+      };
+      didChangeProject = true;
+    }
+
+    const didMoveToGeneratingVideo = project.status === ProjectStatus.IMAGE_READY;
+    if (didMoveToGeneratingVideo) {
+      project.status = ProjectStatus.GENERATING_VIDEO;
+      didChangeProject = true;
+    }
+
+    if (didChangeProject) {
+      await this.projectsService.save(project);
     }
 
     try {
@@ -248,14 +257,19 @@ export class ProjectsController {
         },
       );
     } catch (error) {
-      const message = error instanceof Error ? error.message : '';
-      // Race: two concurrent requests can pass getJob() before either enqueues.
-      if (/already exists|job.*exists|duplicate|eexist/i.test(message)) {
-        return { message: 'Animation already in progress', projectId: project.id };
+      // If enqueue failed due to a race/duplicate, Bull may still have the job recorded.
+      // Avoid relying on error-message patterns.
+      try {
+        const maybeJob = await this.videoQueue.getJob(jobId);
+        if (maybeJob) {
+          return { message: 'Animation already in progress', projectId: project.id };
+        }
+      } catch {
+        // ignore, will rollback status below if needed and rethrow
       }
 
       // If enqueue failed for real (e.g. Redis down), don't leave project stuck in GENERATING_VIDEO.
-      if (shouldMoveToGeneratingVideo) {
+      if (didMoveToGeneratingVideo) {
         project.status = ProjectStatus.IMAGE_READY;
         await this.projectsService.save(project);
       }

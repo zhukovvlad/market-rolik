@@ -15,6 +15,16 @@ export default function Navbar() {
     const [authDialogTab, setAuthDialogTab] = useState<"login" | "register">("login");
     const { user, logout } = useAuth();
 
+    const isOptimizableAvatarUrl = (() => {
+        if (!user?.avatarUrl) return false;
+        try {
+            const url = new URL(user.avatarUrl);
+            return url.protocol === "https:" && url.hostname === "s3.twcstorage.ru";
+        } catch {
+            return false;
+        }
+    })();
+
     const openAuthDialog = (tab: "login" | "register") => {
         setAuthDialogTab(tab);
         setAuthDialogOpen(true);
@@ -48,7 +58,7 @@ export default function Navbar() {
                                             width={32}
                                             height={32}
                                             className="rounded-full ring-2 ring-primary/20"
-                                            unoptimized
+                                            unoptimized={!isOptimizableAvatarUrl}
                                         />
                                     )}
                                     <span className="text-sm font-medium text-foreground">
