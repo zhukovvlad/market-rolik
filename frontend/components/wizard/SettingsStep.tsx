@@ -23,6 +23,9 @@ const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: ElementTyp
     "3:4": { label: "Post (3:4)", Icon: RectangleVertical },
 };
 
+const VALID_MUSIC_THEMES = ['energetic', 'calm', 'lofi'] as const;
+const VALID_TTS_VOICES = new Set(TTS_VOICES.map(({ value }) => value));
+
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBack }: SettingsStepProps) {
     const [prompt, setPrompt] = useState("");
     const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
@@ -71,13 +74,15 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                         className="w-full h-full object-cover opacity-80" 
                         onLoad={(e) => {
                             const attemptedSrc = e.currentTarget.currentSrc || e.currentTarget.src;
-                            if (attemptedSrc === imageUrl) {
+                            const normalizedImageUrl = new URL(imageUrl, window.location.href).href;
+                            if (attemptedSrc === normalizedImageUrl) {
                                 setImageErrorUrl(null);
                             }
                         }}
                         onError={(e) => {
                             const attemptedSrc = e.currentTarget.currentSrc || e.currentTarget.src;
-                            if (attemptedSrc === imageUrl) {
+                            const normalizedImageUrl = new URL(imageUrl, window.location.href).href;
+                            if (attemptedSrc === normalizedImageUrl) {
                                 setImageErrorUrl(imageUrl);
                             }
                         }}
@@ -151,8 +156,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                             Фоновая музыка
                         </Label>
                         <Select value={musicTheme} onValueChange={(v) => {
-                            const validThemes = ['energetic', 'calm', 'lofi'] as const;
-                            if ((validThemes as readonly string[]).includes(v)) {
+                            if ((VALID_MUSIC_THEMES as readonly string[]).includes(v)) {
                                 setMusicTheme(v as MusicTheme);
                             }
                         }}>
@@ -186,8 +190,7 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                                 <div className="space-y-2">
                                     <Label htmlFor="tts-voice" className="text-sm">Голос диктора</Label>
                                     <Select value={ttsVoice} onValueChange={(v) => {
-                                        const validVoices = new Set(TTS_VOICES.map(({ value }) => value));
-                                        if (validVoices.has(v as TtsVoice)) {
+                                        if (VALID_TTS_VOICES.has(v as TtsVoice)) {
                                             setTtsVoice(v as TtsVoice);
                                         }
                                     }}>

@@ -80,7 +80,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ...newUser,
             credits: typeof newUser.credits === "number" ? newUser.credits : 0,
         };
-        setUser(safeUser);
+        if (mountedRef.current) {
+            setUser(safeUser);
+        }
     }, []);
 
     const logout = useCallback(async () => {

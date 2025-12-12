@@ -184,7 +184,7 @@ export class AnimationProcessor {
         await this.assetRepository.save(videoAsset);
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err);
-        this.logger.error(`❌ Kling failed: ${errMsg}. Will use static image in video.`);
+        this.logger.error(`❌ Kling failed${requestId ? ` (requestId=${requestId})` : ''}: ${errMsg}. Will use static image in video.`);
         s3VideoUrl = null; // Remotion будет использовать статическую картинку
       }
 
@@ -218,7 +218,7 @@ export class AnimationProcessor {
       project.resultVideoUrl = finalS3Url;
       await this.projectsService.save(project);
 
-      this.logger.log(`🎉 ANIMATION COMPLETE! Final video: ${finalS3Url}`);
+      this.logger.log(`🎉 ANIMATION COMPLETE${requestId ? ` (requestId=${requestId})` : ''}! Final video: ${finalS3Url}`);
       return { result: finalS3Url };
 
     } catch (error) {
@@ -241,9 +241,9 @@ export class AnimationProcessor {
             failedAt: new Date().toISOString(),
           };
           
-          this.logger.log(`💾 Updating project to FAILED status. Settings: ${JSON.stringify(newSettings)}`);
+          this.logger.log(`💾 Updating project to FAILED status${requestId ? ` (requestId=${requestId})` : ''}. Settings: ${JSON.stringify(newSettings)}`);
           await this.projectsService.updateStatusAndSettings(projectId, ProjectStatus.FAILED, newSettings);
-          this.logger.log(`✅ Project marked as FAILED successfully`);
+          this.logger.log(`✅ Project marked as FAILED successfully${requestId ? ` (requestId=${requestId})` : ''}`);
         } catch (dbError) {
           this.logger.error(`❌ Failed to update project status to FAILED`, dbError);
         }
