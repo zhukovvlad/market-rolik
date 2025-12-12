@@ -26,6 +26,10 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
   const previousStatusRef = useRef<Project['status'] | undefined>(undefined);
   const previousNotifiedStatusRef = useRef<Project['status'] | undefined>(undefined);
   const previousProjectIdRef = useRef<string | null>(null);
+  const onStatusChangeRef = useRef(options?.onStatusChange);
+  
+  // Keep callback ref up to date
+  onStatusChangeRef.current = options?.onStatusChange;
 
   const resetRefsIfProjectChanged = (currentProjectId: string | null) => {
     if (previousProjectIdRef.current !== currentProjectId) {
@@ -95,11 +99,11 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
 
       const prevStatus = previousNotifiedStatusRef.current;
       if (query.data.status !== prevStatus) {
-        options?.onStatusChange?.(query.data, prevStatus);
+        onStatusChangeRef.current?.(query.data, prevStatus);
         previousNotifiedStatusRef.current = query.data.status;
       }
     }
-  }, [query.data, projectId, options]);
+  }, [query.data, projectId]);
 
   return query;
 }

@@ -275,6 +275,12 @@ export class ProjectsController {
         // ignore, will rethrow original error
       }
 
+      // No job exists—rollback status if we bumped it
+      if (project.status === ProjectStatus.GENERATING_VIDEO) {
+        project.status = ProjectStatus.IMAGE_READY;
+        await this.projectsService.save(project);
+      }
+
       throw error;
     }
 

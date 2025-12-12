@@ -150,7 +150,11 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                             <Music className="h-4 w-4" />
                             Фоновая музыка
                         </Label>
-                        <Select value={musicTheme} onValueChange={(v) => setMusicTheme(v as typeof musicTheme)}>
+                        <Select value={musicTheme} onValueChange={(v) => {
+                            if (['energetic', 'calm', 'lofi'].includes(v)) {
+                                setMusicTheme(v as MusicTheme);
+                            }
+                        }}>
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
@@ -180,7 +184,12 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                             <>
                                 <div className="space-y-2">
                                     <Label htmlFor="tts-voice" className="text-sm">Голос диктора</Label>
-                                    <Select value={ttsVoice} onValueChange={(v) => setTtsVoice(v as TtsVoice)}>
+                                    <Select value={ttsVoice} onValueChange={(v) => {
+                                        const validVoices = ['ermil', 'zahar', 'jane', 'alena', 'omazh'];
+                                        if (validVoices.includes(v)) {
+                                            setTtsVoice(v as TtsVoice);
+                                        }
+                                    }}>
                                         <SelectTrigger id="tts-voice">
                                             <SelectValue />
                                         </SelectTrigger>
