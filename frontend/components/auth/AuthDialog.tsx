@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -21,19 +21,19 @@ interface AuthDialogProps {
 export function AuthDialog({ open, onOpenChange, defaultTab = "login" }: AuthDialogProps) {
     const [activeTab, setActiveTab] = useState(defaultTab);
 
-    useEffect(() => {
-        if (open) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+    const handleOpenChange = (nextOpen: boolean) => {
+        if (nextOpen) {
             setActiveTab(defaultTab);
         }
-    }, [open, defaultTab]);
+        onOpenChange(nextOpen);
+    };
 
     const handleSuccess = () => {
         onOpenChange(false);
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Добро пожаловать</DialogTitle>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import ProductDataStep from "@/components/wizard/ProductDataStep";
@@ -28,61 +28,60 @@ export default function CreatePage() {
   const router = useRouter();
   
   // Polling проекта - начинается автоматически когда projectId установлен
-  const { data: project, isLoading } = useProjectStatus(projectId, !!projectId);
+  const { data: project, isLoading } = useProjectStatus(projectId, !!projectId, {
+    onStatusChange: (nextProject) => {
+      console.log('📊 Project status changed:', nextProject.status);
 
-  // Отслеживаем смену статуса проекта
-  useEffect(() => {
-    if (!project) return;
-    
-    console.log('📊 Project status changed:', project.status);
-    
-    // Когда фон готов - переходим на превью
-    if (project.status === 'IMAGE_READY' && step === 'product') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setStep('preview');
-      toast.success('Фон готов! Проверьте результат');
-    }
-    
-    // Когда видео готово - редирект на страницу проекта
-    if (project.status === 'COMPLETED') {
-      toast.success('Видео готово! 🎉');
-      router.push(`/projects/${project.id}`);
-    }
-    
-    // Если ошибка - показываем детали и сбрасываем
-    if (project.status === 'FAILED') {
-      console.log('❌ Project failed. Settings:', project.settings);
-      
-      const settings = project.settings;
-      const lastError =
-        settings && typeof settings === 'object' && 'lastError' in settings
-          ? (settings as { lastError?: unknown }).lastError
-          : undefined;
-      const errorMsg = typeof lastError === 'string' ? lastError : 'Ошибка генерации проекта';
-      
-      let userFriendlyMsg = 'Ошибка генерации проекта';
-      
-      if (typeof errorMsg === 'string') {
-        if (errorMsg.includes('404')) {
-          userFriendlyMsg = 'Ошибка API. Проверьте ключи доступа к внешним сервисам (Photoroom, Stability AI)';
-        } else if (errorMsg.includes('timeout')) {
-          userFriendlyMsg = 'Превышено время ожидания. Попробуйте позже';
-        } else if (errorMsg.includes('Request failed')) {
-          userFriendlyMsg = 'Ошибка запроса к внешнему API. Проверьте настройки сервиса';
-        } else {
-          userFriendlyMsg = `Ошибка: ${errorMsg}`;
-        }
+      // Когда фон готов - переходим на превью
+      if (nextProject.status === 'IMAGE_READY') {
+        setStep((prevStep) => {
+          if (prevStep !== 'product') return prevStep;
+          toast.success('Фон готов! Проверьте результат');
+          return 'preview';
+        });
       }
-      
-      toast.error(userFriendlyMsg, { duration: 6000 });
-      
-      // Возвращаем на первый шаг для повторной попытки
-      setTimeout(() => {
-        setStep('product');
-        setProjectId(null);
-      }, 1500);
-    }
-  }, [project?.status, step, router, project?.id, project?.settings]);
+
+      // Когда видео готово - редирект на страницу проекта
+      if (nextProject.status === 'COMPLETED') {
+        toast.success('Видео готово! 🎉');
+        router.push(`/projects/${nextProject.id}`);
+      }
+
+      // Если ошибка - показываем детали и сбрасываем
+      if (nextProject.status === 'FAILED') {
+        console.log('❌ Project failed. Settings:', nextProject.settings);
+
+        const settings = nextProject.settings;
+        const lastError =
+          settings && typeof settings === 'object' && 'lastError' in settings
+            ? (settings as { lastError?: unknown }).lastError
+            : undefined;
+        const errorMsg = typeof lastError === 'string' ? lastError : 'Ошибка генерации проекта';
+
+        let userFriendlyMsg = 'Ошибка генерации проекта';
+
+        if (typeof errorMsg === 'string') {
+          if (errorMsg.includes('404')) {
+            userFriendlyMsg = 'Ошибка API. Проверьте ключи доступа к внешним сервисам (Photoroom, Stability AI)';
+          } else if (errorMsg.includes('timeout')) {
+            userFriendlyMsg = 'Превышено время ожидания. Попробуйте позже';
+          } else if (errorMsg.includes('Request failed')) {
+            userFriendlyMsg = 'Ошибка запроса к внешнему API. Проверьте настройки сервиса';
+          } else {
+            userFriendlyMsg = `Ошибка: ${errorMsg}`;
+          }
+        }
+
+        toast.error(userFriendlyMsg, { duration: 6000 });
+
+        // Возвращаем на первый шаг для повторной попытки
+        setTimeout(() => {
+          setStep('product');
+          setProjectId(null);
+        }, 1500);
+      }
+    },
+  });
 
   // Шаг 1: Создание проекта и запуск генерации фона
   const handleProductDataNext = async (data: { imageUrl: string; productData: ProductData; scenePrompt?: string; aspectRatio: AspectRatio }) => {
@@ -128,25 +127,33 @@ export default function CreatePage() {
   const handleAnimate = async () => {
     if (!projectId) return;
 
+    const projectQueryKey = ['project', projectId] as const;
+    const previousProject = queryClient.getQueryData<Project>(projectQueryKey);
+
     try {
+      // Optimistically kick polling back on immediately (polling stops at IMAGE_READY).
+      queryClient.setQueryData<Project>(projectQueryKey, (prev) => {
+        if (!prev) return prev;
+        return { ...prev, status: 'GENERATING_VIDEO' };
+      });
+      queryClient.invalidateQueries({ queryKey: projectQueryKey });
+      setStep('animating');
+
       await axios.post(
         `${API_URL}/projects/${projectId}/animate`,
         {},
         { withCredentials: true } // Send cookies
       );
 
-      // Important: polling stops at IMAGE_READY. Kick it back into polling immediately.
-      queryClient.setQueryData<Project>(['project', projectId], (prev) => {
-        if (!prev) return prev;
-        return { ...prev, status: 'GENERATING_VIDEO' };
-      });
-      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
-      
-      setStep('animating');
       toast.success('Анимация запущена! Это займет ~3-4 минуты');
     } catch (error) {
       console.error('Animation failed', error);
-      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+
+      if (previousProject) {
+        queryClient.setQueryData<Project>(projectQueryKey, previousProject);
+      }
+      queryClient.invalidateQueries({ queryKey: projectQueryKey });
+      setStep('preview');
       toast.error('Ошибка запуска анимации');
     }
   };

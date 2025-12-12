@@ -4,6 +4,10 @@ import axios from 'axios';
 import { API_URL } from '@/lib/utils';
 import { Project } from '@/types/project';
 
+export type UseProjectStatusOptions = {
+  onStatusChange?: (project: Project, prevStatus: Project['status'] | undefined) => void;
+};
+
 /**
  * Hook для мониторинга статуса проекта с автоматическим polling
  * 
@@ -18,19 +22,40 @@ import { Project } from '@/types/project';
  * После выхода из processing-статуса делает один быстрый refetch (через 500ms),
  * чтобы быстрее поймать финальный статус.
  */
-export function useProjectStatus(projectId: string | null, enabled: boolean = true) {
-  const previousStatusRef = useRef<string | undefined>(undefined);
+export function useProjectStatus(projectId: string | null, enabled: boolean = true, options?: UseProjectStatusOptions) {
+  const previousStatusRef = useRef<Project['status'] | undefined>(undefined);
+  const previousNotifiedStatusRef = useRef<Project['status'] | undefined>(undefined);
+  const previousProjectIdRef = useRef<string | null>(null);
+
+  const resetRefsIfProjectChanged = (currentProjectId: string | null) => {
+    if (previousProjectIdRef.current !== currentProjectId) {
+      previousProjectIdRef.current = currentProjectId;
+      previousStatusRef.current = undefined;
+      previousNotifiedStatusRef.current = undefined;
+    }
+  };
   
   return useQuery({
     queryKey: ['project', projectId],
     queryFn: async () => {
       if (!projectId) throw new Error('Project ID is required');
 
+      resetRefsIfProjectChanged(projectId);
+
       const response = await axios.get<Project>(`${API_URL}/projects/${projectId}`, {
         withCredentials: true, // Send cookies
       });
 
       return response.data;
+    },
+    onSuccess: (data) => {
+      resetRefsIfProjectChanged(projectId);
+
+      const prevStatus = previousNotifiedStatusRef.current;
+      if (data.status !== prevStatus) {
+        options?.onStatusChange?.(data, prevStatus);
+        previousNotifiedStatusRef.current = data.status;
+      }
     },
     enabled: enabled && !!projectId,
     // Опрашивать каждые 3 сек, если статус в процессе генерации
@@ -39,6 +64,8 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
       
       const processingStatuses = ['DRAFT', 'GENERATING_IMAGE', 'GENERATING_VIDEO', 'QUEUED', 'PROCESSING', 'RENDERING'];
       const currentStatus = query.state.data.status;
+
+      resetRefsIfProjectChanged(projectId);
       const prevStatus = previousStatusRef.current;
       
       // Сохраняем текущий статус для следующей проверки
