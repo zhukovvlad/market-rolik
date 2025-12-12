@@ -73,27 +73,46 @@ export class AnimationProcessor {
    * Этап 2: Анимация видео + Финальный рендер
    * 
    * Джоб: animate-image
-   * Вход: { projectId: string }
+   * Вход: { projectId: string, prompt?: string, requestId?: string }
    * Предусловие: Проект в статусе IMAGE_READY (фон одобрен пользователем)
    * Выход: Статус COMPLETED + финальное видео
    */
   @Process('animate-image')
-  async handleAnimateImage(job: Job<{ projectId: string }>) {
-    const { projectId } = job.data;
+  async handleAnimateImage(job: Job<{ projectId: string; prompt?: string; requestId?: string }>) {
+    const { projectId, prompt } = job.data;
     this.logger.log(`🎬 START Animation for Project ${projectId}`);
 
     try {
       const project = await this.projectsService.findOne(projectId);
       
       // Проверка статуса
-      if (project.status !== ProjectStatus.IMAGE_READY) {
-        throw new Error(`Project must be in IMAGE_READY status, current: ${project.status}`);
+      if (project.status !== ProjectStatus.IMAGE_READY && project.status !== ProjectStatus.GENERATING_VIDEO) {
+        throw new Error(`Project must be in IMAGE_READY or GENERATING_VIDEO status, current: ${project.status}`);
       }
 
-      project.status = ProjectStatus.GENERATING_VIDEO;
-      await this.projectsService.save(project);
+      if (project.status === ProjectStatus.IMAGE_READY) {
+        project.status = ProjectStatus.GENERATING_VIDEO;
+        await this.projectsService.save(project);
+      }
 
-      const settings = project.settings || {};
+      let settings = project.settings || {};
+
+      const normalizedJobPrompt = typeof prompt === 'string' ? prompt.trim() : '';
+      const normalizedSettingsPrompt = typeof settings.prompt === 'string' ? settings.prompt.trim() : '';
+
+      // Persist prompt from job payload (if provided) so the job is self-contained and
+      // concurrent API requests cannot clobber the prompt used for this animation.
+      // Normalize values to avoid unnecessary writes due to whitespace-only differences.
+      if (normalizedJobPrompt.length > 0 && normalizedJobPrompt !== normalizedSettingsPrompt) {
+        project.settings = {
+          ...settings,
+          prompt: normalizedJobPrompt,
+        };
+        await this.projectsService.save(project);
+        // settings already contains the correct values; do not reassign
+        settings = project.settings;
+      }
+
       const { width, height } = getDimensions(settings.aspectRatio);
 
       // --- 1. ПОЛУЧАЕМ АКТИВНУЮ СЦЕНУ ---
@@ -143,7 +162,10 @@ export class AnimationProcessor {
       // --- 2. ГЕНЕРАЦИЯ ВИДЕО (Kling AI) ---
       this.logger.log('🎬 Generating animation with Kling AI...');
       
-      const klingPrompt = settings.prompt || "slow cinematic camera zoom in, floating dust particles, high quality, 4k";
+      const klingPrompt =
+        normalizedJobPrompt ||
+        (typeof settings.prompt === 'string' && settings.prompt.trim().length > 0 ? settings.prompt.trim() : '') ||
+        'slow cinematic camera zoom in, floating dust particles, high quality, 4k';
       let s3VideoUrl: string | null = null;
 
       try {

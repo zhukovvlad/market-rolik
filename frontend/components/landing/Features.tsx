@@ -6,7 +6,7 @@ export default function Features() {
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary to-transparent"></div>
       <div className="max-w-7xl mx-auto relative">
         <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-heading text-foreground mb-4">The Assembler's Toolkit</h2>
+          <h2 className="text-4xl lg:text-5xl font-heading text-foreground mb-4">The Assembler&apos;s Toolkit</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Professional-grade features that transform raw materials into conversion gold.</p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

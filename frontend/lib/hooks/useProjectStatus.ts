@@ -1,25 +1,48 @@
 import { useQuery } from '@tanstack/react-query';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import axios from 'axios';
 import { API_URL } from '@/lib/utils';
 import { Project } from '@/types/project';
 
+export type UseProjectStatusOptions = {
+  onStatusChange?: (project: Project, prevStatus: Project['status'] | undefined) => void;
+};
+
 /**
  * Hook для мониторинга статуса проекта с автоматическим polling
  * 
- * Опрашивает сервер каждые 3 секунды пока проект в статусах:
+ * Опрашивает сервер каждые 3 секунды пока проект в "processing" статусах:
+ * - DRAFT
  * - GENERATING_IMAGE
  * - GENERATING_VIDEO
+ * - QUEUED
+ * - PROCESSING
+ * - RENDERING
  * 
- * Останавливает polling когда проект достигает:
- * - IMAGE_READY (ждет действия пользователя)
- * - COMPLETED
- * - FAILED
+ * После выхода из processing-статуса делает один быстрый refetch (через 500ms),
+ * чтобы быстрее поймать финальный статус.
  */
-export function useProjectStatus(projectId: string | null, enabled: boolean = true) {
-  const previousStatusRef = useRef<string | undefined>(undefined);
+export function useProjectStatus(projectId: string | null, enabled: boolean = true, options?: UseProjectStatusOptions) {
+  const previousStatusRef = useRef<Project['status'] | undefined>(undefined);
+  const previousNotifiedStatusRef = useRef<Project['status'] | undefined>(undefined);
+  const previousProjectIdRef = useRef<string | null>(null);
+  const onStatusChangeRef = useRef(options?.onStatusChange);
   
-  return useQuery({
+  // Keep callback ref up to date (safe pattern for storing latest callback)
+  useEffect(() => {
+    onStatusChangeRef.current = options?.onStatusChange;
+  });
+  
+  // Reset refs synchronously when projectId changes to avoid race conditions
+  useEffect(() => {
+    if (previousProjectIdRef.current !== projectId) {
+      previousProjectIdRef.current = projectId;
+      previousStatusRef.current = undefined;
+      previousNotifiedStatusRef.current = undefined;
+    }
+  }, [projectId]);
+  
+  const query = useQuery({
     queryKey: ['project', projectId],
     queryFn: async () => {
       if (!projectId) throw new Error('Project ID is required');
@@ -33,10 +56,13 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
     enabled: enabled && !!projectId,
     // Опрашивать каждые 3 сек, если статус в процессе генерации
     refetchInterval: (query) => {
+      if (query.state.status === 'error') return false; // Stop polling on persistent errors
       if (!query.state.data) return 3000; // Если данных еще нет - продолжаем опрашивать
       
-      const processingStatuses = ['GENERATING_IMAGE', 'GENERATING_VIDEO', 'QUEUED', 'PROCESSING', 'RENDERING'];
+      const processingStatuses = ['DRAFT', 'GENERATING_IMAGE', 'GENERATING_VIDEO', 'QUEUED', 'PROCESSING', 'RENDERING'];
       const currentStatus = query.state.data.status;
+
+      resetRefsIfProjectChanged(projectId);
       const prevStatus = previousStatusRef.current;
       
       // Сохраняем текущий статус для следующей проверки
@@ -67,4 +93,17 @@ export function useProjectStatus(projectId: string | null, enabled: boolean = tr
     // Не показывать старые данные из кеша
     staleTime: 0,
   });
+
+  // Handle status change callback using useEffect instead of deprecated onSuccess
+  useEffect(() => {
+    if (query.data) {
+      const prevStatus = previousNotifiedStatusRef.current;
+      if (query.data.status !== prevStatus) {
+        onStatusChangeRef.current?.(query.data, prevStatus);
+        previousNotifiedStatusRef.current = query.data.status;
+      }
+    }
+  }, [query.data, projectId]);
+
+  return query;
 }

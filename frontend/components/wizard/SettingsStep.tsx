@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, type ElementType } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +15,8 @@ interface SettingsStepProps {
     onBack?: () => void;
 }
 
-const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: React.ElementType }> = {
+// Order matches ASPECT_RATIOS constant for consistency
+const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: ElementType }> = {
     "9:16": { label: "Stories (9:16)", Icon: Smartphone },
     "16:9": { label: "Landscape (16:9)", Icon: Monitor },
     "1:1": { label: "Square (1:1)", Icon: Square },
@@ -25,18 +26,14 @@ const ASPECT_RATIO_CONFIG: Record<AspectRatio, { label: string; Icon: React.Elem
 export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBack }: SettingsStepProps) {
     const [prompt, setPrompt] = useState("");
     const [aspectRatio, setAspectRatio] = useState<AspectRatio>("9:16");
-    const [imageError, setImageError] = useState(false);
+    const [imageErrorUrl, setImageErrorUrl] = useState<string | null>(null);
+    const imageError = imageErrorUrl === imageUrl;
     
     // Audio settings
     const [musicTheme, setMusicTheme] = useState<MusicTheme>('energetic');
     const [ttsEnabled, setTtsEnabled] = useState(true);
     const [ttsText, setTtsText] = useState("");
     const [ttsVoice, setTtsVoice] = useState<TtsVoice>('ermil');
-
-    // Reset error state when imageUrl changes
-    useEffect(() => {
-        setImageError(false);
-    }, [imageUrl]);
 
     const handleGenerate = () => {
         onGenerate({ 
@@ -72,8 +69,18 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                         src={imageUrl} 
                         alt="Preview" 
                         className="w-full h-full object-cover opacity-80" 
-                        onLoad={() => setImageError(false)}
-                        onError={() => setImageError(true)}
+                        onLoad={(e) => {
+                            const attemptedSrc = e.currentTarget.getAttribute('src');
+                            if (attemptedSrc === imageUrl) {
+                                setImageErrorUrl(null);
+                            }
+                        }}
+                        onError={(e) => {
+                            const attemptedSrc = e.currentTarget.getAttribute('src');
+                            if (attemptedSrc === imageUrl) {
+                                setImageErrorUrl(imageUrl);
+                            }
+                        }}
                     />
                     {imageError && (
                         <div className="absolute inset-0 flex items-center justify-center bg-muted">
@@ -95,14 +102,23 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
 
                     <div className="space-y-3">
                         <Label className="text-base">Формат видео</Label>
-                        <RadioGroup value={aspectRatio} onValueChange={(v) => setAspectRatio(v as AspectRatio)} className="grid grid-cols-2 gap-4">
+                        <RadioGroup
+                            value={aspectRatio}
+                            onValueChange={(v) => {
+                                if ((ASPECT_RATIOS as readonly string[]).includes(v)) {
+                                    setAspectRatio(v as AspectRatio);
+                                }
+                            }}
+                            className="grid grid-cols-2 gap-4"
+                        >
                             {ASPECT_RATIOS.map((ratio) => {
                                 const { label, Icon } = ASPECT_RATIO_CONFIG[ratio];
+                                const safeId = `r-${ratio.replace(':', '-')}`;
                                 return (
                                     <div key={ratio}>
-                                        <RadioGroupItem value={ratio} id={`r-${ratio}`} className="peer sr-only" />
+                                        <RadioGroupItem value={ratio} id={safeId} className="peer sr-only" />
                                         <Label
-                                            htmlFor={`r-${ratio}`}
+                                            htmlFor={safeId}
                                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
                                         >
                                             <Icon className="mb-3 h-6 w-6" />
@@ -134,7 +150,11 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                             <Music className="h-4 w-4" />
                             Фоновая музыка
                         </Label>
-                        <Select value={musicTheme} onValueChange={(v) => setMusicTheme(v as typeof musicTheme)}>
+                        <Select value={musicTheme} onValueChange={(v) => {
+                            if (['energetic', 'calm', 'lofi'].includes(v)) {
+                                setMusicTheme(v as MusicTheme);
+                            }
+                        }}>
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
@@ -164,7 +184,12 @@ export default function SettingsStep({ imageUrl, onGenerate, isGenerating, onBac
                             <>
                                 <div className="space-y-2">
                                     <Label htmlFor="tts-voice" className="text-sm">Голос диктора</Label>
-                                    <Select value={ttsVoice} onValueChange={(v) => setTtsVoice(v as TtsVoice)}>
+                                    <Select value={ttsVoice} onValueChange={(v) => {
+                                        const validVoices = ['ermil', 'zahar', 'jane', 'alena', 'omazh'];
+                                        if (validVoices.includes(v)) {
+                                            setTtsVoice(v as TtsVoice);
+                                        }
+                                    }}>
                                         <SelectTrigger id="tts-voice">
                                             <SelectValue />
                                         </SelectTrigger>

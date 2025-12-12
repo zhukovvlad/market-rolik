@@ -20,14 +20,18 @@ NestJS-based backend for AI-powered video generation marketplace.
 - Redis 7+
 
 ### For Video Rendering
-The application uses **Remotion** from the `/video` directory which requires:
+The application uses **Remotion** for server-side video rendering which requires:
 
 - ✅ **Chromium/Chrome** - headless browser for rendering
 - ✅ **ffmpeg** - video encoding
 - ✅ **2GB+ RAM** - for video rendering processes
-- ✅ **Built Remotion bundle** - run `npm run build` in `/video` directory
+- ✅ **Built Remotion bundle** - a compiled Remotion bundle available to the backend
 
-**Important**: Backend requires access to `/video/remotion-build` directory for rendering.
+**Important**: By default the backend looks for the Remotion bundle in `./remotion-build` (relative to the `backend/` directory).
+If you build the bundle in `video/` (default output: `video/remotion-build`), either:
+
+- set `REMOTION_BUNDLE_PATH=../video/remotion-build`, or
+- copy/sync `video/remotion-build` into `backend/remotion-build`.
 
 **See [docs/deployment.md](../docs/deployment.md) for detailed setup instructions.**
 
@@ -42,6 +46,9 @@ cd ../video
 npm install
 npm run build  # Creates remotion-build directory
 cd ../backend
+
+# If your bundle is in ../video/remotion-build, either set REMOTION_BUNDLE_PATH accordingly
+# or copy it into ./remotion-build (default).
 
 # 3. Set up environment variables
 cp .env.example .env
@@ -87,7 +94,7 @@ GOOGLE_CLIENT_SECRET=your-secret
 GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/callback
 
 # Remotion (optional, defaults provided)
-REMOTION_BUNDLE_PATH=../video/remotion-build
+REMOTION_BUNDLE_PATH=./remotion-build
 REMOTION_OUTPUT_DIR=./output
 REMOTION_COMPOSITION_ID=WbClassic
 ```

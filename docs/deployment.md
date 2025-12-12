@@ -7,7 +7,9 @@ Market-Rolik uses a monorepo structure:
 - `/frontend` - Next.js web application  
 - `/video` - Remotion video templates
 
-**Important**: The backend renders videos using Remotion templates from `/video` directory. Both need to be available at runtime.
+**Important**: The backend renders videos using a pre-built Remotion bundle.
+By default it expects the bundle at `backend/remotion-build` (via `REMOTION_BUNDLE_PATH=./remotion-build`).
+If you build the bundle in `video/` (default output: `video/remotion-build`), set `REMOTION_BUNDLE_PATH=../video/remotion-build` instead.
 
 ## Infrastructure Requirements for Video Rendering
 
@@ -42,7 +44,8 @@ cd backend
 npm run start:dev
 ```
 
-The backend will access Remotion templates from `../video/remotion-build` directory.
+The backend will access the Remotion bundle from the path defined by `REMOTION_BUNDLE_PATH`.
+Default is `./remotion-build` (i.e. `backend/remotion-build`).
 
 #### Full Docker Setup (Development)
 
@@ -248,7 +251,7 @@ VIDEO_POLL_DELAY_MS=10000
 VIDEO_MAX_POLL_ATTEMPTS=30
 
 # Remotion Configuration (optional, defaults provided)
-REMOTION_BUNDLE_PATH=../video/remotion-build
+REMOTION_BUNDLE_PATH=./remotion-build
 REMOTION_OUTPUT_DIR=./output
 REMOTION_COMPOSITION_ID=WbClassic
 ```
@@ -385,7 +388,7 @@ npm run build
 ls -la remotion-build/  # Should show bundle.js and index.html
 ```
 
-The backend looks for the bundle at the path specified in `REMOTION_BUNDLE_PATH` env variable (default: `../video/remotion-build`).
+The backend looks for the bundle at the path specified in `REMOTION_BUNDLE_PATH` env variable (default: `./remotion-build`).
 
 ### "No usable sandbox" error
 

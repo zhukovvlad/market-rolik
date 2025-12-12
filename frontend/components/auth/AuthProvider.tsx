@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 interface User {
@@ -26,8 +26,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+    const mountedRef = useRef(true);
+
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => {
+            mountedRef.current = false;
+        };
+    }, []);
 
     const refreshAuth = useCallback(async () => {
+        if (mountedRef.current) {
+            setIsLoading(true);
+        }
         try {
             // Fetch current user from backend - JWT is in httpOnly cookie
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/me`, {
@@ -40,19 +51,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     ...userData,
                     credits: typeof userData.credits === "number" ? userData.credits : 0,
                 };
-                setUser(safeUser);
+                if (mountedRef.current) {
+                    setUser(safeUser);
+                }
             } else {
-                setUser(null);
+                if (mountedRef.current) {
+                    setUser(null);
+                }
             }
         } catch (error) {
             console.error("Failed to fetch user:", error);
-            setUser(null);
+            if (mountedRef.current) {
+                setUser(null);
+            }
+        } finally {
+            if (mountedRef.current) {
+                setIsLoading(false);
+            }
         }
     }, []);
 
     useEffect(() => {
         // Check authentication status on mount
-        refreshAuth().finally(() => setIsLoading(false));
+        let isMounted = true;
+        refreshAuth().finally(() => {
+            if (isMounted) {
+                setIsLoading(false);
+            }
+        });
+        return () => {
+            isMounted = false;
+        };
     }, [refreshAuth]);
 
     const login = useCallback((newUser: User) => {

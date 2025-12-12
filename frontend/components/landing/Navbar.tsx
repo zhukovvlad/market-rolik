@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -9,11 +9,23 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { AuthDialog } from "@/components/auth/AuthDialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 
+const OPTIMIZABLE_AVATAR_HOSTS = ["s3.twcstorage.ru"];
+
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [authDialogOpen, setAuthDialogOpen] = useState(false);
     const [authDialogTab, setAuthDialogTab] = useState<"login" | "register">("login");
     const { user, logout } = useAuth();
+
+    const isOptimizableAvatarUrl = useMemo(() => {
+        if (!user?.avatarUrl) return false;
+        try {
+            const url = new URL(user.avatarUrl);
+            return url.protocol === "https:" && OPTIMIZABLE_AVATAR_HOSTS.includes(url.hostname);
+        } catch {
+            return false;
+        }
+    }, [user?.avatarUrl]);
 
     const openAuthDialog = (tab: "login" | "register") => {
         setAuthDialogTab(tab);
@@ -48,7 +60,7 @@ export default function Navbar() {
                                             width={32}
                                             height={32}
                                             className="rounded-full ring-2 ring-primary/20"
-                                            unoptimized
+                                            unoptimized={!isOptimizableAvatarUrl}
                                         />
                                     )}
                                     <span className="text-sm font-medium text-foreground">

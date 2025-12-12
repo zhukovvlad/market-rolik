@@ -5,6 +5,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Throttle } from '@nestjs/throttler';
+import { randomUUID } from 'crypto';
 import { StorageService } from '../storage/storage.service';
 import { CleanupService } from '../storage/cleanup.service';
 import { ProjectsService } from './projects.service';
@@ -13,6 +14,7 @@ import { RegenerateBackgroundDto } from './dto/regenerate-background.dto';
 import { AnimateVideoDto } from './dto/animate-video.dto';
 import { AssetType } from './asset.entity';
 import { UserRole } from '../users/user.entity';
+import { ProjectStatus } from './project.entity';
 
 import { ProjectSettings } from './interfaces/project-settings.interface';
 
@@ -190,27 +192,97 @@ export class ProjectsController {
     const project = await this.projectsService.findOne(id, req.user.id);
     
     // Проверяем статус проекта
-    if (project.status !== 'IMAGE_READY') {
-      throw new ForbiddenException(`Project must be in IMAGE_READY status to animate, current: ${project.status}`);
+    // Important: we allow re-entry if status is already GENERATING_VIDEO (e.g. duplicate clicks)
+    if (project.status !== ProjectStatus.IMAGE_READY && project.status !== ProjectStatus.GENERATING_VIDEO) {
+      throw new ForbiddenException(
+        `Project must be in IMAGE_READY or GENERATING_VIDEO status to animate, current: ${project.status}`,
+      );
     }
     
-    // Обновляем animation промпт если предоставлен
-    if (dto.prompt) {
-      project.settings = {
-        ...project.settings,
-        prompt: dto.prompt,
-      };
-      await this.projectsService.save(project);
+    const jobId = `animate-${project.id}`;
+    const existingJob = await this.videoQueue.getJob(jobId);
+
+    if (existingJob) {
+      const state = await existingJob.getState();
+
+      // Bull may return null in edge cases; prefer enabling retry by clearing the record.
+      if (!state) {
+        try {
+          await existingJob.remove();
+        } catch {
+          // ignore
+        }
+      } else {
+        const inFlightStates = new Set<string>(['active', 'waiting', 'delayed', 'paused']);
+
+        // If there's already an in-flight job, don't enqueue another one.
+        if (inFlightStates.has(state)) {
+          // Do not mutate prompt/settings for in-flight job.
+          // But if the status lagged behind (still IMAGE_READY), bump it so UI polling can continue.
+          if (project.status === ProjectStatus.IMAGE_READY) {
+            project.status = ProjectStatus.GENERATING_VIDEO;
+            await this.projectsService.save(project);
+          }
+          return { message: 'Animation already in progress', projectId: project.id };
+        }
+
+        // Allow re-run after completion/failure by removing the old job with the same id.
+        if (['completed', 'failed'].includes(state)) {
+          await existingJob.remove();
+        }
+      }
     }
 
-    // Запускаем Этап 2: Анимация
-    await this.videoQueue.add('animate-image', {
-      projectId: project.id,
-    }, {
-      attempts: 1, // Анимация дорогая, не ретраим автоматически
-      removeOnComplete: true,
-      removeOnFail: false,
-    });
+    // Note: do not persist dto.prompt here to avoid TOCTOU clobbering with concurrent requests.
+    // The processor will persist the prompt atomically for the winning job (see AnimationProcessor).
+    try {
+      const requestId = randomUUID();
+      const job = await this.videoQueue.add(
+        'animate-image',
+        {
+          projectId: project.id,
+          prompt: dto.prompt,
+          requestId,
+        },
+        {
+          jobId,
+          attempts: 1, // Анимация дорогая, не ретраим автоматически
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
+      );
+
+      // Move project to GENERATING_VIDEO after we know the job exists, so UI polling can continue.
+      if (project.status === ProjectStatus.IMAGE_READY) {
+        project.status = ProjectStatus.GENERATING_VIDEO;
+        await this.projectsService.save(project);
+      }
+
+      // Bull may return the existing job silently if jobId already exists.
+      // Use requestId marker to detect that and respond idempotently.
+      if (job.data?.requestId && job.data.requestId !== requestId) {
+        return { message: 'Animation already in progress', projectId: project.id };
+      }
+    } catch (error) {
+      // If enqueue failed due to a race/duplicate, Bull may still have the job recorded.
+      // Avoid relying on error-message patterns.
+      try {
+        const maybeJob = await this.videoQueue.getJob(jobId);
+        if (maybeJob) {
+          return { message: 'Animation already in progress', projectId: project.id };
+        }
+      } catch {
+        // ignore, will rethrow original error
+      }
+
+      // No job exists—rollback status if we bumped it
+      if (project.status === ProjectStatus.GENERATING_VIDEO) {
+        project.status = ProjectStatus.IMAGE_READY;
+        await this.projectsService.save(project);
+      }
+
+      throw error;
+    }
 
     return { message: 'Animation started', projectId: project.id };
   }

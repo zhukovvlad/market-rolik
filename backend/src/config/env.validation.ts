@@ -103,7 +103,7 @@ export const envValidationSchema = Joi.object({
   VIDEO_MAX_POLL_ATTEMPTS: Joi.number().integer().min(1).default(30),
 
   // Remotion Configuration
-  REMOTION_BUNDLE_PATH: Joi.string().default('../video/remotion-build'),
+  REMOTION_BUNDLE_PATH: Joi.string().default('./remotion-build'),
   REMOTION_OUTPUT_DIR: Joi.string().default('./output'),
   REMOTION_COMPOSITION_ID: Joi.string().default('WbClassic'),
 
