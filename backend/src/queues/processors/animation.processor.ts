@@ -73,13 +73,13 @@ export class AnimationProcessor {
    * Этап 2: Анимация видео + Финальный рендер
    * 
    * Джоб: animate-image
-   * Вход: { projectId: string }
+   * Вход: { projectId: string, prompt?: string, requestId?: string }
    * Предусловие: Проект в статусе IMAGE_READY (фон одобрен пользователем)
    * Выход: Статус COMPLETED + финальное видео
    */
   @Process('animate-image')
-  async handleAnimateImage(job: Job<{ projectId: string }>) {
-    const { projectId } = job.data;
+  async handleAnimateImage(job: Job<{ projectId: string; prompt?: string; requestId?: string }>) {
+    const { projectId, prompt } = job.data;
     this.logger.log(`🎬 START Animation for Project ${projectId}`);
 
     try {
@@ -96,6 +96,17 @@ export class AnimationProcessor {
       }
 
       const settings = project.settings || {};
+
+      // Persist prompt from job payload (if provided) so the job is self-contained and
+      // concurrent API requests cannot clobber the prompt used for this animation.
+      if (typeof prompt === 'string' && prompt.trim().length > 0 && prompt !== settings.prompt) {
+        project.settings = {
+          ...settings,
+          prompt,
+        };
+        await this.projectsService.save(project);
+      }
+
       const { width, height } = getDimensions(settings.aspectRatio);
 
       // --- 1. ПОЛУЧАЕМ АКТИВНУЮ СЦЕНУ ---
@@ -145,7 +156,9 @@ export class AnimationProcessor {
       // --- 2. ГЕНЕРАЦИЯ ВИДЕО (Kling AI) ---
       this.logger.log('🎬 Generating animation with Kling AI...');
       
-      const klingPrompt = settings.prompt || "slow cinematic camera zoom in, floating dust particles, high quality, 4k";
+      const klingPrompt =
+        (typeof prompt === 'string' && prompt.trim().length > 0 ? prompt : settings.prompt) ||
+        'slow cinematic camera zoom in, floating dust particles, high quality, 4k';
       let s3VideoUrl: string | null = null;
 
       try {

@@ -5,6 +5,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Throttle } from '@nestjs/throttler';
+import { randomUUID } from 'crypto';
 import { StorageService } from '../storage/storage.service';
 import { CleanupService } from '../storage/cleanup.service';
 import { ProjectsService } from './projects.service';
@@ -240,16 +241,9 @@ export class ProjectsController {
       }
     }
 
-    // Apply prompt update only when we're actually going to (re)enqueue.
+    // Note: do not persist dto.prompt here to avoid TOCTOU clobbering with concurrent requests.
+    // The processor will persist the prompt atomically for the winning job (see AnimationProcessor).
     let didChangeProject = false;
-
-    if (dto.prompt) {
-      project.settings = {
-        ...project.settings,
-        prompt: dto.prompt,
-      };
-      didChangeProject = true;
-    }
 
     const didMoveToGeneratingVideo = project.status === ProjectStatus.IMAGE_READY;
     if (didMoveToGeneratingVideo) {
@@ -262,10 +256,13 @@ export class ProjectsController {
     }
 
     try {
-      await this.videoQueue.add(
+      const requestId = randomUUID();
+      const job = await this.videoQueue.add(
         'animate-image',
         {
           projectId: project.id,
+          prompt: dto.prompt,
+          requestId,
         },
         {
           jobId,
@@ -274,6 +271,12 @@ export class ProjectsController {
           removeOnFail: false,
         },
       );
+
+      // Bull may return the existing job silently if jobId already exists.
+      // Use requestId marker to detect that and respond idempotently.
+      if (job.data?.requestId && job.data.requestId !== requestId) {
+        return { message: 'Animation already in progress', projectId: project.id };
+      }
     } catch (error) {
       // If enqueue failed due to a race/duplicate, Bull may still have the job recorded.
       // Avoid relying on error-message patterns.
