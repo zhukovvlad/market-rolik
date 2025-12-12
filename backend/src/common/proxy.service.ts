@@ -33,11 +33,19 @@ export class ProxyService {
 
     if (!proxyHost || !proxyPort) return undefined;
 
-    const url = new URL(`http://${proxyHost}:${proxyPort}`);
-    // URL will percent-encode credentials safely when stringified
-    if (proxyUser) url.username = proxyUser;
-    if (proxyPass) url.password = proxyPass;
-    return url.toString();
+    try {
+      const url = new URL(`http://${proxyHost}:${proxyPort}`);
+      // URL will percent-encode credentials safely when stringified
+      if (proxyUser) url.username = proxyUser;
+      if (proxyPass) url.password = proxyPass;
+      return url.toString();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.logger.warn(
+        `Invalid proxy configuration (host/port). Falling back to direct connection. Reason: ${msg}`,
+      );
+      return undefined;
+    }
   }
 
   /**
@@ -48,14 +56,16 @@ export class ProxyService {
     const proxyUrl = this.buildProxyUrl();
     if (!proxyUrl) {
       if (!this.httpsAgentInitialized) {
-        this.logger.log('🌍 Using Direct Connection (No Proxy configured)');
+        this.logger.log('Using Direct Connection (No Proxy configured)');
         this.httpsAgentInitialized = true;
       }
       return undefined;
     }
 
     if (!this.httpsAgent) {
-      this.logger.log(`🔌 Initializing Proxy Agent: ${proxyUrl}`);
+      const parsed = new URL(proxyUrl);
+      const authHint = (parsed.username || parsed.password) ? ' (auth)' : '';
+      this.logger.log(`Initializing Proxy Agent: ${parsed.hostname}:${parsed.port}${authHint}`);
       this.httpsAgent = new HttpsProxyAgent(proxyUrl);
       this.httpsAgentInitialized = true;
     }
@@ -91,12 +101,12 @@ export class ProxyService {
 
   private handleError(error: any, url: string) {
     if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
       this.logger.error(
-        `❌ Request failed to ${url}: ${error.message}`,
-        error.response?.data,
+        `Request failed to ${url}: ${error.message}${status ? ` (status=${status})` : ''}`,
       );
     } else {
-      this.logger.error(`❌ Unexpected error: ${error}`);
+      this.logger.error(`Unexpected error: ${String(error)}`);
     }
   }
 }
