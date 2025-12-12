@@ -77,7 +77,11 @@ export function validateJwtSecret(secret: string): string | null {
   }
 
   // Reject any explicitly forbidden exact values
-  if (JWT_SECRET_FORBIDDEN_VALUES.includes(secret as any)) {
+  if (
+    JWT_SECRET_FORBIDDEN_VALUES.includes(
+      secret as (typeof JWT_SECRET_FORBIDDEN_VALUES)[number],
+    )
+  ) {
     return `JWT_SECRET cannot be a placeholder value. Generate a strong secret using: ${JWT_SECRET_GENERATION_COMMAND}`;
   }
 

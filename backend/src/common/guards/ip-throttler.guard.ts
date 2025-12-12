@@ -21,6 +21,7 @@ export class IpThrottlerGuard extends ThrottlerGuard {
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
 
     if (ip === 'unknown') {
+      await Promise.resolve(); // Satisfy async requirement
       this.logger.warn(
         'Unable to extract client IP address. Check trust proxy configuration in main.ts. ' +
           'Rate limiting may not work correctly.',

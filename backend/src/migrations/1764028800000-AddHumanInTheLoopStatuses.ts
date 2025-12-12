@@ -35,7 +35,8 @@ export class AddHumanInTheLoopStatuses1764028800000
         `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async down(_queryRunner: QueryRunner): Promise<void> {
     // PostgreSQL не поддерживает удаление значений из enum через ALTER TYPE
     // Нужно пересоздавать enum, что опасно для production
     // Поэтому down миграция оставлена пустой

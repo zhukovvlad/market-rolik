@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddUniqueConstraintToGoogleId1764028675476

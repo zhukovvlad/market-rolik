@@ -3,7 +3,6 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
-import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -15,8 +14,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         // Try to extract from cookie first
-        (request: Request) => {
-          return request?.cookies?.access_token;
+        (request: { cookies?: Record<string, string> }): string | null => {
+          const token = request?.cookies?.['access_token'];
+          return typeof token === 'string' ? token : null;
         },
         // Fallback to Authorization header for backward compatibility
         ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -28,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  validate(payload: JwtPayload): { id: string; email: string; role?: string } {
     return { id: payload.sub, email: payload.email, role: payload.role };
   }
 }

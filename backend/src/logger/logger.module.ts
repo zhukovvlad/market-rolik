@@ -44,6 +44,7 @@ const backendFilter = winston.format((info) => {
                 winston.format.colorize({ all: true }),
                 winston.format.printf(
                   ({ timestamp, level, message, context, ms }) => {
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     return `${timestamp} [${context}] ${level}: ${message} ${ms}`;
                   },
                 ),

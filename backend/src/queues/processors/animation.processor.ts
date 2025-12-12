@@ -263,7 +263,9 @@ export class AnimationProcessor {
 
       try {
         fs.unlinkSync(outputFilePath);
-      } catch (e) {}
+      } catch {
+        // Ignore file deletion errors
+      }
 
       // --- 5. ЗАВЕРШЕНИЕ ---
       project.status = ProjectStatus.COMPLETED;

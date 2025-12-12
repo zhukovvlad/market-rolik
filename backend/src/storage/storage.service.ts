@@ -71,7 +71,10 @@ export class StorageService {
       this.logger.log(`✅ File uploaded to S3: ${publicUrl}`);
       return publicUrl;
     } catch (error) {
-      this.logger.error(`❌ S3 Upload Error: ${error.message}`, error.stack);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`❌ S3 Upload Error: ${errorMessage}`, errorStack);
       throw error;
     }
   }
@@ -132,7 +135,10 @@ export class StorageService {
       await this.s3Client.send(command);
       this.logger.log(`✅ File deleted from S3: ${fileUrl}`);
     } catch (error) {
-      this.logger.error(`❌ S3 Delete Error: ${error.message}`, error.stack);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`❌ S3 Delete Error: ${errorMessage}`, errorStack);
       throw error;
     }
   }

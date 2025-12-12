@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import { Asset } from '../projects/asset.entity';
@@ -91,7 +91,7 @@ export class CleanupService implements OnModuleInit {
           // Delete tracking record
           await this.uploadTrackingRepository.remove(upload);
           this.logger.log(
-            `Deleted orphaned file: ${upload.fileUrl} (uploaded at ${upload.uploadedAt})`,
+            `Deleted orphaned file: ${upload.fileUrl} (uploaded at ${upload.uploadedAt.toISOString()})`,
           );
           deleted++;
         } else {

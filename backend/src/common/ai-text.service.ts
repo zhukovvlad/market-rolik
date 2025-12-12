@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
@@ -190,7 +193,7 @@ export class AiTextService {
     let parsed: URL;
     try {
       parsed = new URL(url);
-    } catch (e) {
+    } catch {
       throw new BadRequestException('Invalid URL format');
     }
     if (parsed.protocol !== 'https:') {

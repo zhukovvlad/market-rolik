@@ -84,7 +84,7 @@ import { envValidationSchema } from './config/env.validation';
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         redis: {
           host: configService.get('REDIS_HOST'),
           port: configService.get('REDIS_PORT'),
