@@ -3,8 +3,9 @@
 Документация всех мест в проекте, где используется `eslint-disable` для правил `@typescript-eslint/no-unsafe-*`.
 
 **Дата создания:** 13 декабря 2025  
-**Всего файлов:** 21  
-**Статус:** 🟢 4 файла исправлено | 🟡 17 файлов осталось
+**Последнее обновление:** 13 декабря 2025  
+**Всего файлов:** 19  
+**Статус:** 🟢 6 файлов исправлено | 🟡 13 файлов осталось
 
 ---
 
@@ -38,6 +39,22 @@ const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 **Статус:** ✅ Исправлено  
 **Что было:** `no-unsafe-argument` при проверке forbidden values  
 **Решение:** Правильный type assertion: `as typeof JWT_SECRET_FORBIDDEN_VALUES[number]`
+
+### 5. `projects/projects.service.ts`
+**Статус:** ✅ Исправлено  
+**Что было:** `no-unsafe-assignment`, `no-unsafe-member-access` при работе с `meta` полями  
+**Решение:** 
+- Типизирован `meta` параметр: `Record<string, unknown> = {}`
+- Изменён тип в Asset entity: `meta: Record<string, unknown> | null`
+- Type narrowing для prompt: `const prompt = asset.meta?.['prompt']; if (typeof prompt === 'string')`
+
+### 6. `migrations/1764028675476-AddUniqueConstraintToGoogleId.ts`
+**Статус:** ✅ Исправлено  
+**Что было:** `no-unsafe-assignment`, `no-unsafe-member-access` при работе с `queryRunner.query()`  
+**Решение:** Type assertion для результата query:
+```typescript
+const constraintExists = (await queryRunner.query(`...`)) as unknown[];
+```
 
 ---
 
@@ -198,18 +215,7 @@ if (isGeminiProductAnalysis(parsed)) {
 
 ---
 
-### 11. `projects/projects.service.ts`
-**Правила:** `no-unsafe-assignment`, `no-unsafe-member-access`  
-**Причина:** Доступ к user.userId и settings.prompt  
-**Места:** 2-3 места
-
-**Рекомендация:** Типизировать user объект и settings
-
-**Оценка времени:** 10 минут
-
----
-
-### 12. `projects/projects.controller.ts`
+### 11. `projects/projects.controller.ts`
 **Правила:** `no-unsafe-member-access`  
 **Причина:** Доступ к req.requestId  
 **Места:** 2 места
@@ -220,7 +226,7 @@ if (isGeminiProductAnalysis(parsed)) {
 
 ---
 
-### 13. `logger/logger.controller.ts`
+### 12. `logger/logger.controller.ts`
 **Правила:** `no-unsafe-assignment`, `no-unsafe-member-access`, `no-unsafe-return`  
 **Причина:** Работа с динамическими логами из request body  
 **Места:** 5-7 мест
@@ -231,7 +237,7 @@ if (isGeminiProductAnalysis(parsed)) {
 
 ---
 
-### 14. `main.ts`
+### 13. `main.ts`
 **Правила:** `no-unsafe-assignment`, `no-unsafe-member-access`, `no-unsafe-call`, `no-unsafe-argument`  
 **Причина:** Работа с app instance и logger  
 **Места:** 8-10 мест
@@ -244,7 +250,7 @@ if (isGeminiProductAnalysis(parsed)) {
 
 ## 🟢 Сложность: Низкая (Transform декораторы)
 
-### 15-17. DTO файлы с Transform
+### 14-16. DTO файлы с Transform
 **Файлы:**
 - `projects/dto/create-project.dto.ts`
 - `projects/dto/animate-video.dto.ts`
@@ -266,7 +272,7 @@ if (isGeminiProductAnalysis(parsed)) {
 
 ## 🔵 Можно оставить (тесты и migrations)
 
-### 18-19. Test файлы
+### 17-18. Test файлы
 **Файлы:**
 - `projects/dto/create-project.dto.spec.ts`
 - `projects/constants.spec.ts`
@@ -277,9 +283,8 @@ if (isGeminiProductAnalysis(parsed)) {
 
 ---
 
-### 20-21. Migrations
-**Файлы:**
-- `migrations/1764028675476-AddUniqueConstraintToGoogleId.ts`
+### 19. Migration
+**Файл:**
 - `migrations/1765466016525-UpdateEmailIndex.ts`
 
 **Причина:** TypeORM миграции работают с raw queries, типизация сложна
@@ -292,21 +297,18 @@ if (isGeminiProductAnalysis(parsed)) {
 
 | Категория | Файлов | Время (мин) | Приоритет |
 |-----------|---------|-------------|-----------|
-| ✅ Исправлено | 4 | - | Готово |
+| ✅ Исправлено | 6 | - | Готово |
 | 🔴 Сложные (API) | 4 | 110-135 | Высокий |
-| 🟡 Средние (Controllers/Services) | 10 | 130-160 | Средний |
+| 🟡 Средние (Controllers/Services) | 9 | 120-150 | Средний |
 | 🟢 Простые (DTOs) | 3 | 15 | Высокий |
-| 🔵 Тесты/Migrations | 4 | - | Низкий |
-| **Итого** | **25** | **~6-7 часов** | |
-
----
+| 🔵 Тесты/Migrations | 3 | - | Низкий |
+| **Итого** | **25** | **~5-6 часов** | |
 
 ## 🎯 Рекомендуемый план действий
 
-### Фаза 1: Быстрые победы (30 мин)
+### Фаза 1: Быстрые победы (20 мин)
 1. DTO файлы (3 файла) - 15 минут
 2. projects.controller.ts - 5 минут
-3. projects.service.ts - 10 минут
 
 ### Фаза 2: Средняя сложность (2-3 часа)
 1. auth.controller.ts - 20 минут

@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { ExceptionFilter, Catch, ArgumentsHost, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 
 @Catch()
 export class OAuthExceptionFilter implements ExceptionFilter {
@@ -11,20 +8,30 @@ export class OAuthExceptionFilter implements ExceptionFilter {
 
   constructor(private configService: ConfigService) {}
 
-  catch(exception: any, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
+    const response = ctx.getResponse<Response>();
+
+    // Type guard для проверки структуры exception
+    const exceptionObj = exception as {
+      message?: string;
+      name?: string;
+      stack?: string;
+    };
 
     // Проверяем, это ли OAuth ошибка
     const isOAuthError =
-      exception.message?.includes('InternalOAuthError') ||
-      exception.message?.includes('Failed to obtain access token') ||
-      exception.name === 'InternalOAuthError' ||
-      exception.name === 'TokenError' ||
-      exception.name === 'AuthorizationError';
+      exceptionObj.message?.includes('InternalOAuthError') ||
+      exceptionObj.message?.includes('Failed to obtain access token') ||
+      exceptionObj.name === 'InternalOAuthError' ||
+      exceptionObj.name === 'TokenError' ||
+      exceptionObj.name === 'AuthorizationError';
 
     if (isOAuthError) {
-      this.logger.error(`OAuth Error: ${exception.message}`, exception.stack);
+      this.logger.error(
+        `OAuth Error: ${exceptionObj.message ?? 'Unknown error'}`,
+        exceptionObj.stack,
+      );
 
       // Редиректим на страницу ошибки вместо показа белого экрана
       const frontendUrl =
