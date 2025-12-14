@@ -67,6 +67,7 @@ export class LoggerController {
       const { level, message, context, timestamp, data } = logDto;
 
       // Sanitize message to remove control characters (keep \t, \n, \r)
+
       const sanitizedMessage = message.replace(
         /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g,
         '',

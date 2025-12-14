@@ -42,7 +42,7 @@ export class Asset {
   storageUrl: string; // Ссылка на файл в S3
 
   @Column('jsonb', { nullable: true })
-  meta: any; // Длительность, промпт, параметры
+  meta: Record<string, unknown> | null; // Длительность, промпт, параметры
 
   @CreateDateColumn()
   createdAt: Date;

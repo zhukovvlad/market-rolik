@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Project, ProjectStatus } from './project.entity';
 import { Asset, AssetType } from './asset.entity';
 import { User } from '../users/user.entity';
@@ -46,7 +44,7 @@ export class ProjectsService {
 
   // Find a project by ID (optionally check ownership)
   async findOne(id: string, userId?: string) {
-    const where: any = { id };
+    const where: FindOptionsWhere<Project> = { id };
     if (userId) {
       where.userId = userId;
     }
@@ -79,7 +77,7 @@ export class ProjectsService {
     storageUrl: string,
     type: AssetType, // <--- Strict typing
     provider: string,
-    meta: any = {},
+    meta: Record<string, unknown> = {},
   ) {
     if (!storageUrl?.trim()) {
       throw new BadRequestException('storageUrl cannot be empty');
@@ -178,8 +176,9 @@ export class ProjectsService {
 
     // Если у ассета в метаданных есть промпт, восстанавливаем его в настройки,
     // чтобы пользователь видел тот промпт, который создал эту картинку
-    if (asset.meta?.prompt) {
-      project.settings.scenePrompt = asset.meta.prompt;
+    const prompt = asset.meta?.['prompt'];
+    if (typeof prompt === 'string') {
+      project.settings.scenePrompt = prompt;
     }
 
     return await this.projectsRepository.save(project);

@@ -91,7 +91,7 @@ export class CleanupService implements OnModuleInit {
           // Delete tracking record
           await this.uploadTrackingRepository.remove(upload);
           this.logger.log(
-            `Deleted orphaned file: ${upload.fileUrl} (uploaded at ${upload.uploadedAt.toISOString()})`,
+            `Deleted orphaned file: ${upload.fileUrl} (uploaded at ${upload.uploadedAt instanceof Date ? upload.uploadedAt.toISOString() : String(upload.uploadedAt)})`,
           );
           deleted++;
         } else {

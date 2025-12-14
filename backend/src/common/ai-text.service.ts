@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
@@ -169,7 +166,7 @@ export class AiTextService {
             .trim()
         : '{}';
 
-      const parsed = JSON.parse(cleanText);
+      const parsed = JSON.parse(cleanText) as Partial<ProductAnalysis>;
       this.logger.log(`✅ Parsed JSON: ${JSON.stringify(parsed, null, 2)}`);
 
       return {

@@ -264,7 +264,8 @@ export class AnimationProcessor {
       try {
         fs.unlinkSync(outputFilePath);
       } catch {
-        // Ignore file deletion errors
+        // Non-critical: file may already be deleted or moved
+        this.logger.debug(`Could not delete temp file: ${outputFilePath}`);
       }
 
       // --- 5. ЗАВЕРШЕНИЕ ---

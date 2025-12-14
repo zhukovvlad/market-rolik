@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddUniqueConstraintToGoogleId1764028675476
@@ -14,9 +12,9 @@ export class AddUniqueConstraintToGoogleId1764028675476
     );
 
     // 2. Добавляем ограничение уникальности (if not exists)
-    const constraintExists = await queryRunner.query(`
+    const constraintExists = (await queryRunner.query(`
             SELECT 1 FROM pg_constraint WHERE conname = 'UQ_f382af58ab36057334fb262efd5'
-        `);
+        `)) as unknown[];
 
     if (!constraintExists || constraintExists.length === 0) {
       await queryRunner.query(
@@ -26,9 +24,9 @@ export class AddUniqueConstraintToGoogleId1764028675476
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const constraintExists = await queryRunner.query(`
+    const constraintExists = (await queryRunner.query(`
             SELECT 1 FROM pg_constraint WHERE conname = 'UQ_f382af58ab36057334fb262efd5'
-        `);
+        `)) as unknown[];
 
     if (constraintExists && constraintExists.length > 0) {
       await queryRunner.query(
